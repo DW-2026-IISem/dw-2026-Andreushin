@@ -4,11 +4,9 @@
 > **Fecha de ejecución:** 20 de agosto de 2026
 > **Entorno:** WSL2 sobre Windows
 
-Este documento registra, paso a paso, la ejecución completa de la guía para
+Este documento registra, paso a paso, la ejecución de la guía para
 levantar los cuatro motores de base de datos (MySQL, PostgreSQL, SQL Server
-y Oracle XE) en WSL usando Docker Compose. Cada sección incluye el comando
-ejecutado, la salida obtenida y una breve explicación de qué hace ese paso
-y por qué es necesario.
+y Oracle XE) en WSL usando Docker Compose.
 
 ---
 
@@ -28,9 +26,7 @@ Docker Compose version v2.29.7
 ![Verificación de la versión de Docker en la terminal](imagenes/01-docker-version.png)
 
 **Explicación:** estos dos comandos verifican que el motor de Docker y el
-plugin de Compose estén disponibles. Si `docker compose version` fallara,
-el resto de la guía no funcionaría, porque todos los motores se levantan
-con archivos `docker-compose.yml`.
+plugin de Compose estén disponibles.
 
 ---
 
@@ -50,8 +46,7 @@ Salida:
 configuración de cada motor (el `docker-compose.yml`, el `.env` y el
 `README.md`). `data/` guarda los datos reales de las bases de datos, fuera
 del contenedor, para que no se pierdan si el contenedor se borra o se
-recrea. Esta separación entre configuración y datos es una práctica
-estándar al trabajar con Docker.
+recrea.
 
 ---
 
@@ -68,9 +63,7 @@ Salida:
 
 **Explicación:** los cuatro motores necesitan estar en la misma red Docker
 para poder comunicarse entre sí (por ejemplo, si más adelante un script o
-una app necesita conectarse a más de un motor). El comando primero
-verifica si la red ya existe (`inspect`) y solo la crea si no existe,
-evitando el error de "red duplicada" si se vuelve a correr la guía.
+una app necesita conectarse a más de un motor).
 
 ---
 
@@ -83,10 +76,7 @@ puerto `3306`, montando el volumen de datos y agregando un healthcheck.
 El `.env` define `MYSQL_ROOT_PASSWORD` y `MYSQL_DATABASE=tecnogua`.
 
 **Explicación:** el `.env` separa las credenciales del archivo de
-Compose, así el `docker-compose.yml` no expone contraseñas directamente y
-se puede reutilizar en distintos entornos. El `healthcheck` le permite a
-Docker saber si MySQL ya terminó de inicializar y está listo para recibir
-conexiones, no solo si el proceso está corriendo.
+Compose, así el `docker-compose.yml` no expone contraseñas directamente 
 
 ### 4.2 Levantar el contenedor
 
@@ -99,9 +89,7 @@ Verificación:
 
 ![04-mysql-up.png](imagenes/04-mysql-up.png)
 
-**Resultado:** MySQL quedó corriendo y en estado `healthy`. El log
-confirma "ready for connections", que es la señal de que el motor
-terminó su arranque correctamente.
+**Resultado:** MySQL quedó corriendo y en estado `healthy`. 
 
 ---
 
@@ -188,41 +176,16 @@ completo para confirmar que funciona de punta a punta:
 
 ```bash
 $ ~/ia-lab/services/motores-bd/start-all.sh
-========================================
-Iniciando motores de base de datos...
-========================================
-
->>> Levantando mysql...
-    mysql: OK
-
->>> Levantando postgres...
-    postgres: OK
-
->>> Levantando mssql...
-    mssql: OK
-
->>> Levantando oracle...
-    oracle: OK
-
-========================================
-Todos los motores iniciados.
-========================================
 ```
 
-![Captura pendiente: guarda aquí imagenes/08-start-all.png](imagenes/08-start-all.png)
+![08-start-all.png](imagenes/08-start-all.png)
 
 Verificación final de estado:
 
 ```bash
 $ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-NAMES               STATUS              PORTS
-mysql-server        Up 2 minutes        0.0.0.0:3306->3306/tcp
-ia-postgres         Up 2 minutes        0.0.0.0:5433->5432/tcp
-sqlserver-container Up 2 minutes        0.0.0.0:1433->1433/tcp
-oracle-xe           Up 5 minutes        0.0.0.0:1521->1521/tcp, 0.0.0.0:8080->8080/tcp
 ```
-
-![Captura pendiente: guarda aquí imagenes/09-docker-ps-final.png](imagenes/09-docker-ps-final.png)
+![09-docker-ps-final.png](imagenes/09-docker-ps-final.png)
 
 Los cuatro motores quedaron corriendo simultáneamente, cada uno en su
 puerto correspondiente.
@@ -236,99 +199,44 @@ conectarme desde otro equipo de la red:
 
 ```bash
 $ hostname -I
-172.20.123.45
+172.19.32.39
 ```
 
 ### 10.1 MySQL
 
-```bash
-$ docker exec -it mysql-server mysql -u root -p
-```
-
-```sql
-CREATE DATABASE practica_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'estudiante'@'%' IDENTIFIED BY 'PasswordSegura2024!';
-GRANT ALL PRIVILEGES ON practica_db.* TO 'estudiante'@'%';
-FLUSH PRIVILEGES;
-SELECT user, host FROM mysql.user WHERE host = '%';
-```
-
-Salida de verificación:
-
-```
-+------------+------+
-| user       | host |
-+------------+------+
-| estudiante | %    |
-+------------+------+
-```
-
-Conexión remota confirmada:
-
-```bash
-$ mysql -h 172.20.123.45 -P 3306 -u estudiante -p
-Welcome to the MySQL monitor...
-mysql>
-```
-
-![Captura pendiente: guarda aquí imagenes/10-mysql-usuario.png](imagenes/10-mysql-usuario.png)
+**Conexión remota confirmada:**
+![10-mysql-usuario.png](imagenes/10-mysql-usuario.png)
 
 ### 10.2 PostgreSQL
 
-Mismo procedimiento: creé `practica_db`, el usuario `estudiante` con
-`CREATE USER ... WITH PASSWORD`, le di privilegios con `GRANT ALL
-PRIVILEGES` y cambié el dueño con `ALTER DATABASE ... OWNER TO`. Verifiqué
-con `\du` que el usuario apareciera en la lista de roles, y confirmé la
-conexión remota con `psql -h 172.20.123.45 -p 5433 -U estudiante -d
-practica_db`.
-
-![Captura pendiente: guarda aquí imagenes/11-postgres-usuario.png](imagenes/11-postgres-usuario.png)
+**Conexión remota confirmada:**
+![11-postgres-usuario.png](imagenes/11-postgres-usuario.png)
 
 ### 10.3 SQL Server
 
-En SQL Server el proceso tiene un paso adicional: primero se crea el
-`LOGIN` a nivel de servidor y después el `USER` dentro de la base de
-datos, enlazado a ese login. Sin este segundo paso el usuario no puede
-autenticarse contra `practica_db` aunque el login exista. Verifiqué con
-`SELECT name, type_desc, is_disabled FROM sys.sql_logins;` que
-`estudiante` apareciera activo (`is_disabled = 0`).
-
-![Captura pendiente: guarda aquí imagenes/12-mssql-usuario.png](imagenes/12-mssql-usuario.png)
+**Conexión remota confirmada:**
+![12-mssql-usuario.png](imagenes/12-mssql-usuario.png)
 
 ### 10.4 Oracle
 
-En Oracle el orden también importa: primero hay que crear un
-`TABLESPACE` (el espacio de almacenamiento físico) y solo después el
-`USER`, indicándole ese tablespace como `DEFAULT TABLESPACE`. Verifiqué
-con `SELECT username, account_status FROM dba_users WHERE username =
-'ESTUDIANTE';` que el estado fuera `OPEN`.
-
-![Captura pendiente: guarda aquí imagenes/13-oracle-usuario.png](imagenes/13-oracle-usuario.png)
+**Conexión remota confirmada:**
+![13-oracle-usuario.png](imagenes/13-oracle-usuario.png)
 
 ---
 
-## 11. Resumen final
+## Resumen
 
 | Motor      | Puerto | Usuario admin | Usuario creado | Estado final |
 |------------|--------|----------------|-----------------|--------------|
-| MySQL      | 3306   | root           | estudiante      | ✅ Corriendo |
-| PostgreSQL | 5433   | ialab          | estudiante      | ✅ Corriendo |
-| SQL Server | 1433   | SA             | estudiante      | ✅ Corriendo |
-| Oracle XE  | 1521   | SYSTEM         | estudiante      | ✅ Corriendo |
+| MySQL      | 3306   | root           | estudiante      | Corriendo |
+| PostgreSQL | 5433   | ialab          | estudiante      | Corriendo |
+| SQL Server | 1433   | SA             | estudiante      | Corriendo |
+| Oracle XE  | 1521   | SYSTEM         | estudiante      | Corriendo |
 
-### Lecciones aprendidas
+
 
 Separar `.env` del `docker-compose.yml` evita exponer contraseñas y
-facilita reutilizar la misma plantilla en otro entorno. El healthcheck de
-MySQL y PostgreSQL es útil para saber cuándo el motor realmente está
-listo, no solo cuando el contenedor "está corriendo". Oracle es el motor
-más pesado y lento de inicializar, y el único que en la guía original
-advierte posibles problemas en WSL. En SQL Server y Oracle, crear un
-usuario con acceso a una base de datos requiere dos pasos encadenados
-(login/tablespace primero, usuario después), a diferencia de MySQL y
-PostgreSQL donde el usuario y sus permisos se resuelven casi en un solo
-paso.
+facilita reutilizar la misma plantilla en otro entorno.
 
 ---
 
-**Bitácora generada a partir de:** `GUÍA-ESTUDIANTE-MOTORES-BD.md` (v1.0)
