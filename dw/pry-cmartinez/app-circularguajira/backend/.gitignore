@@ -14,6 +14,10 @@ lerna-debug.log*
 
 # OS
 .DS_Store
+*Zone.Identifier
+
+# TypeScript incremental build cache
+*.tsbuildinfo
 
 # Tests
 /coverage
