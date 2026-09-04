@@ -1,0 +1,29 @@
+
+> backend@0.0.1 start:dev
+> nest start --watch
+
+[2J[3J[H[[90m9:12:35 PM[0m] Starting compilation in watch mode...
+
+[[90m9:12:40 PM[0m] Found 0 errors. Watching for file changes.
+
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +29ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSequelizeModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mLoggingModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigHostModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +2ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mConfigModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSequelizeCoreModule dependencies initialized[39m[38;5;3m +90ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mHealthModule dependencies initialized[39m[38;5;3m +0ms[39m
+[33m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [33m   WARN[39m [38;5;3m[LegacyRouteConverter] [39m[33mUnsupported route path: "/api/*". In previous versions, the symbols ?, *, and + were used to denote optional or repeating path parameters. The latest version of "path-to-regexp" now requires the use of named parameters. For example, instead of using a route like /users/* to capture all routes starting with "/users", you should use /users/*path. For more details, refer to the migration guide. Attempting to auto-convert to "/api/{*path}"...[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mAppController {/api}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/api/health}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/api/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:42 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +5ms[39m
+Executing (default): SELECT 1+1 AS result
+[32m[Nest] 33280  - [39m09/03/2026, 9:12:48 PM [32m    LOG[39m [38;5;3m[HTTP] [39m[32mGET /api/health 200 - 154ms[39m
+Executing (default): SELECT 1+1 AS result
+[32m[Nest] 33280  - [39m09/03/2026, 9:18:53 PM [32m    LOG[39m [38;5;3m[HTTP] [39m[32mGET /api/health 200 - 35ms[39m
