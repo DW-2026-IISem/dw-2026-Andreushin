@@ -1,6 +1,6 @@
 # ISS-01 — Esqueleto NestJS CA arrancable
 
-Issue #: _(completar al crear el issue en GitHub)_
+Issue #: Issue GitHub: backend-nest-ia #2
 
 ## 1. Objetivo / Especificación
 Disponer de la estructura base versionada en Git para el backend de CircularGuajira bajo Clean Architecture, **sin base de datos**.
