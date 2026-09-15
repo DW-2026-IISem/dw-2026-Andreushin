@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
+import { MaterialRatesModule } from './material-rates/material-rates.module.js';
 import { MaterialsModule } from './materials/materials.module.js';
-import { ProductsModule } from './products/products.module.js';
 import { RecyclersModule } from './recyclers/recyclers.module.js';
-import { SalesModule } from './sales/sales.module.js';
 
 @Module({
-  imports: [RecyclersModule, MaterialsModule, ProductsModule, SalesModule],
+  imports: [RecyclersModule, MaterialsModule, MaterialRatesModule],
 })
 export class BusinessModule {}
