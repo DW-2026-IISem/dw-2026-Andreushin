@@ -1,116 +1,124 @@
-# ISS-06 — Feature `sales` (Ventas y Descuento Atómico de Stock)
+# ISS-06 — Feature `settlements` (Liquidaciones y Pesajes — Agregado Transaccional)
 
 Issue #: Issue GitHub: backend-nest-ia #9
 
 ## 1. Objetivo / Especificación
-Registrar la venta de uno o más productos terminados (ISS-05) a un cliente, descontando el stock vendido de cada producto de forma **atómica** (todo o nada): si cualquier ítem falla (producto inexistente o stock insuficiente), no se crea ni la venta ni ningún descuento de inventario.
+Registrar la liquidación de compra de material a un reciclador, con pesaje por material, descuento automático de tara, aplicación de la tarifa vigente (ISS-05) y actualización del stock acumulado en planta, de forma **atómica** (todo o nada): si cualquier pesaje falla (peso inválido, material sin tarifa activa), no se crea ni la liquidación ni ningún incremento de inventario.
 
-- **Dominio:** entidad pura `SaleEntity` (cabecera: `id`, `saleDate`, `subtotal`, `tax`, `discounts`, `total`, `status`, `clientId`, `items`) y `ProductSaleEntity` (detalle: `id`, `saleId`, `productId`, `quantity`, `unitPrice`, `total`). Servicio de dominio `SaleCalculator` (`subtotal = Σ qty × unitPrice`, `total = subtotal + tax - discounts`). Interfaz `ISaleRepository` (`create`, `findById`) y token `SALE_REPOSITORY`. Excepciones propias `SaleNotFoundException` (404) y `EmptySaleException` (400); reutiliza `RecyclerNotFoundException` (404, como "cliente") de `recyclers` (ISS-03) e `InsufficientStockException` (409) de `products` (ISS-05).
-- **Aplicación:** `CreateSaleUseCase` inyecta `SALE_REPOSITORY` y `RECYCLER_REPOSITORY`: valida que `clientId` exista antes de crear. DTOs `CreateSaleDto` (`clientId` requerido, `items[]` con `@ArrayMinSize(1)`, `tax`/`discounts` opcionales `>= 0`) y `SaleItemDto` (`productId`/`quantity` requeridos, `unitPrice` opcional — si no viene, se toma el precio actual del producto).
-- **Infraestructura:** `SaleModel` (tabla `sales`, FK a `RecyclerModel`) y `ProductSaleModel` (tabla `product_sales`, FK a `SaleModel` y `ProductModel`). `SaleRepository.create` envuelve toda la operación en `sequelize.transaction`: por cada ítem bloquea la fila del producto (`LOCK.UPDATE`), invoca `product.reduceStock(quantity)` (entidad pura de ISS-05) y solo si todos los ítems pasan, inserta cabecera y detalle; cualquier error revierte todo, incluido el stock ya descontado de ítems anteriores en la misma venta.
+- **Dominio:** entidad pura `SettlementEntity` (cabecera: `id`, `recyclerId`, `settlementDate`, `subtotal`, `tax`, `discounts`, `total`, `status` — `'EMITIDA'|'PAGADA'|'ANULADA'` —, `items`) y `WeighingEntity` (detalle: `id`, `settlementId`, `materialId`, `grossWeight`, `tareWeight`, `netWeight`, `pricePerKg`, `total`), que calcula `netWeight`/`total` en su propio constructor y lanza `InvalidWeightException` (INV-01) si el peso bruto no es mayor que la tara. Servicio de dominio `SettlementCalculator` (`subtotal = Σ netWeight × pricePerKg`, `total = subtotal - discounts + tax`). Interfaz `ISettlementRepository` (`create`, `findById`) y token `SETTLEMENT_REPOSITORY`. Excepciones propias `SettlementNotFoundException` (404), `EmptySettlementException` (400), `InvalidWeightException` (400), `NoActiveRateForMaterialException` (409, INV-02) y `RecyclerInactiveException` (409); reutiliza `RecyclerNotFoundException` (404) de `recyclers` (ISS-03).
+- **Aplicación:** `CreateSettlementUseCase` inyecta `SETTLEMENT_REPOSITORY` y `RECYCLER_REPOSITORY`: valida que el reciclador exista y esté activo, y que `items` no esté vacío, antes de crear. DTOs `CreateSettlementDto` (`recyclerId` requerido, `items[]` con `@ArrayMinSize(1)`, `tax`/`discounts` opcionales `>= 0`) y `WeighingItemDto` (`materialId` requerido, `grossWeight > 0`, `tareWeight >= 0`).
+- **Infraestructura:** `SettlementModel` (tabla `settlements`, FK a `RecyclerModel`) y `WeighingModel` (tabla `weighings`, FK a `SettlementModel` y `MaterialModel`). `SettlementRepository.create` envuelve toda la operación en `sequelize.transaction`: por cada pesaje bloquea la fila de la tarifa activa del material (`LOCK.UPDATE`, accediendo a `MaterialRateModel` directamente, igual que el patrón ya usado con `ProductModel` en la implementación anterior de este issue), calcula el pesaje con la entidad pura `WeighingEntity` e incrementa `stockKg` de esa tarifa; solo si todos los pesajes pasan, inserta cabecera y detalle. Cualquier error revierte todo, incluido el stock ya acumulado de pesajes anteriores en la misma liquidación.
 
 ## 2. Criterios de aceptación (AC)
 | # | Criterio |
 |---|---|
-| AC1 | `POST /api/sales` → `201` / `400` (`items` vacío o DTO inválido) / `404` (`clientId` o `productId` inexistente) / `409` (stock insuficiente) |
-| AC2 | `GET /api/sales/:id` → `200`, retorna cabecera + detalle de ítems; `404` si no existe |
-| AC3 | `subtotal`/`total` se calculan siempre en el dominio (`SaleCalculator`); nunca se reciben calculados del cliente |
-| AC4 | La operación es atómica: cualquier fallo (stock insuficiente en cualquier ítem) revierte la venta completa, incluido el stock ya descontado de ítems previos de la misma venta |
-| AC5 | Una venta puede incluir uno o más ítems, cada uno con su propio `productId` y `unitPrice` (explícito o tomado del precio actual del producto) |
+| AC1 | `POST /api/settlements` → `201` / `400` (`items` vacío, DTO inválido o peso inválido — INV-01) / `404` (`recyclerId` inexistente) / `409` (reciclador inactivo o sin tarifa activa para el material — INV-02) |
+| AC2 | `GET /api/settlements/:id` → `200`, retorna cabecera + detalle de pesajes con tara; `404` si no existe |
+| AC3 | `netWeight` se calcula siempre en el dominio (`grossWeight - tareWeight`, en el constructor de `WeighingEntity`); nunca se recibe del cliente |
+| AC4 | La operación es atómica: cualquier fallo (peso inválido o material sin tarifa en cualquier pesaje) revierte la liquidación completa, incluido el stock ya acumulado de pesajes previos de la misma liquidación |
+| AC5 | Una liquidación puede incluir uno o más pesajes, cada uno con su propio `materialId` y su propia tarifa vigente aplicada |
 
-> **Nota de ajuste:** el borrador inicial de este archivo describía una feature `settlements` (liquidación de compra de material a un reciclador, con `Weighing`/tara/`materialRateId`, dependiente de la `ISS-05` original `material-rates`). El prompt de ejecución (sección 3) reemplazó ese enfoque por una feature `sales` (venta de `products` —ISS-05 ya pivotada— a un `clientId`), consistente con el pivote de ISS-05 de `material-rates` a `products`. Este archivo ya refleja lo realmente implementado para que la evidencia sea consistente con el comportamiento de la API.
+> **Historial del issue:** este archivo describió originalmente `settlements` (versión actual). Durante la ejecución del proyecto se implementó por error una feature distinta (`sales`, venta de productos a un cliente tipo retail) en su lugar, documentada así en una versión anterior de este mismo archivo. Una auditoría posterior detectó la desviación de dominio (no correspondía a la narrativa de CircularGuajira, que compra material a recicladores mediante pesaje/tara/tarifa/liquidación, ni al issue #9 real en GitHub) y se revirtió: `sales/` fue eliminado junto con `products/` (ISS-05) en el mismo commit del refactor de ISS-05, y ahora se reconstruye como `settlements` sobre la base ya corregida de `material-rates`.
 
 ## 3. IA usada
 CLAUDE CODE // Sonnet 5
 
 15/09/2026
-Naturaleza: PRÁCTICO. Eres asistente SOLO de ISS-06, no del backend entero.
+Naturaleza: PRÁCTICO. Eres asistente SOLO de ISS-06 (settlements / liquidaciones y pesajes), no del backend entero.
 
-Implementa los Criterios de Aceptación de trazabilidad/ISS-06.md siguiendo estrictamente el contrato de arquitectura en docs/Prompt.md (Clean Architecture, pista Business para CircularGuajira).
+Implementa los Criterios de Aceptación de trazabilidad/ISS-06.md siguiendo estrictamente el contrato de arquitectura en docs/Prompt.md (Clean Architecture, pista Business para el dominio de CircularGuajira).
 
-Contexto del proyecto y convenciones establecidas: El proyecto ya tiene ISS-01 (esqueleto), ISS-02 (Sequelize y Common), ISS-03 (recyclers), ISS-04 (materials) e ISS-05 (products). El registro dinámico de modelos de Sequelize se ubica en `src/infrastructure/database/sequelize/sequelize-model.registry.ts` (`SaleModel` y `ProductSaleModel` deben auto-registrarse en este archivo). La feature `clients`/`recyclers` expone `CLIENT_REPOSITORY` / `RECYCLER_REPOSITORY`. La feature `products` expone `IProductRepository`, `PRODUCT_REPOSITORY`, el método de dominio `product.reduceStock(quantity)` y la excepción `InsufficientStockException`. NO borres ni modifiques docs/ ni trazabilidad/.
+Contexto del proyecto y convenciones establecidas: El backend cuenta con ISS-01 (esqueleto), ISS-02 (Sequelize y Common), ISS-03 (recyclers), ISS-04 (materials) e ISS-05 (material-rates). El registro dinámico de modelos de Sequelize se ubica en `src/infrastructure/database/sequelize/sequelize-model.registry.ts` (`SettlementModel` y `WeighingModel` deben auto-registrarse en este archivo). La feature `recyclers` (ISS-03) expone `IRecyclerRepository` y el token `RECYCLER_REPOSITORY`. La feature `material-rates` (ISS-05) expone `IMaterialRateRepository`, el token `MATERIAL_RATE_REPOSITORY` y el método `findActiveRateByMaterialAndDate`. NO borres ni modifiques docs/ ni trazabilidad/.
 
-Requerimientos de implementación para ISS-06 (Feature sales en src/features/business/sales/):
+Requerimientos de implementación para ISS-06 (Feature settlements en src/features/business/settlements/):
 
-1. Capa 1 — Domain (src/features/business/sales/domain/): entities/product-sale.entity.ts: Clase PURA. Campos: id, saleId, productId, quantity, unitPrice, total. entities/sale.entity.ts: Clase PURA (agregado cabecera/detalle). Campos: id, saleDate, subtotal, tax, discounts, total, status, clientId, items (ProductSale[]). services/sale-calculator.ts: Servicio de dominio para calcular subtotal (Σ qty * unitPrice) y total (subtotal + tax - discounts). interfaces/sale.repository.interface.ts: Interfaz ISaleRepository (métodos: create, findById) y token SALE_REPOSITORY. exceptions/: SaleNotFoundException (404), EmptySaleException (400 - DomainException).
+1. Capa 1 — Domain (src/features/business/settlements/domain/): entities/weighing.entity.ts: Clase PURA (pesaje individual). Campos: id, settlementId, materialId, grossWeight (peso bruto > 0), tareWeight (tara >= 0), netWeight (peso neto = grossWeight - tareWeight), pricePerKg (número > 0), total (netWeight * pricePerKg). INVARIANTE DE DOMINIO (INV-01): Lanza `InvalidWeightException` (400 - DomainException) si `grossWeight <= tareWeight` o si `netWeight <= 0`. entities/settlement.entity.ts: Clase PURA (agregado cabecera/detalle de liquidación). Campos: id, recyclerId (FK al reciclador), settlementDate (Date), subtotal (número > 0), tax (número >= 0), discounts (número >= 0), total (número > 0), status ('EMITIDA' | 'PAGADA' | 'ANULADA'), items (Weighing[]). services/settlement-calculator.ts: Servicio de dominio para calcular subtotal (Σ netWeight * pricePerKg) y total (subtotal - discounts + tax). interfaces/settlement.repository.interface.ts: Interfaz `ISettlementRepository` (create, findById) y token `SETTLEMENT_REPOSITORY`. exceptions/: `SettlementNotFoundException` (404), `EmptySettlementException` (400 - DomainException), `InvalidWeightException` (400 - DomainException), `NoActiveRateForMaterialException` (409 - BusinessRuleException).
 
-2. Capa 2 — Application (src/features/business/sales/application/): dto/: SaleItemDto (productId int min 1, quantity int min 1, unitPrice opcional > 0, si no viene se toma del precio actual del producto), CreateSaleDto (clientId int min 1, items array con @ArrayMinSize(1) y @ValidateNested, tax opcional >= 0, discounts opcional >= 0). mappers/sale.mapper.ts: mapeador bidireccional entre la entidad Sale/ProductSale y los DTOs/Modelos. use-cases/: CreateSaleUseCase (inyecta CLIENT_REPOSITORY, PRODUCT_REPOSITORY y SALE_REPOSITORY; verifica que el cliente exista —404 si no—, verifica que items no esté vacío —400—, invoca ISaleRepository.create(sale) que envuelve toda la operación en una transacción Sequelize), GetSaleByIdUseCase (404 si no existe).
+2. Capa 2 — Application (src/features/business/settlements/application/): dto/: WeighingItemDto (materialId int min 1, grossWeight number > 0, tareWeight number >= 0), CreateSettlementDto (recyclerId int min 1, items array con @ArrayMinSize(1) y @ValidateNested de WeighingItemDto, tax opcional >= 0, discounts opcional >= 0). mappers/settlement.mapper.ts: mapeador bidireccional entre las entidades (Settlement / Weighing) y los DTOs/Modelos. use-cases/: CreateSettlementUseCase (inyecta RECYCLER_REPOSITORY, MATERIAL_RATE_REPOSITORY y SETTLEMENT_REPOSITORY; valida que el reciclador exista y esté activo —404/409—, valida que items no esté vacío —400—, invoca ISettlementRepository.create(settlement) delegando la ejecución en transacción atómica de Sequelize), GetSettlementByIdUseCase (lanza SettlementNotFoundException —404— si no existe).
 
-3. Capa 3 — Infrastructure (src/features/business/sales/infrastructure/): persistence/models/sale.model.ts: Modelo Sequelize @Table({ tableName: 'sales' }) con FK a ClientModel. persistence/models/product-sale.model.ts: Modelo Sequelize @Table({ tableName: 'product_sales' }) con FK a SaleModel y ProductModel. Ambos auto-registrados en sequelize-model.registry.ts. persistence/repositories/sale.repository.ts: implementación atómica de ISaleRepository.create: abre una transacción sequelize.transaction(async (t) => ...): 1) para cada ítem busca el producto con bloqueo lock: Transaction.LOCK.UPDATE; 2) llama a product.reduceStock(item.quantity) en la entidad pura de dominio (si falta stock, lanza InsufficientStockException y se aborta la transacción); 3) guarda la cabecera SaleModel, los detalles ProductSaleModel y actualiza la cantidad en ProductModel; 4) cualquier error ejecuta rollback automático.
+3. Capa 3 — Infrastructure (src/features/business/settlements/infrastructure/): persistence/models/settlement.model.ts: Modelo Sequelize @Table({ tableName: 'settlements' }) con FK a RecyclerModel. persistence/models/weighing.model.ts: Modelo Sequelize @Table({ tableName: 'weighings' }) con FK a SettlementModel y MaterialModel. Ambos auto-registrados en sequelize-model.registry.ts. persistence/repositories/settlement.repository.ts: implementación atómica de ISettlementRepository.create: abre una transacción Sequelize sequelize.transaction(async (t) => ...): 1) para cada ítem en pesajes, consulta la tarifa activa con bloqueo lock: Transaction.LOCK.UPDATE (si no hay tarifa activa, lanza NoActiveRateForMaterialException —409— provocando rollback); 2) calcula netWeight = grossWeight - tareWeight (si netWeight <= 0, la entidad Weighing lanza InvalidWeightException —400— provocando rollback); 3) incrementa el stock acumulado (stockKg) en la tarifa/material correspondiente; 4) inserta la cabecera SettlementModel y las filas de detalle WeighingModel; 5) cualquier error realiza un rollback atómico total.
 
-4. Capa 4 — Presentation (src/features/business/sales/presentation/): http/controllers/sales.controller.ts: Controlador NestJS en /api/sales con Swagger (@ApiTags('Sales'), @ApiOperation): POST /api/sales (201, retorna la venta con ítems y totales), GET /api/sales/:id (200 / 404, detalle completo).
+4. Capa 4 — Presentation (src/features/business/settlements/presentation/): http/controllers/settlements.controller.ts: Controlador NestJS en /api/settlements con Swagger (@ApiTags('Settlements'), @ApiOperation): POST /api/settlements (201, registra la liquidación con sus pesajes y retorna la respuesta), GET /api/settlements/:id (200 / 404, consulta el detalle completo de la liquidación con sus pesajes).
 
-5. Registros y Configuración: Crear SalesModule importando ClientsModule y ProductsModule. Registrar SalesModule en BusinessModule.
+5. Registros y Configuración: Crear SettlementsModule importando RecyclersModule y MaterialRatesModule. Registrar SettlementsModule en BusinessModule.
 
-Prohibiciones duras: PROHIBIDO Auth, Users, JWT, Login, Guards, o agregar userId al DTO de venta. PROHIBIDO usar sync({ force: true }) o alter: true. PROHIBIDO adelantar ISS-07 (orquestador de seeders y Swagger global).
+Prohibiciones duras: PROHIBIDO Auth, Users, JWT, Login, Guards o agregar userId al DTO ("para saber quién pesó"). PROHIBIDO usar sync({ force: true }) o alter: true. PROHIBIDO adelantar ISS-07 (orquestador de seeders y Swagger global).
 
 **Ajustes hechos durante la ejecución (fuera del prompt original, necesarios para que compile/persista):**
-- El proyecto no tiene una feature `clients` (solo `recyclers`, de ISS-03); el prompt mismo lo reconoce con la doble mención `clients`/`recyclers`. Se reutilizó `RECYCLER_REPOSITORY`/`RecyclerEntity`/`RecyclerNotFoundException` de `recyclers` como el "cliente" de una venta: el DTO conserva el nombre `clientId` (tal como lo pide el prompt), pero internamente se resuelve contra el repositorio de recicladores. No se creó ningún módulo `ClientsModule` nuevo.
-- `SaleModel` tiene FK a `RecyclerModel` (no a un inexistente `ClientModel`), por la misma razón.
-- `Transaction` (para `lock: Transaction.LOCK.UPDATE`) se importa del paquete `sequelize`, no de `sequelize-typescript` (que no lo re-exporta); `Sequelize` (para inyectar la conexión vía el token global `SEQUELIZE` de `sequelize.module.ts`) sí se sigue tomando de `sequelize-typescript`.
-- `SaleModel`/`ProductSaleModel` no tienen asociación `@HasMany`/`@BelongsTo` cruzada entre sí a nivel de import bidireccional (para evitar un ciclo de módulos ES): `ProductSaleModel` sí tiene `@ForeignKey`/`@BelongsTo` hacia `SaleModel`, pero `SaleModel` no importa `ProductSaleModel`; el detalle de una venta se consulta con `ProductSaleModel.findAll({ where: { saleId } })` en el repositorio, no con un `include`.
-- `EmptySaleException` se implementó tal como pide el prompt, aunque en la práctica el `ValidationPipe` global (`@ArrayMinSize(1)` en `CreateSaleDto`) ya rechaza un `items: []` con `400` antes de llegar al caso de uso; la excepción de dominio queda como segunda barrera explícita (p. ej. si se invocara `CreateSaleUseCase` fuera del controlador HTTP).
-- Si un `productId` de un ítem no existe, el repositorio lanza `ProductNotFoundException` (404, ya definida en `products`/ISS-05) al no encontrar la fila con `findByPk` dentro de la transacción — no estaba explícitamente listado en las excepciones de dominio de `sales`, pero es necesario para no reventar con un error no controlado.
-- `status` de la venta se fija a `'COMPLETED'` al crearla (no se pidieron transiciones de estado en este issue).
-- Verificación funcional en caliente contra MySQL (`node dist/main.js` temporal) cubriendo los 5 escenarios pedidos: venta exitosa con descuento de stock verificado (201 + `GET /api/products/:id`), stock insuficiente sin crear venta (409 + verificación de que no quedó stock descontado ni venta huérfana), 2 ítems donde el segundo falla y el primero **no** queda descontado (atomicidad real de la transacción), `clientId` inexistente (404) e `items` vacío (400), y `GET /api/sales/:id` (200). Los datos de esta verificación se limpiaron después (venta y detalle borrados, stock restaurado) para no dejar residuos antes de la evidencia formal. Build (`npm run build`) y lint (`npm run lint`) limpios.
+- `RecyclerInactiveException` (409, "reciclador inactivo") no estaba en la lista explícita de excepciones de dominio del prompt (solo `SettlementNotFoundException`, `EmptySettlementException`, `InvalidWeightException`, `NoActiveRateForMaterialException`), pero el propio texto del caso de uso sí pide "409 si está inactivo"; se agregó como excepción propia de `settlements`, siguiendo el mismo patrón que `MaterialInactiveException` en `material-rates` (ISS-05).
+- El bloqueo `lock: Transaction.LOCK.UPDATE` sobre la tarifa activa no pasa por `IMaterialRateRepository` (esa interfaz no tiene un parámetro de transacción en `findActiveRateByMaterialAndDate`): el repositorio de `settlements` accede a `MaterialRateModel` directamente dentro de la transacción, replicando el rango de fechas de `findActiveRateByMaterialAndDate` con el mismo criterio (`Op.lte`/`Op.gte` sobre `startDate`/`endDate`). Es el mismo patrón que ya se usó con `ProductModel` en la implementación anterior de este issue (`sales`), documentado ahí como necesario para el bloqueo pesimista dentro de una transacción.
+- Las dos condiciones de INV-01 (`grossWeight <= tareWeight` y `netWeight <= 0`) son matemáticamente equivalentes (`netWeight = grossWeight - tareWeight`), así que `WeighingEntity` las valida con una sola comprobación.
+- `SettlementModel`/`WeighingModel` no tienen asociación cruzada bidireccional (mismo motivo que `SaleModel`/`ProductSaleModel` antes: evitar un ciclo de imports ES): `WeighingModel` sí tiene `@ForeignKey`/`@BelongsTo` hacia `SettlementModel`, pero `SettlementModel` no importa `WeighingModel`; el detalle se consulta con `WeighingModel.findAll({ where: { settlementId } })`.
+- No se pidió (ni se implementó) un seeder para `settlements`, a diferencia de `recyclers`/`materials`/`material-rates`: las liquidaciones son registros transaccionales, no datos de catálogo para sembrar.
+- Verificación funcional en caliente contra MySQL (`node dist/main.js` temporal) cubriendo los 5 escenarios pedidos: liquidación exitosa con `stockKg` incrementado (201 + `GET /api/material-rates/:id`), tara mayor al peso bruto sin crear nada (400/INV-01 + verificación de rollback), material sin tarifa activa sin crear nada (409/INV-02), atomicidad real con 2 pesajes donde el segundo falla (el primero, válido, **no** queda acumulado), reciclador inexistente (404), reciclador inactivo (409), `items` vacío (400), y `GET /api/settlements/:id` (200). Los datos de esta verificación se limpiaron después (liquidación y detalle borrados, `stockKg` restaurado) para no dejar residuos antes de la evidencia formal. Build (`npm run build`) y lint (`npm run lint`) limpios.
 
 ## 4. Evidencias (EVI)
 
-Pruebas hechas con Postman contra la API local (`npm run start:dev`), usando `clientId: 1` (un reciclador activo) y los productos de ISS-05 (`productId: 1` y `productId: 2`).
+Pruebas hechas con Postman contra la API local (`npm run start:dev`), usando `recyclerId: 1` (activo) para los casos válidos, `recyclerId: 2` (ya estaba inactivo desde ISS-03) para el caso de reciclador inactivo, `materialId: 1` (PET, con tarifa activa) para los pesajes válidos y `materialId: 6` (Cobre, sin tarifa) para el caso sin tarifa activa.
+
+**Detalle de un tropiezo en el camino (EVI-2):** al probar el peso inválido, la primera vez dio `404` en vez del `400` esperado. No era un bug del backend: a la URL de esa request se le había colado un `.` de más (algo como `/api/settlements.` en vez de `/api/settlements`), así que Nest ni siquiera encontraba la ruta y devolvía su `404` genérico de "ruta no encontrada" — no el `404` con el envelope `{statusCode, message, timestamp}` que arma nuestro `GlobalExceptionFilter` para errores de negocio. Corrigiendo la URL, la request devolvió el `400` correcto de `InvalidWeightException`. La captura final de EVI-2 ya es la corregida.
 
 **EVI-1 (AC1 — `201 Created`):**
-Método POST a `/api/sales` con un ítem (`productId: 1`, `quantity: 5`), sin enviar `unitPrice`. Da `201`: la venta se crea con `id 3`, `subtotal`/`total` de `7500` calculados por el backend, y el ítem toma el `unitPrice` (`1500`) del precio actual del producto.
+Método POST a `/api/settlements` con un pesaje de `materialId: 1` (`grossWeight: 105.5`, `tareWeight: 5.5`). Da `201`: la liquidación se crea con `id 2`, `netWeight: 100` (105.5 - 5.5) y `total: 120000` calculados por el backend, nunca enviados en el body.
 ![EVI-1](images/Ev1-ISS-06.png)
 
-**EVI-1.1 (AC1/AC3 — verificar el descuento de stock):**
-Método GET a `/api/products/1`. Da `200` y muestra `quantity: 90`, ya descontada tras la venta de EVI-1.
+**EVI-1.1 (AC1/AC3 — verificar el incremento de stock):**
+Método GET a `/api/material-rates/1`. Da `200` y muestra `stockKg: 100`, ya acumulado tras la liquidación de EVI-1.
 ![EVI-1.1](images/Ev1-1-ISS-06.png)
 
-**EVI-2 (AC1 — `409 Conflict`, stock insuficiente):**
-Método POST a `/api/sales` pidiendo `quantity: 99999` del `productId: 1`. Da `409` con el mensaje "Stock insuficiente para reducir 99999 unidades (disponible: 90)".
+**EVI-2 (AC1 — `400 Bad Request`, INV-01):**
+Método POST a `/api/settlements` con `grossWeight: 10` y `tareWeight: 20` (la tara mayor al peso bruto). Da `400` con el mensaje "El peso bruto (10) debe ser mayor que la tara (20)".
 ![EVI-2](images/Ev2-ISS-06.png)
 
 **EVI-2.1 (AC4 — verificar que no quedó nada creado):**
-Método GET a `/api/sales/4` (el siguiente id después del de EVI-1). Da `404`, confirmando que la venta rechazada de EVI-2 no dejó ningún registro.
+Método GET a `/api/material-rates/1`. Da `200` con `stockKg: 100`, el mismo valor de EVI-1.1: el intento fallido de EVI-2 no acumuló ni dejó ningún registro.
 ![EVI-2.1](images/Ev2-1-ISS-06.png)
 
-**EVI-3 (AC4 — atomicidad con 2 ítems, el segundo falla):**
-Método POST a `/api/sales` con dos ítems: `productId: 1` con `quantity: 5` (válido) y `productId: 2` con `quantity: 99999` (sin stock). Da `409` porque el segundo ítem no tiene stock suficiente.
+**EVI-3 (AC1 — `409 Conflict`, INV-02):**
+Método POST a `/api/settlements` con `materialId: 6` (Cobre), que no tiene tarifa activa. Da `409` con el mensaje "No existe una tarifa activa para el material con id \"6\"".
 ![EVI-3](images/Ev3-ISS-06.png)
 
-**EVI-3.1 (AC4 — verificar que el primer producto no quedó descontado):**
-Método GET a `/api/products/1`. Da `200` con `quantity: 90`, el mismo valor de EVI-1.1: aunque el primer ítem era válido, la venta completa se revirtió por la falla del segundo.
-![EVI-3.1](images/Ev3-1-ISS-06.png)
-
-**EVI-4 (AC1 — `404 Not Found`):**
-Método POST a `/api/sales` con `clientId: 999999`, que no existe. Da `404` con el mensaje "Reciclador con id \"999999\" no encontrado".
+**EVI-4 (AC4 — atomicidad con 2 pesajes, el segundo falla):**
+Método POST a `/api/settlements` con dos pesajes: `materialId: 1` (válido) y `materialId: 6` (sin tarifa). Da `409` porque el segundo pesaje no tiene tarifa activa.
 ![EVI-4](images/Ev4-ISS-06.png)
 
-**EVI-5 (AC1 — `400 Bad Request`):**
-Método POST a `/api/sales` con `items: []`. Da `400` con el mensaje "items must contain at least 1 elements".
+**EVI-4.1 (AC4 — verificar que el primer pesaje no quedó acumulado):**
+Método GET a `/api/material-rates/1`. Da `200` con `stockKg: 100`, el mismo valor de EVI-1.1: aunque el primer pesaje era válido, la liquidación completa se revirtió por la falla del segundo.
+![EVI-4.1](images/Ev4-1-ISS-06.png)
+
+**EVI-5 (AC1 — `404 Not Found`):**
+Método POST a `/api/settlements` con `recyclerId: 999999`, que no existe. Da `404` con el mensaje "Reciclador con id \"999999\" no encontrado".
 ![EVI-5](images/Ev5-ISS-06.png)
 
-**EVI-6 (AC2 — detalle `200`):**
-Método GET a `/api/sales/3`, la venta creada en EVI-1. Da `200` con la cabecera completa y su ítem de detalle.
+**EVI-6 (AC1 — `409 Conflict`, reciclador inactivo):**
+Método POST a `/api/settlements` con `recyclerId: 2`, que ya estaba inactivo. Da `409` con el mensaje "El reciclador con id \"2\" está inactivo".
 ![EVI-6](images/Ev6-ISS-06.png)
 
-**EVI-7 (AC2 — detalle `404`):**
-Método GET a `/api/sales/999999`, un id que no existe. Da `404` con el mensaje "Venta con id \"999999\" no encontrada".
+**EVI-7 (AC1 — `400 Bad Request`, `items` vacío):**
+Método POST a `/api/settlements` con `items: []`. Da `400` con el mensaje "items must contain at least 1 elements".
 ![EVI-7](images/Ev7-ISS-06.png)
 
-**Nota sobre AC5:** una venta con varios ítems válidos (sin fallas) ya queda cubierta implícitamente por el ítem exitoso de EVI-1; no se agregó una evidencia aparte porque el comportamiento es el mismo, solo con más filas en `data.items`.
+**EVI-8 (AC2 — detalle `200`):**
+Método GET a `/api/settlements/2`, la liquidación creada en EVI-1. Da `200` con la cabecera completa y su pesaje de detalle.
+![EVI-8](images/Ev8-ISS-06.png)
 
-Build y lint limpios: `npm run build` y `npm run lint` sin errores. Commit: `2302d30` (pendiente de `push` a `origin/main`).
+**EVI-9 (AC2 — detalle `404`):**
+Método GET a `/api/settlements/999999`, un id que no existe. Da `404` con el mensaje "Liquidación con id \"999999\" no encontrada".
+![EVI-9](images/Ev9-ISS-06.png)
+
+**Nota sobre AC5:** una liquidación con varios pesajes válidos (sin fallas) ya queda cubierta implícitamente por el pesaje exitoso de EVI-1; no se agregó una evidencia aparte porque el comportamiento es el mismo, solo con más filas en `data.items`.
+
+Build y lint limpios: `npm run build` y `npm run lint` sin errores. Commit: `ea7415c` (push a `origin/main`).
 
 ## 5. Revisión humana
 
 15-09-2026
 revisor: Carlos Martinez
-revisión conforme: Se ejecutaron todas las pruebas de las 10 evidencias (EVI-1 a EVI-7, con EVI-1.1/EVI-2.1/EVI-3.1 como verificaciones adicionales) y no hay observaciones, el issue se completó correctamente.
+revisión conforme: Se ejecutaron todas las pruebas de las 12 evidencias (EVI-1 a EVI-9, con EVI-1.1/EVI-2.1/EVI-4.1 como verificaciones adicionales) y no hay observaciones, el issue se completó correctamente.
 
-Quedó demostrado en particular que la transacción es realmente atómica: en EVI-3, un ítem válido junto a uno sin stock se revierten los dos por igual (EVI-3.1), sin dejar descuentos parciales de inventario.
+Con énfasis en el detalle de EVI-2: el primer intento de esa prueba dio `404` en vez del `400` esperado, pero no fue una falla del backend — la URL de esa request en Postman tenía un `.` de más y apuntaba a una ruta que no existe, por lo que Nest respondió con su `404` genérico de ruta no encontrada. Al corregir la URL, la prueba devolvió el `400` correcto de `InvalidWeightException` (INV-01), confirmando que la validación de dominio funciona bien. Quedó demostrado además que la transacción es realmente atómica: en EVI-4, un pesaje válido junto a uno sin tarifa se revierten los dos por igual (EVI-4.1), sin dejar acumulaciones parciales de stock.
 
 ## 6. Gate
 - **Estado:** APROBADO
-- **Conclusión:** ISS-06 completado al 100%. Feature `sales` (venta de productos con descuento atómico de stock vía transacción de Sequelize) verificado y aprobado por revisión humana.
-- **Trazabilidad final:** Commit `2302d30` (Refs #9)
+- **Conclusión:** ISS-06 completado al 100% en su segunda implementación (`settlements`, tras corregir la desviación de dominio de la primera vuelta, `sales`). Feature de liquidación con pesaje, tara, tarifa vigente y descuento/acumulación atómica de stock, en Clean Architecture, verificado y aprobado por revisión humana.
+- **Trazabilidad final:** Commit `ea7415c` (Refs #9)
