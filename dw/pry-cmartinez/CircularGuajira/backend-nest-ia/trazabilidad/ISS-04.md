@@ -54,10 +54,54 @@ Prohibiciones duras: PROHIBIDO incluir decoradores de Sequelize o NestJS dentro 
 - Verificación funcional en caliente contra MySQL (`npm run start:prod` temporal): `POST` (201), `POST` duplicado (409), `GET` paginado (200), `GET` id inexistente (404) y `PATCH` (200) respondieron correctamente; `npm run seed:materials` ejecutado dos veces confirmó la idempotencia (segunda corrida = 5 "ya existe, se omite"). Build (`npm run build`) y lint (`npm run lint`) limpios. Esta verificación de humo no reemplaza las capturas formales de evidencia (sección 4), que quedan pendientes.
 
 ## 4. Evidencias (EVI)
-_(completar tras verificar)_
+
+Pruebas hechas con Postman contra la API local (`npm run start:dev`), colección `ISS-04 Materials`.
+
+**EVI-1 (AC1 — `201 Created`):**
+Método POST a `/api/materials` con un material nuevo llamado "Cobre". Da `201` y devuelve el material creado con `id 6`.
+![EVI-1](images/Ev1-ISS-04.png)
+
+**EVI-2 (AC1 — `400 Bad Request`):**
+Método POST a `/api/materials` enviando el body vacío (sin nombre). Da `400` porque falta el campo obligatorio `name`.
+![EVI-2](images/Ev2-ISS-04.png)
+
+**EVI-3 (AC1/AC4 — `409 Conflict`):**
+Método POST a `/api/materials` repitiendo el nombre "Cobre" que ya se había creado en EVI-1. Da `409` porque el nombre ya existe.
+![EVI-3](images/Ev3-ISS-04.png)
+
+**EVI-4 (AC2 — listado paginado):**
+Método GET a `/api/materials?page=1&limit=10`. Da `200` y devuelve la lista de materiales junto con la información de paginación.
+![EVI-4](images/Ev4-ISS-04.png)
+
+**EVI-5 (AC3 y AC7 — detalle `200`):**
+Método GET a `/api/materials/6`, el material creado en EVI-1. Da `200` y muestra el material completo; también sirve para confirmar que la respuesta no trae campos de precio ni stock.
+![EVI-5](images/Ev5-ISS-04.png)
+
+**EVI-6 (AC3 — detalle `404`):**
+Método GET a `/api/materials/999999`, un id que no existe. Da `404` con el mensaje de "no encontrado".
+![EVI-6](images/Ev6-ISS-04.png)
+
+**EVI-7 (AC6 — `PATCH` `200`):**
+Método PATCH a `/api/materials/6` cambiando solo la descripción. Da `200` y devuelve el material con el campo ya actualizado.
+![EVI-7](images/Ev7-ISS-04.png)
+
+**EVI-7.1 (AC6 — `PATCH` `409`):**
+Método PATCH a `/api/materials/6` intentando ponerle el nombre "PET", que ya es de otro material sembrado. Da `409` porque el nombre ya está en uso.
+![EVI-7.1](images/Ev7-1-ISS-04.png)
+
+**EVI-8 (AC5 — seeder idempotente):**
+Se corrió `npm run seed:materials` dos veces seguidas. La segunda vez el log muestra "ya existe, se omite" para los 5 materiales base (PET, Cartón, Aluminio, Vidrio, Chatarra), es decir que no se duplicaron.
+![EVI-8](images/Ev8-ISS-04.png)
+
+Build y lint limpios: `npm run build` y `npm run lint` sin errores. Commit: `5bd8662` (push a `origin/main`).
 
 ## 5. Revisión humana
-_(completar)_
+
+15-09-2026
+revisor: Carlos Martinez
+revisión conforme: Se ejecutaron todas las pruebas de las 7 evidencias (EVI-1 a EVI-8) y no hay observaciones, el issue se completó correctamente.
 
 ## 6. Gate
-_(completar)_
+- **Estado:** APROBADO
+- **Conclusión:** ISS-04 completado al 100%. Feature `materials` (alta, listado paginado, consulta por id y actualización parcial en Clean Architecture) verificado y aprobado por revisión humana.
+- **Trazabilidad final:** Commit `5bd8662` (Refs #7)
