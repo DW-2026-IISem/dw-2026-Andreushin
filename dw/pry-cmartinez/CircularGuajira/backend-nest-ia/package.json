@@ -21,6 +21,7 @@
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "seed": "npm run build && node dist/infrastructure/database/seeders/seeders.runner.js",
     "seed:recyclers": "npm run build && node dist/features/business/recyclers/infrastructure/persistence/seeders/recycler.seed-runner.js",
     "seed:materials": "npm run build && node dist/features/business/materials/infrastructure/persistence/seeders/material.seed-runner.js",
     "seed:material-rates": "node dist/features/business/material-rates/infrastructure/persistence/seeders/material-rate.seed-runner.js"
