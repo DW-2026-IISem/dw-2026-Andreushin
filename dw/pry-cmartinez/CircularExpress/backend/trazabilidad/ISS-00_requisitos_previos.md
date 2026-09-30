@@ -24,9 +24,9 @@ Antes de iniciar el desarrollo de esta Issue, verifica que:
 **Bloqueado por:** Ninguno.
 
 ##### Criterios de aceptación
-* [ ] Node.js v20+ instalado.
-* [ ] npm v10+ instalado.
-* [ ] Motor de BD accesible (MySQL / PostgreSQL / MSSQL / Oracle).
+* [x] Node.js v20+ instalado.
+* [x] npm v10+ instalado.
+* [x] Motor de BD accesible (MySQL / PostgreSQL / MSSQL / Oracle).
 
 ##### Pasos
 ```bash
@@ -38,9 +38,7 @@ npm -v
 ```bash
 node -v && npm -v
 ```
-
----
-
+![alt text](images/ISS-00.png)
 ---
 
 ## 3. Definición de Done (DoD) y Verificación
