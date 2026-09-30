@@ -1,0 +1,19 @@
+# Windows metadata
+*:Zone.Identifier
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+*.tsbuildinfo
+
+# Env
+.env
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Coverage
+coverage/
