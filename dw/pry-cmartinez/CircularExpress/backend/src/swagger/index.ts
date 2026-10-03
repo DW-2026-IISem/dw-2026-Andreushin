@@ -6,6 +6,7 @@ import { collectionPointsSwagger } from "../features/business/collection-points/
 import { collectionsSwagger } from "../features/business/collections/collections.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
 import { materialRatesSwagger } from "../features/business/material-rates/material-rates.swagger";
+import { plantsSwagger } from "../features/business/plants/plants.swagger";
 import { FeatureSwagger } from "./swagger.types";
 
 // Registry: add each feature's <plural>.swagger.ts module here.
@@ -16,6 +17,7 @@ const featureSwaggerModules: FeatureSwagger[] = [
   collectionsSwagger,
   materialsSwagger,
   materialRatesSwagger,
+  plantsSwagger,
 ];
 
 const errorResponse = (description: string, example: string) => ({

@@ -1,0 +1,9 @@
+### Plants — GET ALL, active only (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/plants
+Accept: application/json
+
+### Plants — GET ALL filtered by municipality (expects 200 OK)
+GET {{baseUrl}}/api/plants?municipality=Riohacha
+Accept: application/json

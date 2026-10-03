@@ -1,0 +1,5 @@
+### Plants — PHYSICAL DELETE (expects 200 OK; 404 when missing; 409 when referenced)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/plants/{{id}}

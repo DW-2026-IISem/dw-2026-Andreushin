@@ -1,0 +1,14 @@
+### Plants — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PUT {{baseUrl}}/api/plants/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Planta de Aprovechamiento Albania Norte",
+  "municipality": "Albania",
+  "address": "Vía a Cuestecitas km 3, Albania",
+  "description": "Se trasladó a una bodega más grande",
+  "status": "active"
+}

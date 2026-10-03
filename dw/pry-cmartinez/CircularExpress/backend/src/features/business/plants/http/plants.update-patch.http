@@ -1,0 +1,10 @@
+### Plants — UPDATE PATCH, partial update (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/plants/{{id}}
+Content-Type: application/json
+
+{
+  "description": "Opera de lunes a sábado de 7:00 a 17:00"
+}

@@ -1,0 +1,30 @@
+### Plants — CREATE (expects 201 Created)
+@baseUrl = http://localhost:3002
+
+POST {{baseUrl}}/api/plants
+Content-Type: application/json
+
+{
+  "name": "Planta de Aprovechamiento Albania",
+  "municipality": "Albania",
+  "address": "Vía a Cuestecitas km 2, Albania",
+  "description": "Clasificación de plásticos y metales de la zona minera",
+  "status": "active"
+}
+
+### Plants — CREATE without municipality (expects 400 Bad Request)
+POST {{baseUrl}}/api/plants
+Content-Type: application/json
+
+{
+  "name": "Planta sin municipio"
+}
+
+### Plants — CREATE duplicate name (expects 409 Conflict)
+POST {{baseUrl}}/api/plants
+Content-Type: application/json
+
+{
+  "name": "Planta de Aprovechamiento Albania",
+  "municipality": "Albania"
+}

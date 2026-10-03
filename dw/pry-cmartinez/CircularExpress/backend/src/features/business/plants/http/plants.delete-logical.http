@@ -1,0 +1,5 @@
+### Plants — LOGICAL DELETE, status = inactive (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/plants/{{id}}/deactivate
