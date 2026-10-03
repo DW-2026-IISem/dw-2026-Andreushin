@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { ForeignKeyConstraintError, UniqueConstraintError } from "sequelize";
 import { AppError, ValidationError } from "../errors/app-error";
 
 export abstract class BaseController {
@@ -27,6 +28,15 @@ export abstract class BaseController {
         error: error.message,
         ...(error.details !== undefined && { details: error.details }),
       });
+      return;
+    }
+    // Database-level guards that services cannot fully pre-check (races, rows referenced by other tables).
+    if (error instanceof ForeignKeyConstraintError) {
+      res.status(409).json({ error: "La operación viola una relación con otros registros", details: { table: error.table } });
+      return;
+    }
+    if (error instanceof UniqueConstraintError) {
+      res.status(409).json({ error: "Ya existe un registro con esos datos", details: { fields: error.fields } });
       return;
     }
     console.error("Unexpected error:", error);

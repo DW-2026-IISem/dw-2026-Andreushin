@@ -1,0 +1,15 @@
+### CollectionPoints — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+@routeId = 1
+
+PUT {{baseUrl}}/api/collection-points/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Punto Plaza de Mercado Nueva",
+  "routeId": {{routeId}},
+  "address": "Carrera 7 # 3-10, Riohacha",
+  "description": "Reubicado en la entrada principal",
+  "status": "active"
+}

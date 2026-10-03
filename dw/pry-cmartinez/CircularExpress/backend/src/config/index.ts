@@ -5,6 +5,9 @@ import cors from "cors";
 import { getDatabaseInfo, syncDatabase, testConnection } from "../database/db";
 import "../features/business/recyclers/recycler.model";
 import "../features/business/routes/route.model";
+import "../features/business/collection-points/collection-point.model";
+// Associations (must load after every model they reference)
+import "../features/business/collection-points/collection-points.associations";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -39,6 +42,7 @@ export class App {
     });
     this.routePrv.recyclersRoutes.routes(this.app);
     this.routePrv.routesRoutes.routes(this.app);
+    this.routePrv.collectionPointsRoutes.routes(this.app);
     setupSwagger(this.app);
   }
 

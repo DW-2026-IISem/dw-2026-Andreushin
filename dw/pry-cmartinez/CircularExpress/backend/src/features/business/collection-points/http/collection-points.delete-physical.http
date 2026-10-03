@@ -1,0 +1,10 @@
+### CollectionPoints — PHYSICAL DELETE (expects 200 OK; 404 when missing)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/collection-points/{{id}}
+
+### Routes — PHYSICAL DELETE of a route that still has collection points (expects 409 Conflict)
+@routeId = 1
+
+DELETE {{baseUrl}}/api/routes/{{routeId}}

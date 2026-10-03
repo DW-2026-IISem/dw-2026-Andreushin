@@ -1,0 +1,32 @@
+### CollectionPoints — CREATE (expects 201 Created; routeId must be an active route)
+@baseUrl = http://localhost:3002
+@routeId = 1
+
+POST {{baseUrl}}/api/collection-points
+Content-Type: application/json
+
+{
+  "name": "Punto Plaza de Mercado",
+  "routeId": {{routeId}},
+  "address": "Calle 2 # 7-45, Riohacha",
+  "description": "Punto de acopio junto a la plaza de mercado",
+  "status": "active"
+}
+
+### CollectionPoints — CREATE with a missing route (expects 400 Bad Request)
+POST {{baseUrl}}/api/collection-points
+Content-Type: application/json
+
+{
+  "name": "Punto sin ruta",
+  "routeId": 999999
+}
+
+### CollectionPoints — CREATE duplicate name on the same route (expects 409 Conflict)
+POST {{baseUrl}}/api/collection-points
+Content-Type: application/json
+
+{
+  "name": "Punto Plaza de Mercado",
+  "routeId": {{routeId}}
+}

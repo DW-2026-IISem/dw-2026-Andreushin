@@ -1,0 +1,9 @@
+### CollectionPoints — GET ALL, active only, with their route (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/collection-points
+Accept: application/json
+
+### CollectionPoints — GET ALL filtered by route (expects 200 OK)
+GET {{baseUrl}}/api/collection-points?routeId=1
+Accept: application/json

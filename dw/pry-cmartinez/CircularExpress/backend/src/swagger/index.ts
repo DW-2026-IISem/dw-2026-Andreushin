@@ -2,10 +2,11 @@ import { Application, Request, Response } from "express";
 import swaggerUi from "swagger-ui-express";
 import { recyclersSwagger } from "../features/business/recyclers/recyclers.swagger";
 import { routesSwagger } from "../features/business/routes/routes.swagger";
+import { collectionPointsSwagger } from "../features/business/collection-points/collection-points.swagger";
 import { FeatureSwagger } from "./swagger.types";
 
 // Registry: add each feature's <plural>.swagger.ts module here.
-const featureSwaggerModules: FeatureSwagger[] = [recyclersSwagger, routesSwagger];
+const featureSwaggerModules: FeatureSwagger[] = [recyclersSwagger, routesSwagger, collectionPointsSwagger];
 
 const errorResponse = (description: string, example: string) => ({
   description,
