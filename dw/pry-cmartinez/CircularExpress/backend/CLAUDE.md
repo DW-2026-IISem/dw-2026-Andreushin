@@ -61,3 +61,5 @@ Feature structure (see `docs/prompt.MD` §3.2–3.4). Mandatory flow: `routes �
 ## Database config
 
 `.env` (git-ignored) selects the engine with `DB_DIALECT` (`mysql | postgres | mssql | oracle`) and reads per-engine blocks `DB_<ENGINE>_HOST/PORT/USERNAME/PASSWORD/NAME`. Only the active engine's block is meant to be required (fail-fast validation). The reference `db.ts` in `ISS-02` uses different names (`DB_ENGINE`, `MYSQL_HOST`, …). When implementing ISS-02, adapt it to the existing `.env` naming instead of rewriting `.env`.
+
+CircularExpress has its own databases, separate from the old CircularGuajira ones: `circularexpress_db` (MySQL), `circularexpress_psql` (PostgreSQL), `circularexpress_sqlserver` (SQL Server) and the Oracle user/schema `circularexpress` on service `XE`. To check multi-engine support, start the server with `DB_DIALECT=<engine>` overriding the `.env` value.

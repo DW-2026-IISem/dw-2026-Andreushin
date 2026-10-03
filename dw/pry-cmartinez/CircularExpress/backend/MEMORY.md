@@ -19,8 +19,8 @@
 
 ## Entorno
 - Motores en Docker: MySQL 3306, Postgres 5433, MSSQL 1433, Oracle XE 1521. `.env` activo: `DB_DIALECT=mysql`.
-- El `.env` del usuario tiene las credenciales correctas: se usa tal cual y no se modifica.
-- Conexiones verificadas con MySQL y Postgres.
+- BD propias de CircularExpress (2026-10-03): `circularexpress_db` (MySQL), `circularexpress_psql` (PG), `circularexpress_sqlserver` (MSSQL) y usuario/esquema Oracle `circularexpress` en XE. Las viejas `circularguajira_*` no se tocaron.
+- CRUD de recyclers verificado en los 4 motores. Credenciales del `.env`: no cambiarlas sin pedido del usuario.
 
 ## Aún no existe
 - `src/swagger/`, `src/database/seeders/`, Faker, features de negocio salvo recyclers.
@@ -36,11 +36,10 @@
 
 ## Pendientes / problemas conocidos
 - README desactualizado: menciona `tsx`, `npm run seed` y variables `DB_HOST`.
-- `circularguajira_db` tiene tablas de un proyecto anterior (`sales`, `settlements` camelCase) y 4 recyclers viejos referenciados por ellas; `settlements` chocará con ISS-15. El `alter` de ISS-03 ya borró columnas viejas de `recyclers`.
 
 ## Flujo por issue (estándar)
 - Skill `.claude/skills/issue-flow/`: Claude mueve el tablero (Project 9), verifica DoD, genera evidencias PNG, commitea `feat(iss-XX)` + push, registra el hash en la trazabilidad, commitea `docs(iss-XX)` + push y cierra el issue. Sin trailers ni leyendas de IA.
 - Tablero: campos Status (Preparado/En curso/Verificacion/Hecho), Size y Prioridad (P0–P2); metadatos en `scripts/sync_issue.py`.
 
 ## Próximo paso
-- ISS-04: `recyclers.seeder.ts` + `database/seeders/{index,counts}.ts` con Faker y script `npm run db:seed`. Antes, decidir qué hacer con las tablas viejas de la BD.
+- ISS-04: `recyclers.seeder.ts` + `database/seeders/{index,counts}.ts` con Faker y script `npm run db:seed`.
