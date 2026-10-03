@@ -1,6 +1,11 @@
 import { Sequelize, Dialect } from "sequelize";
 import dotenv from "dotenv";
 
+// Run the process in UTC: the oracledb and tedious drivers convert DATEONLY values through the process
+// time zone, which shifts dates by one day on UTC-5 hosts. Business "today" is computed explicitly in
+// America/Bogota (shared/utils/dates.ts) and timestamps are stored in UTC, so nothing else changes.
+process.env.TZ = "UTC";
+
 dotenv.config();
 
 type DbDialect = "mysql" | "postgres" | "mssql" | "oracle";
