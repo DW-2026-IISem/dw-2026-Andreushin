@@ -1,0 +1,17 @@
+### Collections — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+@recyclerId = 1
+@routeId = 1
+
+PUT {{baseUrl}}/api/collections/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Jornada Ruta Centro (corregida)",
+  "recyclerId": {{recyclerId}},
+  "routeId": {{routeId}},
+  "collectionDate": "2026-09-30",
+  "description": "Se corrigió la fecha de la jornada",
+  "status": "active"
+}

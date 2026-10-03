@@ -1,6 +1,7 @@
 import { Transaction } from "sequelize";
 import { ConflictError, NotFoundError, ValidationError } from "../../../shared/errors/app-error";
 import { withTransaction } from "../../../shared/database/with-transaction";
+import { parseIdFilter } from "../../../shared/validation/query-filters";
 import { RoutesRepository } from "../routes/routes.repository";
 import {
   COLLECTION_POINT_STATUSES,
@@ -24,8 +25,7 @@ export class CollectionPointsService {
   ) {}
 
   async findAll(routeIdFilter?: unknown): Promise<CollectionPointResponseDto[]> {
-    const routeId = routeIdFilter === undefined ? undefined : this.parseRouteId(routeIdFilter);
-    const points = await this.repository.findAllActive(routeId);
+    const points = await this.repository.findAllActive(parseIdFilter(routeIdFilter, "routeId"));
     return points.map(toCollectionPointResponse);
   }
 
@@ -131,14 +131,6 @@ export class CollectionPointsService {
     if (existing) {
       throw new ConflictError("Ya existe un punto de acopio con ese nombre en la ruta", { name, routeId });
     }
-  }
-
-  private parseRouteId(value: unknown): number {
-    const routeId = Number(value);
-    if (!Number.isInteger(routeId) || routeId <= 0) {
-      throw new ValidationError("routeId debe ser un número entero positivo");
-    }
-    return routeId;
   }
 
   // Whitelists known fields and checks types and lengths; unknown keys (id, timestamps...) are dropped.

@@ -1,0 +1,48 @@
+### Collections — CREATE (expects 201 Created; recycler and route must be active)
+@baseUrl = http://localhost:3002
+@recyclerId = 1
+@routeId = 1
+
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+
+{
+  "name": "Jornada Ruta Centro 2026-10-01",
+  "recyclerId": {{recyclerId}},
+  "routeId": {{routeId}},
+  "collectionDate": "2026-10-01",
+  "description": "Recolección de cartón y PET en el centro",
+  "status": "active"
+}
+
+### Collections — CREATE without date (defaults to today) (expects 201 Created)
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+
+{
+  "name": "Jornada de hoy",
+  "recyclerId": {{recyclerId}},
+  "routeId": {{routeId}}
+}
+
+### Collections — CREATE with a future date (expects 400 Bad Request)
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+
+{
+  "name": "Jornada futura",
+  "recyclerId": {{recyclerId}},
+  "routeId": {{routeId}},
+  "collectionDate": "2099-01-01"
+}
+
+### Collections — CREATE same recycler, route and date (expects 409 Conflict)
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+
+{
+  "name": "Jornada repetida",
+  "recyclerId": {{recyclerId}},
+  "routeId": {{routeId}},
+  "collectionDate": "2026-10-01"
+}

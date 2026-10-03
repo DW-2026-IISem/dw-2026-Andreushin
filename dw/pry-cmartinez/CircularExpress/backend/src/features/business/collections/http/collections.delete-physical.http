@@ -1,0 +1,10 @@
+### Collections — PHYSICAL DELETE (expects 200 OK; 404 when missing)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/collections/{{id}}
+
+### Recyclers — PHYSICAL DELETE of a recycler with collections (expects 409 Conflict)
+@recyclerId = 1
+
+DELETE {{baseUrl}}/api/recyclers/{{recyclerId}}
