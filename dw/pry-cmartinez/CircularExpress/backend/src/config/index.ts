@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import { getDatabaseInfo, testConnection } from "../database/db";
 
 dotenv.config();
 
@@ -35,7 +36,18 @@ export class App {
   }
 
   private async dbConnection(): Promise<void> {
-    // ISS-02 / ISS-03
+    try {
+      const dbInfo = getDatabaseInfo();
+      console.log(`🔗 Intentando conectar a: ${dbInfo.connectionString}`);
+      const isConnected = await testConnection();
+      if (!isConnected) {
+        throw new Error(`No se pudo conectar a la base de datos ${dbInfo.engine.toUpperCase()}`);
+      }
+      // ISS-03: registro de modelos y sequelize.sync()
+    } catch (error) {
+      console.error("❌ Error al conectar con la base de datos:", error);
+      process.exit(1);
+    }
   }
 
   async listen() {
