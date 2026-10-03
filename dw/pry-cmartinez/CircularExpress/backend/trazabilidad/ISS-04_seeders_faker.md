@@ -24,10 +24,10 @@ Antes de iniciar el desarrollo de esta Issue, verifica que:
 **Bloqueado por:** ISS-03-A.
 
 ##### Criterios de aceptación
-* [ ] `@faker-js/faker` instalado.
-* [ ] Archivo `recycler.seeder.ts` dentro de `features/business/recycler/`.
-* [ ] Archivo `counts.ts` y `index.ts` en `src/database/seeders/`.
-* [ ] Script `npm run db:seed` en `package.json`.
+* [x] `@faker-js/faker` instalado.
+* [x] Archivo `recycler.seeder.ts` dentro de `features/business/recycler/`. *(Implementado como `recyclers/recyclers.seeder.ts`, ver desviaciones.)*
+* [x] Archivo `counts.ts` y `index.ts` en `src/database/seeders/`.
+* [x] Script `npm run db:seed` en `package.json`.
 
 #### 5.1 Instalación de Faker
 ```bash
@@ -154,9 +154,41 @@ EOF
 
 ---
 
+**Evidencias:**
+
+![ISS-04 type-check](images/ISS-04-tsc.png)
+![ISS-04 Faker y script db:seed](images/ISS-04-dependencias.png)
+![ISS-04 primera ejecución en MySQL](images/ISS-04-seed-primera.png)
+![ISS-04 segunda ejecución idempotente](images/ISS-04-seed-idempotente.png)
+![ISS-04 conteos por CLI en SQL Server](images/ISS-04-seed-cli.png)
+![ISS-04 seeder en los 4 motores](images/ISS-04-motores.png)
+![ISS-04 datos generados vía API](images/ISS-04-api.png)
+
+---
+
 ## 3. Definición de Done (DoD) y Verificación
 Para marcar esta Issue como **Completada**, debes validar:
 1. Compilación de TypeScript exitosa (`npm run build` o `npx tsc --noEmit`).
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`d2929b1`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/d2929b1872ee0171e12418c1ec13088f57dd5707) |
+| **Hash completo** | `d2929b1872ee0171e12418c1ec13088f57dd5707` |
+| **Commit relacionado** | [`245bede`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/245bede) `fix(iss-03)`: sync repetible en los 4 motores (detectado durante esta verificación) |
+| **Issue GitHub** | [#17](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/17) |
+| **Fecha de cierre** | 2026-10-03 |
+
+**Verificación realizada:** `npx tsc --noEmit` sin errores; en MySQL `npm run db:seed` inserta 10 recicladores y una segunda ejecución los omite (idempotencia); `--recyclers=3` inserta 3 en SQL Server y la clave desconocida `--foo` se ignora con aviso; el seeder corre también en PostgreSQL y Oracle; `GET /api/recyclers` lista los recicladores activos generados.
+
+**Desviaciones respecto al ISS** (convenciones de `docs/prompt.MD` §3.4):
+- Seeder como clase `RecyclersSeeder` en `features/business/recyclers/recyclers.seeder.ts` (el ISS indica `recycler/recycler.seeder.ts` con función suelta); usa el repository en lugar del modelo directo.
+- Claves de `SeedCounts` en camelCase (`collectionPoints`); la CLI acepta kebab, snake y camelCase.
+- `SeedersRunner` como clase y sync vía `syncDatabase()` (sin `alter` en SQL Server, ver `fix(iss-03)` 245bede).
+- Datos más realistas que el ejemplo del ISS: locale en español, celulares colombianos, municipios de La Guajira y ~10 % de inactivos.
