@@ -7,10 +7,12 @@ import "../../features/business/materials/material.model";
 import "../../features/business/material-rates/material-rate.model";
 import "../../features/business/plants/plant.model";
 import "../../features/business/material-lots/material-lot.model";
+import "../../features/business/weighings/weighing.model";
 import "../../features/business/collection-points/collection-points.associations";
 import "../../features/business/collections/collections.associations";
 import "../../features/business/material-rates/material-rates.associations";
 import "../../features/business/material-lots/material-lots.associations";
+import "../../features/business/weighings/weighings.associations";
 import { RecyclersSeeder } from "../../features/business/recyclers/recyclers.seeder";
 import { RoutesSeeder } from "../../features/business/routes/routes.seeder";
 import { CollectionPointsSeeder } from "../../features/business/collection-points/collection-points.seeder";
@@ -19,6 +21,7 @@ import { MaterialsSeeder } from "../../features/business/materials/materials.see
 import { MaterialRatesSeeder } from "../../features/business/material-rates/material-rates.seeder";
 import { PlantsSeeder } from "../../features/business/plants/plants.seeder";
 import { MaterialLotsSeeder } from "../../features/business/material-lots/material-lots.seeder";
+import { WeighingsSeeder } from "../../features/business/weighings/weighings.seeder";
 import { resolveSeedCounts, SeedCounts } from "./counts";
 
 // Runs every feature seeder in foreign-key order. Usage: npm run db:seed [-- --recyclers=25]
@@ -42,6 +45,7 @@ export class SeedersRunner {
       materialRates: await new MaterialRatesSeeder().run(this.counts.materialRates),
       plants: await new PlantsSeeder().run(this.counts.plants),
       materialLots: await new MaterialLotsSeeder().run(this.counts.materialLots),
+      weighings: await new WeighingsSeeder().run(this.counts.weighings),
     };
 
     console.table(summary);

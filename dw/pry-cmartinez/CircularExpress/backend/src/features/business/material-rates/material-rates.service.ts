@@ -2,6 +2,7 @@ import { Transaction } from "sequelize";
 import { ConflictError, NotFoundError, ValidationError } from "../../../shared/errors/app-error";
 import { withTransaction } from "../../../shared/database/with-transaction";
 import { isValidDateOnly, todayInBusinessZone } from "../../../shared/utils/dates";
+import { hasAtMostTwoDecimals } from "../../../shared/utils/numbers";
 import { parseIdFilter } from "../../../shared/validation/query-filters";
 import { MaterialsRepository } from "../materials/materials.repository";
 import { CreateMaterialRateDto } from "./dto/create-material-rate.dto";
@@ -19,8 +20,6 @@ export interface MaterialRateWriteResult {
   materialRate: MaterialRateResponseDto;
   previousRatesClosed: number;
 }
-
-const hasAtMostTwoDecimals = (value: number): boolean => Math.abs(value * 100 - Math.round(value * 100)) < 1e-6;
 
 // Business rules for the rate history: active material, positive price, no future dates and
 // a single current ("active") rate per material — activating one closes the previous one.

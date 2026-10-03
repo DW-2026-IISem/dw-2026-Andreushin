@@ -1,4 +1,5 @@
 import { CreationAttributes, InferAttributes, Op, Transaction, WhereOptions } from "sequelize";
+import { sequelize } from "../../../database/db";
 import { Material } from "../materials/material.model";
 import { Plant } from "../plants/plant.model";
 import { MaterialLot } from "./material-lot.model";
@@ -34,6 +35,19 @@ export class MaterialLotsRepository {
       where: { name, ...(excludeId !== undefined && { id: { [Op.ne]: excludeId } }) },
       transaction,
     });
+  }
+
+  // Atomic stock change in a single UPDATE (weight_kg = weight_kg + delta) guarded so it never goes below 0.
+  // The database serializes concurrent updates of the row on every engine; a read-then-write with
+  // SELECT ... FOR UPDATE lost updates on SQL Server. Returns false when the lot is missing or lacks stock.
+  async adjustWeight(id: number, deltaKg: number, transaction: Transaction): Promise<boolean> {
+    const column = sequelize.getQueryInterface().quoteIdentifier("weight_kg");
+    const delta = Number(deltaKg.toFixed(2));
+    const [affected] = await MaterialLot.update(
+      { weightKg: sequelize.literal(`${column} + ${delta}`) as unknown as number },
+      { where: { id, [Op.and]: [sequelize.where(sequelize.literal(`${column} + ${delta}`), Op.gte, 0)] }, transaction }
+    );
+    return affected === 1;
   }
 
   count(transaction?: Transaction): Promise<number> {

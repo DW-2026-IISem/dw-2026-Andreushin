@@ -4,13 +4,12 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Issues completadas: **ISS-00** a **ISS-12** (feature MaterialLots). Siguiente: **ISS-13** (feature Weighings: pesajes que suman existencias a un lote).
-- Progreso: 13 / 17 issues (ISS-00..ISS-16).
+- Completadas **ISS-00** a **ISS-13** (14 / 17). Siguiente: **ISS-14** (MaterialSales: ventas que descuentan existencias de un lote). Faltan ISS-14, ISS-15 (settlements) e ISS-16 (verificación global).
 
 ## Qué existe hoy
 - `src/server.ts` → `App` + `listen()`. `src/config/index.ts` → clase `App`: PORT del `.env` (3002), middlewares, `GET /api/health`, importa modelos y luego asociaciones, rutas vía `Routes`, `setupSwagger()`, `dbConnection()` (conecta, `syncDatabase()`, `process.exit(1)` si falla).
 - `src/database/db.ts` → fija `process.env.TZ = "UTC"` (si no, oracledb/tedious corren las fechas DATEONLY un día en hosts UTC-5); exporta `sequelize`, `getDatabaseInfo()`, `testConnection()`, `syncDatabase()` (alter salvo en MSSQL: solo crea tablas faltantes). Fail-fast de `DB_DIALECT` y `DB_<MOTOR>_*`.
-- `src/shared/`: `utils/dates.ts` (hoy en America/Bogota, validación y resta de fechas `YYYY-MM-DD`), `validation/query-filters.ts` (`parseIdFilter`, `parseTextFilter`), `errors/app-error.ts` (NotFound 404, Validation 400, Conflict 409), `http/base-controller.ts` (`handle()`, `parseId()`; mapea `ForeignKeyConstraintError`/`UniqueConstraintError` de la BD a 409), `database/with-transaction.ts`, `database/decimal.ts` (DECIMAL → número en getters).
+- `src/shared/`: `utils/dates.ts` (hoy en America/Bogota, validación y resta de fechas `YYYY-MM-DD`), `validation/query-filters.ts` (`parseIdFilter`, `parseTextFilter`), `errors/app-error.ts` (NotFound 404, Validation 400, Conflict 409), `http/base-controller.ts` (`handle()`, `parseId()`; mapea `ForeignKeyConstraintError`/`UniqueConstraintError` de la BD a 409), `database/with-transaction.ts` (reintenta hasta 3 veces ante deadlock en los 4 motores), `database/decimal.ts`, `utils/numbers.ts` (`roundTo2`, `hasAtMostTwoDecimals`).
 - Features en `src/features/business/<plural>/` (model, `dto/`, repository, service, controller, routes, seeder, swagger, `http/`; FKs en `*.associations.ts` con `NO ACTION`; las respuestas incluyen las entidades relacionadas):
   - `recyclers/` → `/api/recyclers` (unicidad `documentNumber`).
   - `routes/` → `/api/routes` (`municipality`, único `name+municipality`).
@@ -19,7 +18,8 @@
   - `materials/` → `/api/materials` (catálogo, `name` único; seeder con 10 materiales reales fijos, no aleatorios).
   - `material-rates/` → `/api/material-rates` (historial: `pricePerKg` DECIMAL, `validFrom`; crear/activar cierra la vigente anterior → 1 vigente por material, `previousRatesClosed`).
   - `plants/` → `/api/plants` (`name` único, `municipality`, `address`; `?municipality=`).
-  - `material-lots/` → `/api/material-lots` (inventario: FKs `plantId`/`materialId` activos, código `name` único, `weightKg` DECIMAL(12,2) = existencias; solo se fija al crear, PUT/PATCH lo rechazan (400) y un lote con existencias no cambia de planta/material (409); `?plantId=&materialId=`).
+  - `material-lots/` → `/api/material-lots` (inventario: FKs `plantId`/`materialId`, código único, `weightKg` = existencias; no editable por PUT/PATCH (400); con existencias no cambia de planta/material (409)). Stock solo vía `MaterialLotsRepository.adjustWeight()`: UPDATE atómico `weight_kg = weight_kg + Δ` con guarda `>= 0` (SELECT FOR UPDATE perdía actualizaciones en MSSQL).
+  - `weighings/` → `/api/weighings` (FKs `collectionId`, `materialId`, `materialLotId` opcional del mismo material; neto = bruto − tara calculado en el servidor; crear/editar/anular/borrar ajusta el lote antes de escribir el pesaje (evita deadlock FK); 409 si el lote quedaría negativo). Seeder vía service.
 - `src/swagger/`: `swagger.types.ts`, `swagger.helpers.ts`, `index.ts` (registry, `/api/health`, `Error`, respuestas comunes) → `/api/docs` y `/api/docs.json`.
 - `src/database/seeders/`: `counts.ts` (camelCase, CLI `--tabla=N`) e `index.ts` (`SeedersRunner`, orden de FK) → `npm run db:seed`; idempotente.
 - Dependencias: express 5, cors, dotenv, morgan, swagger-ui-express 5, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @faker-js/faker 10, @types/*.
@@ -30,8 +30,6 @@
 - BD propias: `circularexpress_db` (MySQL), `circularexpress_psql` (PG), `circularexpress_sqlserver` (MSSQL), usuario/esquema Oracle `circularexpress` (XE). Las viejas `circularguajira_*` no se tocan.
 - Credenciales del `.env`: no cambiarlas sin pedido del usuario.
 
-## Aún no existe
-- Features ISS-13..ISS-15 (weighings, material-sales, settlements).
 
 ## Decisiones y desviaciones respecto a los ISS
 - `db.ts` usa `DB_DIALECT` + `DB_<MOTOR>_*` (no `DB_ENGINE`/`MYSQL_HOST`); `getDatabaseInfo()` no expone la contraseña; sin `@types/sequelize`.
@@ -47,4 +45,4 @@
 - Skill `.claude/skills/issue-flow/`: tablero Project 9, DoD, evidencias PNG, commits `feat(iss-XX)` y `docs(iss-XX)` con push, hash en la trazabilidad y cierre del issue. Sin trailers ni leyendas de IA.
 
 ## Próximo paso
-- ISS-13: feature `weighings` (bruto, tara, neto calculado; FKs `collectionId`, `materialId`, `materialLotId`); al registrar un pesaje, sumar el neto a `weightKg` del lote en la misma transacción (y restar al anular/borrar).
+- ISS-14: `material-sales` (FK `materialLotId`, `quantityKg`, precio, `totalAmount` calculado); vender descuenta existencias con `adjustWeight(-q)` (409 si no alcanza) y anular/borrar las devuelve. Probar concurrencia en los 4 motores.

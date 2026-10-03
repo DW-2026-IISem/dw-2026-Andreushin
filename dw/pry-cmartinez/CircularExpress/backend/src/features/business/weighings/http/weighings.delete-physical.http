@@ -1,0 +1,10 @@
+### Weighings — PHYSICAL DELETE (expects 200 OK; net weight removed from the lot; 409 if the lot lacks that stock)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/weighings/{{id}}
+
+### Collections — PHYSICAL DELETE of a collection with weighings (expects 409 Conflict)
+@collectionId = 1
+
+DELETE {{baseUrl}}/api/collections/{{collectionId}}

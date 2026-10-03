@@ -1,0 +1,18 @@
+### Weighings — UPDATE PATCH gross weight (expects 200 OK; lot stock adjusted)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/weighings/{{id}}
+Content-Type: application/json
+
+{
+  "grossWeightKg": 125
+}
+
+### Weighings — PATCH a lot of another material (expects 400 Bad Request)
+PATCH {{baseUrl}}/api/weighings/{{id}}
+Content-Type: application/json
+
+{
+  "materialLotId": 2
+}

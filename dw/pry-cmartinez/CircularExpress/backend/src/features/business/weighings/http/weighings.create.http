@@ -1,0 +1,53 @@
+### Weighings — CREATE into a lot (expects 201 Created; net = gross − tare is added to the lot stock)
+@baseUrl = http://localhost:3002
+@collectionId = 1
+@materialId = 1
+@materialLotId = 1
+
+POST {{baseUrl}}/api/weighings
+Content-Type: application/json
+
+{
+  "name": "Pesaje de cartón jornada centro",
+  "collectionId": {{collectionId}},
+  "materialId": {{materialId}},
+  "materialLotId": {{materialLotId}},
+  "grossWeightKg": 120.5,
+  "tareWeightKg": 2.5,
+  "description": "Pacas de cartón corrugado"
+}
+
+### Weighings — CREATE without lot (expects 201 Created; no stock change)
+POST {{baseUrl}}/api/weighings
+Content-Type: application/json
+
+{
+  "name": "Pesaje sin lote",
+  "collectionId": {{collectionId}},
+  "materialId": {{materialId}},
+  "grossWeightKg": 40
+}
+
+### Weighings — CREATE with tare >= gross (expects 400 Bad Request)
+POST {{baseUrl}}/api/weighings
+Content-Type: application/json
+
+{
+  "name": "Tara inválida",
+  "collectionId": {{collectionId}},
+  "materialId": {{materialId}},
+  "grossWeightKg": 10,
+  "tareWeightKg": 10
+}
+
+### Weighings — CREATE sending netWeightKg (expects 400 Bad Request: the server computes it)
+POST {{baseUrl}}/api/weighings
+Content-Type: application/json
+
+{
+  "name": "Neto enviado",
+  "collectionId": {{collectionId}},
+  "materialId": {{materialId}},
+  "grossWeightKg": 50,
+  "netWeightKg": 50
+}

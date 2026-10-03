@@ -1,0 +1,18 @@
+### Weighings — UPDATE PUT (expects 200 OK; net recomputed and lot stock adjusted by the difference)
+@baseUrl = http://localhost:3002
+@id = 1
+@collectionId = 1
+@materialId = 1
+@materialLotId = 1
+
+PUT {{baseUrl}}/api/weighings/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Pesaje de cartón jornada centro (corregido)",
+  "collectionId": {{collectionId}},
+  "materialId": {{materialId}},
+  "materialLotId": {{materialLotId}},
+  "grossWeightKg": 130,
+  "tareWeightKg": 2.5
+}

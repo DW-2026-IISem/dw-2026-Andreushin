@@ -1,0 +1,13 @@
+### Weighings — VOID (logical delete): status inactive and net weight removed from the lot (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/weighings/{{id}}/deactivate
+
+### Weighings — re-activate a voided weighing (expects 200 OK; net weight added back)
+PATCH {{baseUrl}}/api/weighings/{{id}}
+Content-Type: application/json
+
+{
+  "status": "active"
+}

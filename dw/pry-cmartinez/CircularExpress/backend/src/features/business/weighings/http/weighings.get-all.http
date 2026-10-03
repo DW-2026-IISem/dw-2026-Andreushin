@@ -1,0 +1,9 @@
+### Weighings — GET ALL, active only, newest first (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/weighings
+Accept: application/json
+
+### Weighings — GET ALL of one lot (expects 200 OK)
+GET {{baseUrl}}/api/weighings?materialLotId=1
+Accept: application/json

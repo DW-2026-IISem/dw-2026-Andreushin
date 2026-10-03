@@ -11,11 +11,13 @@ import "../features/business/materials/material.model";
 import "../features/business/material-rates/material-rate.model";
 import "../features/business/plants/plant.model";
 import "../features/business/material-lots/material-lot.model";
+import "../features/business/weighings/weighing.model";
 // Associations (must load after every model they reference)
 import "../features/business/collection-points/collection-points.associations";
 import "../features/business/collections/collections.associations";
 import "../features/business/material-rates/material-rates.associations";
 import "../features/business/material-lots/material-lots.associations";
+import "../features/business/weighings/weighings.associations";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -56,6 +58,7 @@ export class App {
     this.routePrv.materialRatesRoutes.routes(this.app);
     this.routePrv.plantsRoutes.routes(this.app);
     this.routePrv.materialLotsRoutes.routes(this.app);
+    this.routePrv.weighingsRoutes.routes(this.app);
     setupSwagger(this.app);
   }
 
