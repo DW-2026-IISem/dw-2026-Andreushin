@@ -1,0 +1,10 @@
+### Materials — UPDATE PATCH, partial update (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/materials/{{id}}
+Content-Type: application/json
+
+{
+  "description": "Debe llegar limpio y sin etiquetas"
+}

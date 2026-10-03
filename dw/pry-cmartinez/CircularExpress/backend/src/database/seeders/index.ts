@@ -3,12 +3,14 @@ import "../../features/business/recyclers/recycler.model";
 import "../../features/business/routes/route.model";
 import "../../features/business/collection-points/collection-point.model";
 import "../../features/business/collections/collection.model";
+import "../../features/business/materials/material.model";
 import "../../features/business/collection-points/collection-points.associations";
 import "../../features/business/collections/collections.associations";
 import { RecyclersSeeder } from "../../features/business/recyclers/recyclers.seeder";
 import { RoutesSeeder } from "../../features/business/routes/routes.seeder";
 import { CollectionPointsSeeder } from "../../features/business/collection-points/collection-points.seeder";
 import { CollectionsSeeder } from "../../features/business/collections/collections.seeder";
+import { MaterialsSeeder } from "../../features/business/materials/materials.seeder";
 import { resolveSeedCounts, SeedCounts } from "./counts";
 
 // Runs every feature seeder in foreign-key order. Usage: npm run db:seed [-- --recyclers=25]
@@ -28,6 +30,7 @@ export class SeedersRunner {
       routes: await new RoutesSeeder().run(this.counts.routes),
       collectionPoints: await new CollectionPointsSeeder().run(this.counts.collectionPoints),
       collections: await new CollectionsSeeder().run(this.counts.collections),
+      materials: await new MaterialsSeeder().run(this.counts.materials),
     };
 
     console.table(summary);

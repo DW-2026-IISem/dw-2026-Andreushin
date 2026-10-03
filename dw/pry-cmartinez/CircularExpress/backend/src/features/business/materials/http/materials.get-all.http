@@ -1,0 +1,5 @@
+### Materials — GET ALL, active only, sorted by name (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/materials
+Accept: application/json

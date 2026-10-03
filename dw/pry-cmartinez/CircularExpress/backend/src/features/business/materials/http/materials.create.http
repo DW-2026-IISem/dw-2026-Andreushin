@@ -1,0 +1,27 @@
+### Materials — CREATE (expects 201 Created)
+@baseUrl = http://localhost:3002
+
+POST {{baseUrl}}/api/materials
+Content-Type: application/json
+
+{
+  "name": "Polipropileno",
+  "description": "Tapas, empaques de alimentos y sillas plásticas (código 5)",
+  "status": "active"
+}
+
+### Materials — CREATE without name (expects 400 Bad Request)
+POST {{baseUrl}}/api/materials
+Content-Type: application/json
+
+{
+  "description": "Material sin nombre"
+}
+
+### Materials — CREATE duplicate name (expects 409 Conflict)
+POST {{baseUrl}}/api/materials
+Content-Type: application/json
+
+{
+  "name": "Polipropileno"
+}

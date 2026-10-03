@@ -1,0 +1,12 @@
+### Materials — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PUT {{baseUrl}}/api/materials/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Polipropileno (PP)",
+  "description": "Plástico código 5: tapas, vasos y empaques rígidos",
+  "status": "active"
+}
