@@ -1,0 +1,22 @@
+### Recyclers — CREATE (expects 201 Created)
+@baseUrl = http://localhost:3002
+
+POST {{baseUrl}}/api/recyclers
+Content-Type: application/json
+
+{
+  "name": "Asociación de Recicladores de Riohacha",
+  "description": "Asociación local de la alta Guajira",
+  "phone": "3001234567",
+  "email": "recicladores.riohacha@gmail.com",
+  "documentNumber": "NIT-900123456-1",
+  "status": "active"
+}
+
+### Recyclers — CREATE without name (expects 400 Bad Request)
+POST {{baseUrl}}/api/recyclers
+Content-Type: application/json
+
+{
+  "phone": "3001234567"
+}

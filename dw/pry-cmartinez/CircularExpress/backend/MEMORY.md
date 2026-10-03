@@ -4,15 +4,16 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Issues completadas: **ISS-01** (esqueleto) y **ISS-02** (infraestructura DB). Siguiente: **ISS-03** (feature Recycler).
-- Progreso: 2 / 16 issues (ISS-00 entorno se asume verificado).
+- Issues completadas: **ISS-00**, **ISS-01**, **ISS-02** y **ISS-03** (feature Recyclers). Siguiente: **ISS-04** (seeders con Faker).
+- Progreso: 4 / 17 issues (ISS-00..ISS-16).
 
 ## Qué existe hoy
 - `src/server.ts` → crea `App` y llama `listen()`.
-- `src/config/index.ts` → clase `App`: settings (PORT del `.env`, hoy 3002; default 4000), middlewares (morgan, cors, json, urlencoded), `GET /api/health`, `dbConnection()` que prueba la conexión y hace `process.exit(1)` si falla.
+- `src/config/index.ts` → clase `App`: settings (PORT del `.env`, hoy 3002; default 4000), middlewares, `GET /api/health`, rutas vía `Routes`, `dbConnection()` (conecta, `sync({ alter: true })`, `process.exit(1)` si falla).
 - `src/database/db.ts` → exporta `sequelize` (instancia eager), `getDatabaseInfo()` y `testConnection()`. Valida de forma fail-fast `DB_DIALECT` y el bloque `DB_<MOTOR>_*` del motor activo.
-- `routes()` sigue siendo un stub (`// ISS-03 §4.3`); en `dbConnection()` hay un marcador `// ISS-03` para modelos + `sync()`.
-- `src/features/business/core/http/health.http` → prueba del health check (apunta al puerto 4000).
+- `src/shared/`: `errors/app-error.ts` (AppError, NotFoundError 404, ValidationError 400, ConflictError 409), `http/base-controller.ts` (`handle()`, `parseId()`), `database/with-transaction.ts`.
+- `src/features/business/recyclers/`: model (`underscored`), `dto/`, repository, service (validación + unicidad de `documentNumber`), controller, routes `/api/recyclers` (+ `/:id`, `/:id/deactivate`), `http/` (7 `.http`). `src/routes/index.ts` agrega `RecyclersRoutes`.
+- `.http` apuntan al puerto 3002.
 - Dependencias: express 5, cors, dotenv, morgan, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @types/*.
 - Scripts: `dev`, `build`, `start`. Sin tests ni linter.
 
@@ -22,7 +23,7 @@
 - Conexiones verificadas con MySQL y Postgres.
 
 ## Aún no existe
-- `src/routes/`, `src/swagger/`, `src/database/seeders/`, Faker, features de negocio.
+- `src/swagger/`, `src/database/seeders/`, Faker, features de negocio salvo recyclers.
 
 ## Decisiones y desviaciones respecto a los ISS
 - `db.ts` lee `DB_DIALECT` + `DB_<MOTOR>_HOST/PORT/USERNAME/PASSWORD/NAME`, no los nombres `DB_ENGINE`/`MYSQL_HOST` del ISS-02.
@@ -35,11 +36,11 @@
 
 ## Pendientes / problemas conocidos
 - README desactualizado: menciona `tsx`, `npm run seed` y variables `DB_HOST`.
-- `health.http` usa el puerto 4000, pero el `.env` define 3002.
+- `circularguajira_db` tiene tablas de un proyecto anterior (`sales`, `settlements` camelCase) y 4 recyclers viejos referenciados por ellas; `settlements` chocará con ISS-15. El `alter` de ISS-03 ya borró columnas viejas de `recyclers`.
 
 ## Flujo por issue (estándar)
 - Skill `.claude/skills/issue-flow/`: Claude mueve el tablero (Project 9), verifica DoD, genera evidencias PNG, commitea `feat(iss-XX)` + push, registra el hash en la trazabilidad, commitea `docs(iss-XX)` + push y cierra el issue. Sin trailers ni leyendas de IA.
 - Tablero: campos Status (Preparado/En curso/Verificacion/Hecho), Size y Prioridad (P0–P2); metadatos en `scripts/sync_issue.py`.
 
 ## Próximo paso
-- ISS-03: modelo, controller y rutas de Recycler; crear `src/routes/index.ts`; registrar el modelo y `sync()` en `config/index.ts`.
+- ISS-04: `recyclers.seeder.ts` + `database/seeders/{index,counts}.ts` con Faker y script `npm run db:seed`. Antes, decidir qué hacer con las tablas viejas de la BD.

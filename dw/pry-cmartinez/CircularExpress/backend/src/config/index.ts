@@ -2,12 +2,15 @@ import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
-import { getDatabaseInfo, testConnection } from "../database/db";
+import { sequelize, getDatabaseInfo, testConnection } from "../database/db";
+import "../features/business/recyclers/recycler.model";
+import { Routes } from "../routes/index";
 
 dotenv.config();
 
 export class App {
   public app: Application;
+  public routePrv: Routes = new Routes();
 
   constructor(private port?: number | string) {
     this.app = express();
@@ -32,26 +35,27 @@ export class App {
     this.app.get('/api/health', (_req: Request, res: Response) => {
       res.status(200).json({ status: 'ok', service: 'circularguajira-api', timestamp: new Date().toISOString() });
     });
-    // ISS-03 §4.3
+    this.routePrv.recyclersRoutes.routes(this.app);
   }
 
   private async dbConnection(): Promise<void> {
     try {
       const dbInfo = getDatabaseInfo();
-      console.log(`🔗 Intentando conectar a: ${dbInfo.connectionString}`);
+      console.log(`🔗 Connecting to: ${dbInfo.connectionString}`);
       const isConnected = await testConnection();
       if (!isConnected) {
-        throw new Error(`No se pudo conectar a la base de datos ${dbInfo.engine.toUpperCase()}`);
+        throw new Error(`Could not connect to the ${dbInfo.engine.toUpperCase()} database`);
       }
-      // ISS-03: registro de modelos y sequelize.sync()
+      await sequelize.sync({ force: false, alter: true });
+      console.log(`📦 Database synchronized`);
     } catch (error) {
-      console.error("❌ Error al conectar con la base de datos:", error);
+      console.error("❌ Database connection failed:", error);
       process.exit(1);
     }
   }
 
   async listen() {
     await this.app.listen(this.app.get('port'));
-    console.log(`🚀 Servidor CircularGuajira ejecutándose en puerto ${this.app.get('port')}`);
+    console.log(`🚀 CircularGuajira server running on port ${this.app.get('port')}`);
   }
 }

@@ -1,0 +1,15 @@
+### Recyclers — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PUT {{baseUrl}}/api/recyclers/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Asociación de Recicladores de Riohacha y Manaure",
+  "description": "Asociación regional de la alta Guajira",
+  "phone": "3007654321",
+  "email": "contacto@recicladoresguajira.org",
+  "documentNumber": "NIT-900123456-1",
+  "status": "active"
+}
