@@ -47,3 +47,17 @@ Para marcar esta Issue como **Completada**, debes validar:
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de cierre (evidencias)** | [`93ee1f6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/93ee1f62c47e03ebdd928c2b8327238a2a5bbca9) |
+| **Hash completo** | `93ee1f62c47e03ebdd928c2b8327238a2a5bbca9` |
+| **Issue GitHub** | [#11](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/11) |
+| **Fecha de cierre** | 2026-09-30 |
+
+**Verificación realizada:** `node -v && npm -v` (captura `images/ISS-00.png`) y motores de BD accesibles en Docker (MySQL 3306, PostgreSQL 5433, MSSQL 1433, Oracle XE 1521).
+**Desviaciones respecto al ISS:** Ninguna. ISS-00 no tiene código: el único commit es el de evidencias. Hash registrado de forma retroactiva al adoptar la skill `issue-flow`.

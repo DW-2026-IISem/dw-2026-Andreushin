@@ -24,12 +24,12 @@ Antes de iniciar el desarrollo de esta Issue, verifica que:
 **Bloqueado por:** ISS-00.
 
 ##### Criterios de aceptación
-* [ ] **2.1** Existe `package.json` con `"type": "commonjs"` y scripts `build` / `dev`.
+* [x] **2.1** Existe `package.json` con `"type": "commonjs"` y scripts `build` / `dev`.
 * [ ] **2.2** Árbol `src/` con `config`, `database/seeders`, `routes`, `features/business/recycler`.
-* [ ] **2.3** Dependencias Express/TS instaladas.
-* [ ] **2.4** Existe `tsconfig.json` (`rootDir: ./src`, `outDir: ./dist`, `strict: true`).
-* [ ] **2.5** Existen `src/server.ts` y `src/config/index.ts`.
-* [ ] `npx tsc --noEmit` sin errores al cerrar el ISS.
+* [x] **2.3** Dependencias Express/TS instaladas.
+* [x] **2.4** Existe `tsconfig.json` (`rootDir: ./src`, `outDir: ./dist`, `strict: true`).
+* [x] **2.5** Existen `src/server.ts` y `src/config/index.ts`.
+* [x] `npx tsc --noEmit` sin errores al cerrar el ISS.
 
 #### 2.1 Inicializar npm y scripts
 ```bash
@@ -167,3 +167,17 @@ Para marcar esta Issue como **Completada**, debes validar:
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`5e1430f`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/5e1430f24d8275cf2d5e7931eb7bfaab0e11727d) |
+| **Hash completo** | `5e1430f24d8275cf2d5e7931eb7bfaab0e11727d` |
+| **Issue GitHub** | [#12](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/12) |
+| **Fecha de cierre** | 2026-09-30 |
+
+**Verificación realizada:** `npx tsc --noEmit` sin errores; `npm run dev` levanta el servidor y `GET /api/health` responde 200.
+**Desviaciones respecto al ISS:** Criterio 2.2 pendiente en este commit: git no versiona carpetas vacías, así que `database/seeders`, `routes` y `features/business/recycler` se crean con su contenido en ISS-02, ISS-03 e ISS-04. Se agregó `GET /api/health` (no estaba en el ISS). Hash registrado de forma retroactiva al adoptar la skill `issue-flow`.
