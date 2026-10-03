@@ -48,12 +48,13 @@ Recycler.init(
     documentNumber: {
       type: DataTypes.STRING(50),
       allowNull: true,
-      unique: true,
     },
+    // STRING + isIn instead of ENUM: SQL Server maps ENUM to a CHECK constraint that sync({ alter: true }) cannot alter.
     status: {
-      type: DataTypes.ENUM(...RECYCLER_STATUSES),
+      type: DataTypes.STRING(10),
       allowNull: false,
       defaultValue: "active",
+      validate: { isIn: [[...RECYCLER_STATUSES]] },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
@@ -64,5 +65,8 @@ Recycler.init(
     tableName: "recyclers",
     timestamps: true,
     underscored: true,
+    // Named index instead of column-level `unique: true`: sync({ alter: true }) re-adds a column-level
+    // UNIQUE on every run (duplicate indexes on MySQL, invalid ALTER COLUMN syntax on SQL Server).
+    indexes: [{ name: "recyclers_document_number_unique", unique: true, fields: ["document_number"] }],
   }
 );

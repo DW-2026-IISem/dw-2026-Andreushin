@@ -94,3 +94,11 @@ export const testConnection = async (): Promise<boolean> => {
     return false;
   }
 };
+
+// Sequelize's MSSQL changeColumn cannot emit UNIQUE/DEFAULT/CHECK, so `alter` breaks on existing tables there.
+// SQL Server only creates missing tables; schema changes on it require recreating the table.
+export const syncDatabase = async (): Promise<void> => {
+  const alter = selectedEngine !== "mssql";
+  await sequelize.sync({ force: false, alter });
+  console.log(`📦 Database synchronized (${alter ? "alter" : "create missing tables only"})`);
+};

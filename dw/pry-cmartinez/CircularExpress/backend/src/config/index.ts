@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import express, { Application, Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
-import { sequelize, getDatabaseInfo, testConnection } from "../database/db";
+import { getDatabaseInfo, syncDatabase, testConnection } from "../database/db";
 import "../features/business/recyclers/recycler.model";
 import { Routes } from "../routes/index";
 
@@ -46,8 +46,7 @@ export class App {
       if (!isConnected) {
         throw new Error(`Could not connect to the ${dbInfo.engine.toUpperCase()} database`);
       }
-      await sequelize.sync({ force: false, alter: true });
-      console.log(`📦 Database synchronized`);
+      await syncDatabase();
     } catch (error) {
       console.error("❌ Database connection failed:", error);
       process.exit(1);
