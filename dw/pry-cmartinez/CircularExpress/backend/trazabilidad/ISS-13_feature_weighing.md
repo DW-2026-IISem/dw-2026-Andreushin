@@ -82,9 +82,49 @@ EOF
 
 ---
 
+**Evidencias:**
+
+![ISS-13 type-check](images/ISS-13-tsc.png)
+![ISS-13 tabla weighings con 3 FKs](images/ISS-13-tabla-fk.png)
+![ISS-13 seeder vía service](images/ISS-13-seed.png)
+![ISS-13 arranque y peticiones](images/ISS-13-arranque.png)
+![ISS-13 registrar pesaje con neto calculado](images/ISS-13-create.png)
+![ISS-13 ciclo completo y existencias del lote](images/ISS-13-inventario.png)
+![ISS-13 validaciones 400](images/ISS-13-validacion.png)
+![ISS-13 pesajes de un lote](images/ISS-13-filtro.png)
+![ISS-13 borrar jornada con pesajes: 409 por FK](images/ISS-13-fk-409.png)
+![ISS-13 20 pesajes simultáneos en los 4 motores](images/ISS-13-concurrencia.png)
+![ISS-13 inventario coherente en los 4 motores](images/ISS-13-motores.png)
+![ISS-13 Swagger](images/ISS-13-swagger.png)
+
+---
+
 ## 3. Definición de Done (DoD) y Verificación
 Para marcar esta Issue como **Completada**, debes validar:
 1. Compilación de TypeScript exitosa (`npm run build` o `npx tsc --noEmit`).
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`ab239f8`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/ab239f8e8a4a6ffdb899106634bf1027f3fcc794) |
+| **Hash completo** | `ab239f8e8a4a6ffdb899106634bf1027f3fcc794` |
+| **Issue GitHub** | [#26](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/26) |
+| **Fecha de cierre** | 2026-10-03 |
+
+**Verificación realizada:** `npx tsc --noEmit` sin errores; tres `sync` consecutivos dejan 3 FKs (`collection_id`, `material_id`, `material_lot_id` opcional) en los 4 motores; `POST` calcula el neto (120,50 − 2,50 = 118,00) y lo suma al lote; el ciclo `PATCH` bruto → anular → reactivar → `PUT` sin lote → `PATCH` al lote → `DELETE` mueve las existencias exactamente lo esperado y el lote termina en su valor inicial; tara ≥ bruto, neto enviado por el cliente, lote de otro material y jornada inexistente 400; borrar una jornada con pesajes 409; **20 pesajes simultáneos** sobre el mismo lote responden 20/20 con 201 y dejan las existencias exactas (+200 kg) en MySQL, PostgreSQL, SQL Server y Oracle, y al borrarlos el lote vuelve a su valor; tras el seeder (que usa el service) cada lote aumentó exactamente la suma neta de sus pesajes activos en los 4 motores.
+
+**Problemas encontrados y corregidos durante la verificación:**
+- *Deadlock en MySQL* con pesajes simultáneos (6 de 10 fallaban con 500): el `INSERT` del pesaje toma un lock compartido sobre el lote por la FK y el ajuste posterior pedía un lock exclusivo. Ahora el lote se ajusta antes de insertar y `withTransaction` reintenta las víctimas de deadlock.
+- *Actualizaciones perdidas en SQL Server* (20 pesajes → solo +100 kg): `SELECT ... FOR UPDATE` no bloqueaba en ese motor. Se reemplazó por un `UPDATE` atómico `weight_kg = weight_kg + Δ` con guarda `>= 0`, válido en los 4 motores; el lote afectado se restauró a su valor previo a la prueba.
+
+**Desviaciones respecto al ISS:**
+- `netWeightKg` calculado por el servidor (bruto − tara) y efecto de los pesajes sobre las existencias (`weightKg`) del lote, con reversión al editar, anular o borrar.
+- Validación de coherencia lote ↔ material y de tara menor que el bruto; filtros `?collectionId=`, `?materialId=`, `?materialLotId=`.
+- Feature completo por capas con seeder (vía service), swagger y `.http`; FKs camelCase con `NO ACTION` (también en la FK opcional, para evitar el `SET NULL` por defecto), ruta `/api/weighings`, `status` STRING + `isIn` (`docs/prompt.MD` §3.4).
+- Nota: el 409 por existencias insuficientes al revertir un pesaje solo se alcanza cuando haya ventas (ISS-14) que descuenten el lote.
