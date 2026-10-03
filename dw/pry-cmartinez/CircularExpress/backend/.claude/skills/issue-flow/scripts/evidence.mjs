@@ -81,7 +81,7 @@ const F = cargarPsf(rutaFuente);
 
 // ---------- Texto ----------
 // Emojis comunes de los logs → etiquetas legibles; el resto de símbolos sin glifo se omite.
-const EMOJIS = { '✅': '[OK]', '✔': '[OK]', '❌': '[ERROR]', '⚠': '[AVISO]', '🚀': '>>', '🔌': '[DB]', '🔗': '[DB]', '📦': '[*]', '🌱': '[SEED]', '⏭': '[SKIP]' };
+const EMOJIS = { '✅': '[OK]', '✔': '[OK]', '❌': '[ERROR]', '⚠': '[AVISO]', '🚀': '>>', '🔌': '[DB]', '🔗': '[DB]', '📦': '[*]', '🌱': '[SEED]', '⏭': '[SKIP]', '📘': '[DOCS]' };
 const limpiar = (t) => [...t.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '').replace(/\r/g, '').replace(/\t/g, '    ')]
   .map((ch) => EMOJIS[ch] ?? (F.mapa.has(ch.codePointAt(0)) || ch === '\n' ? ch : ''))
   .join('');
