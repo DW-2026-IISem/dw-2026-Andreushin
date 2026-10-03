@@ -24,11 +24,11 @@ Antes de iniciar el desarrollo de esta Issue, verifica que:
 **Bloqueado por:** ISS-02.
 
 ##### Criterios de aceptación
-* [ ] Modelo `recycler.model.ts` con atributos `name`, `description`, `phone`, `email`, `document_number`, `status` y `timestamps: true`.
-* [ ] Controller `recycler.controller.ts` implementando `create`, `getAll`, `getOne`, `updatePut`, `updatePatch`, `deletePhysical`, `deleteLogical`.
-* [ ] Rutas `recycler.routes.ts` mapeando `/api/recicladores`.
-* [ ] Carpeta `http/` con archivos `.http` para pruebas REST Client.
-* [ ] Sincronización en `config/index.ts` y agregador `routes/index.ts`.
+* [x] Modelo `recycler.model.ts` con atributos `name`, `description`, `phone`, `email`, `document_number`, `status` y `timestamps: true`.
+* [x] Controller `recycler.controller.ts` implementando `create`, `getAll`, `getOne`, `updatePut`, `updatePatch`, `deletePhysical`, `deleteLogical`.
+* [x] Rutas `recycler.routes.ts` mapeando `/api/recicladores`. *(Implementado como `recyclers.routes.ts` en `/api/recyclers`, ver desviaciones.)*
+* [x] Carpeta `http/` con archivos `.http` para pruebas REST Client.
+* [x] Sincronización en `config/index.ts` y agregador `routes/index.ts`.
 
 #### 4.1 Modelo Recycler (`src/features/business/recycler/recycler.model.ts`)
 ```bash
@@ -331,9 +331,42 @@ EOF
 
 ---
 
+**Evidencias:**
+
+![ISS-03 type-check](images/ISS-03-tsc.png)
+![ISS-03 arranque, sync y peticiones](images/ISS-03-arranque.png)
+![ISS-03 tabla recyclers en MySQL](images/ISS-03-columnas.png)
+![ISS-03 crear reciclador](images/ISS-03-create.png)
+![ISS-03 validaciones 400 y 409](images/ISS-03-validacion.png)
+![ISS-03 PUT y PATCH](images/ISS-03-update.png)
+![ISS-03 baja lógica](images/ISS-03-baja-logica.png)
+![ISS-03 baja física](images/ISS-03-baja-fisica.png)
+
+---
+
 ## 3. Definición de Done (DoD) y Verificación
 Para marcar esta Issue como **Completada**, debes validar:
 1. Compilación de TypeScript exitosa (`npm run build` o `npx tsc --noEmit`).
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`e1a91f9`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/e1a91f91700f09a1cdbb3be71f837d1e8040c348) |
+| **Hash completo** | `e1a91f91700f09a1cdbb3be71f837d1e8040c348` |
+| **Issue GitHub** | [#14](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/14) |
+| **Fecha de cierre** | 2026-10-03 |
+
+**Verificación realizada:** `npx tsc --noEmit` sin errores; `npm run dev` conecta a MySQL y `sync({ alter: true })` deja la tabla `recyclers` con columnas snake_case; `POST` 201, `POST` sin `name` 400, `documentNumber` duplicado 409, `GET /:id` 200, `PUT` 200, `PATCH` 200, `PATCH /:id/deactivate` 200 y el registro sale de `GET /api/recyclers`, `DELETE` 200 y luego 404.
+
+**Desviaciones respecto al ISS** (por las convenciones de `docs/prompt.MD` §3.4, commit `c5a2c7f`):
+- Estructura por capas en `src/features/business/recyclers/` (model, `dto/`, repository, service, controller, routes) en lugar de modelo/controller/rutas planos; se agrega `src/shared/` (AppError, BaseController, withTransaction).
+- Atributos camelCase (`documentNumber`) con `underscored: true`; las columnas siguen en snake_case.
+- Ruta `/api/recyclers` en lugar de `/api/recicladores`.
+- Validación de entrada en el service (400) y unicidad de `documentNumber` (409), que el ISS no pedía.
+- La tabla `recyclers` ya existía en la BD (proyecto anterior); el `alter` eliminó sus columnas viejas. Quedan 4 filas antiguas referenciadas por tablas de ese proyecto (`sales`, `settlements`).
