@@ -1,0 +1,16 @@
+### MaterialSales — UPDATE PUT (expects 200 OK; total recomputed and lot stock adjusted by the difference)
+@baseUrl = http://localhost:3002
+@id = 1
+@materialLotId = 1
+
+PUT {{baseUrl}}/api/material-sales/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Venta de cartón a transformadora (corregida)",
+  "buyerName": "Papeles Reciclados de la Costa S.A.S.",
+  "materialLotId": {{materialLotId}},
+  "quantityKg": 300,
+  "unitPricePerKg": 550,
+  "saleDate": "2026-10-01"
+}

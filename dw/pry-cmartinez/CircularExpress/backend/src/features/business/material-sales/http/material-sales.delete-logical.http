@@ -1,0 +1,13 @@
+### MaterialSales — VOID (logical delete): status inactive and quantity returned to the lot (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/material-sales/{{id}}/deactivate
+
+### MaterialSales — re-activate a voided sale (expects 200 OK; 409 if the lot no longer has the stock)
+PATCH {{baseUrl}}/api/material-sales/{{id}}
+Content-Type: application/json
+
+{
+  "status": "active"
+}

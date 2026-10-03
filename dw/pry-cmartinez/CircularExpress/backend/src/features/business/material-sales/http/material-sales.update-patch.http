@@ -1,0 +1,10 @@
+### MaterialSales — UPDATE PATCH quantity (expects 200 OK; lot stock adjusted)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/material-sales/{{id}}
+Content-Type: application/json
+
+{
+  "quantityKg": 280
+}

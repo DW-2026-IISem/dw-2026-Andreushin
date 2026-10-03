@@ -8,11 +8,13 @@ import "../../features/business/material-rates/material-rate.model";
 import "../../features/business/plants/plant.model";
 import "../../features/business/material-lots/material-lot.model";
 import "../../features/business/weighings/weighing.model";
+import "../../features/business/material-sales/material-sale.model";
 import "../../features/business/collection-points/collection-points.associations";
 import "../../features/business/collections/collections.associations";
 import "../../features/business/material-rates/material-rates.associations";
 import "../../features/business/material-lots/material-lots.associations";
 import "../../features/business/weighings/weighings.associations";
+import "../../features/business/material-sales/material-sales.associations";
 import { RecyclersSeeder } from "../../features/business/recyclers/recyclers.seeder";
 import { RoutesSeeder } from "../../features/business/routes/routes.seeder";
 import { CollectionPointsSeeder } from "../../features/business/collection-points/collection-points.seeder";
@@ -22,6 +24,7 @@ import { MaterialRatesSeeder } from "../../features/business/material-rates/mate
 import { PlantsSeeder } from "../../features/business/plants/plants.seeder";
 import { MaterialLotsSeeder } from "../../features/business/material-lots/material-lots.seeder";
 import { WeighingsSeeder } from "../../features/business/weighings/weighings.seeder";
+import { MaterialSalesSeeder } from "../../features/business/material-sales/material-sales.seeder";
 import { resolveSeedCounts, SeedCounts } from "./counts";
 
 // Runs every feature seeder in foreign-key order. Usage: npm run db:seed [-- --recyclers=25]
@@ -46,6 +49,7 @@ export class SeedersRunner {
       plants: await new PlantsSeeder().run(this.counts.plants),
       materialLots: await new MaterialLotsSeeder().run(this.counts.materialLots),
       weighings: await new WeighingsSeeder().run(this.counts.weighings),
+      materialSales: await new MaterialSalesSeeder().run(this.counts.materialSales),
     };
 
     console.table(summary);

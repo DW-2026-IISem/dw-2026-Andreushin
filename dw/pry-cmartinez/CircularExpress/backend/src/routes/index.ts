@@ -7,6 +7,7 @@ import { MaterialRatesRoutes } from "../features/business/material-rates/materia
 import { PlantsRoutes } from "../features/business/plants/plants.routes";
 import { MaterialLotsRoutes } from "../features/business/material-lots/material-lots.routes";
 import { WeighingsRoutes } from "../features/business/weighings/weighings.routes";
+import { MaterialSalesRoutes } from "../features/business/material-sales/material-sales.routes";
 
 // Aggregator: one <Plural>Routes instance per feature, registered from App.routes().
 export class Routes {
@@ -19,4 +20,5 @@ export class Routes {
   public plantsRoutes: PlantsRoutes = new PlantsRoutes();
   public materialLotsRoutes: MaterialLotsRoutes = new MaterialLotsRoutes();
   public weighingsRoutes: WeighingsRoutes = new WeighingsRoutes();
+  public materialSalesRoutes: MaterialSalesRoutes = new MaterialSalesRoutes();
 }

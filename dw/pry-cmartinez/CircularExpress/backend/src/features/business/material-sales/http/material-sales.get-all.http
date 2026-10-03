@@ -1,0 +1,9 @@
+### MaterialSales — GET ALL, active only, newest first (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/material-sales
+Accept: application/json
+
+### MaterialSales — GET ALL of one lot (expects 200 OK)
+GET {{baseUrl}}/api/material-sales?materialLotId=1
+Accept: application/json

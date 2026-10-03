@@ -1,0 +1,41 @@
+### MaterialSales — CREATE (expects 201 Created; total = quantity × price; quantity leaves the lot stock)
+@baseUrl = http://localhost:3002
+@materialLotId = 1
+
+POST {{baseUrl}}/api/material-sales
+Content-Type: application/json
+
+{
+  "name": "Venta de cartón a transformadora",
+  "buyerName": "Papeles Reciclados de la Costa S.A.S.",
+  "materialLotId": {{materialLotId}},
+  "quantityKg": 250,
+  "unitPricePerKg": 560,
+  "saleDate": "2026-10-01",
+  "description": "Despacho en camión de 3 toneladas"
+}
+
+### MaterialSales — CREATE more than the lot stock (expects 409 Conflict)
+POST {{baseUrl}}/api/material-sales
+Content-Type: application/json
+
+{
+  "name": "Venta excesiva",
+  "buyerName": "Papeles Reciclados de la Costa S.A.S.",
+  "materialLotId": {{materialLotId}},
+  "quantityKg": 99999999,
+  "unitPricePerKg": 1
+}
+
+### MaterialSales — CREATE sending totalAmount (expects 400 Bad Request: the server computes it)
+POST {{baseUrl}}/api/material-sales
+Content-Type: application/json
+
+{
+  "name": "Total enviado",
+  "buyerName": "Cliente",
+  "materialLotId": {{materialLotId}},
+  "quantityKg": 10,
+  "unitPricePerKg": 100,
+  "totalAmount": 1000
+}

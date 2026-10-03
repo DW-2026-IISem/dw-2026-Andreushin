@@ -1,0 +1,10 @@
+### MaterialSales — PHYSICAL DELETE (expects 200 OK; quantity returned to the lot)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/material-sales/{{id}}
+
+### MaterialLots — PHYSICAL DELETE of a lot with sales (expects 409 Conflict)
+@materialLotId = 1
+
+DELETE {{baseUrl}}/api/material-lots/{{materialLotId}}

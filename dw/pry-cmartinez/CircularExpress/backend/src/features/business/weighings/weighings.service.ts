@@ -1,10 +1,11 @@
 import { Transaction } from "sequelize";
-import { ConflictError, NotFoundError, ValidationError } from "../../../shared/errors/app-error";
+import { NotFoundError, ValidationError } from "../../../shared/errors/app-error";
 import { withTransaction } from "../../../shared/database/with-transaction";
 import { hasAtMostTwoDecimals, roundTo2 } from "../../../shared/utils/numbers";
 import { parseIdFilter } from "../../../shared/validation/query-filters";
 import { CollectionsRepository } from "../collections/collections.repository";
 import { MaterialLotsRepository } from "../material-lots/material-lots.repository";
+import { applyStockChange, StockEffect } from "../material-lots/material-lots.stock";
 import { MaterialsRepository } from "../materials/materials.repository";
 import { CreateWeighingDto } from "./dto/create-weighing.dto";
 import { PatchWeighingDto } from "./dto/patch-weighing.dto";
@@ -16,12 +17,6 @@ const NAME_MAX_LENGTH = 150;
 const DESCRIPTION_MAX_LENGTH = 255;
 const MAX_WEIGHT_KG = 99_999_999.99; // DECIMAL(10, 2)
 
-// What a weighing contributes to a lot's stock: only active weighings linked to a lot count.
-interface StockEffect {
-  lotId: number;
-  kg: number;
-}
-
 // The fields that decide references, net weight and stock effect after a write.
 interface WeighingState {
   collectionId: number;
@@ -32,6 +27,7 @@ interface WeighingState {
   status: WeighingStatus;
 }
 
+// What a weighing contributes to a lot's stock: only active weighings linked to a lot count.
 const effectOf = (state: Pick<WeighingState, "status" | "materialLotId"> & { netWeightKg: number }): StockEffect | null =>
   state.status === "active" && state.materialLotId ? { lotId: state.materialLotId, kg: state.netWeightKg } : null;
 
@@ -73,7 +69,7 @@ export class WeighingsService {
       await this.ensureReferences(state, null, transaction);
       // Update the lot BEFORE inserting: the insert's FK check takes a shared lock on the lot row, and
       // upgrading it to an exclusive lock afterwards deadlocks concurrent weighings of the same lot.
-      await this.applyStockChange(null, effectOf({ ...state, netWeightKg }), transaction);
+      await this.stock(null, effectOf({ ...state, netWeightKg }), transaction);
       const weighing = await this.repository.create(
         { ...state, name: dto.name, description: dto.description ?? null, netWeightKg },
         transaction
@@ -125,7 +121,7 @@ export class WeighingsService {
     return withTransaction(async (transaction) => {
       const current = await this.getOrFail(id, transaction);
       if (current.status === "inactive") return toWeighingResponse(current);
-      await this.applyStockChange(effectOf(current), null, transaction);
+      await this.stock(effectOf(current), null, transaction);
       await this.repository.update(current, { status: "inactive" }, transaction);
       return this.reloadResponse(id, transaction);
     });
@@ -134,7 +130,7 @@ export class WeighingsService {
   async remove(id: number): Promise<void> {
     await withTransaction(async (transaction) => {
       const current = await this.getOrFail(id, transaction);
-      await this.applyStockChange(effectOf(current), null, transaction);
+      await this.stock(effectOf(current), null, transaction);
       await this.repository.delete(current, transaction);
     });
   }
@@ -148,7 +144,7 @@ export class WeighingsService {
   ): Promise<WeighingResponseDto> {
     const netWeightKg = this.netOf(state);
     await this.ensureReferences(state, current, transaction);
-    await this.applyStockChange(effectOf(current), effectOf({ ...state, netWeightKg }), transaction);
+    await this.stock(effectOf(current), effectOf({ ...state, netWeightKg }), transaction);
     await this.repository.update(current, { ...state, ...texts, netWeightKg }, transaction);
     return this.reloadResponse(current.id, transaction);
   }
@@ -195,25 +191,14 @@ export class WeighingsService {
     }
   }
 
-  // Removes the old effect and adds the new one with atomic UPDATEs (lots in id order to avoid deadlocks).
-  // A lot can never go below 0 kg: that would mean un-weighing material that was already sold.
-  private async applyStockChange(oldEffect: StockEffect | null, newEffect: StockEffect | null, transaction: Transaction): Promise<void> {
-    const deltas = new Map<number, number>();
-    if (oldEffect) deltas.set(oldEffect.lotId, (deltas.get(oldEffect.lotId) ?? 0) - oldEffect.kg);
-    if (newEffect) deltas.set(newEffect.lotId, (deltas.get(newEffect.lotId) ?? 0) + newEffect.kg);
-
-    for (const lotId of [...deltas.keys()].sort((a, b) => a - b)) {
-      const delta = roundTo2(deltas.get(lotId)!);
-      if (delta === 0) continue;
-      if (await this.lotsRepository.adjustWeight(lotId, delta, transaction)) continue;
-      const lot = await this.lotsRepository.findById(lotId, transaction);
-      if (!lot) throw new ValidationError("El lote indicado no existe", { materialLotId: lotId });
-      throw new ConflictError("El lote no tiene existencias suficientes para revertir el pesaje", {
-        materialLotId: lotId,
-        stockKg: lot.weightKg,
-        requiredKg: -delta,
-      });
-    }
+  private stock(oldEffect: StockEffect | null, newEffect: StockEffect | null, transaction: Transaction): Promise<void> {
+    return applyStockChange(
+      this.lotsRepository,
+      oldEffect,
+      newEffect,
+      transaction,
+      "El lote no tiene existencias suficientes para revertir el pesaje"
+    );
   }
 
   private async reloadResponse(id: number, transaction: Transaction): Promise<WeighingResponseDto> {
