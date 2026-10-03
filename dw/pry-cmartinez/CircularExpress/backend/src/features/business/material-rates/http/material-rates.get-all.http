@@ -1,0 +1,9 @@
+### MaterialRates — GET ALL current rates, one per material (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/material-rates
+Accept: application/json
+
+### MaterialRates — current rate of one material (expects 200 OK)
+GET {{baseUrl}}/api/material-rates?materialId=1
+Accept: application/json

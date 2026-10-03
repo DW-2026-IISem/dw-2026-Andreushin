@@ -1,0 +1,10 @@
+### MaterialRates — PHYSICAL DELETE (expects 200 OK; 404 when missing)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/material-rates/{{id}}
+
+### Materials — PHYSICAL DELETE of a material with rates (expects 409 Conflict)
+@materialId = 1
+
+DELETE {{baseUrl}}/api/materials/{{materialId}}

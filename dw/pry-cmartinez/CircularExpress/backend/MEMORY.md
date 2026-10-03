@@ -4,8 +4,8 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Issues completadas: **ISS-00** a **ISS-09** (feature Materials). Siguiente: **ISS-10** (feature MaterialRates: tarifas por kilo con FK a materials).
-- Progreso: 10 / 17 issues (ISS-00..ISS-16).
+- Issues completadas: **ISS-00** a **ISS-10** (feature MaterialRates). Siguiente: **ISS-11** (feature Plants: plantas de clasificación y acopio).
+- Progreso: 11 / 17 issues (ISS-00..ISS-16).
 
 ## Qué existe hoy
 - `src/server.ts` → `App` + `listen()`. `src/config/index.ts` → clase `App`: PORT del `.env` (3002), middlewares, `GET /api/health`, importa modelos y luego asociaciones, rutas vía `Routes`, `setupSwagger()`, `dbConnection()` (conecta, `syncDatabase()`, `process.exit(1)` si falla).
@@ -17,6 +17,7 @@
   - `collection-points/` → `/api/collection-points` (FK `routeId`, único `name+route_id`, `?routeId=`, respuesta incluye `route`; la ruta debe existir y estar activa). `collection-points.associations.ts`: belongsTo/hasMany, `onDelete: "NO ACTION"`.
   - `collections/` → `/api/collections` (FKs `recyclerId` y `routeId`, `collectionDate` DATEONLY no futura y por defecto hoy, único `recycler+route+date`, filtros `?recyclerId=&routeId=`, respuesta incluye `recycler` y `route`).
   - `materials/` → `/api/materials` (catálogo, `name` único; seeder con 10 materiales reales fijos, no aleatorios).
+  - `material-rates/` → `/api/material-rates` (historial: `pricePerKg` DECIMAL(10,2) expuesto como número vía getter, `validFrom` DATEONLY, único `material+valid_from`; crear/activar una tarifa cierra la vigente anterior del material → 1 vigente por material; respuesta de escritura incluye `previousRatesClosed`; `?materialId=`).
 - `src/swagger/`: `swagger.types.ts`, `swagger.helpers.ts`, `index.ts` (registry, `/api/health`, `Error`, respuestas comunes) → `/api/docs` y `/api/docs.json`.
 - `src/database/seeders/`: `counts.ts` (camelCase, CLI `--tabla=N`) e `index.ts` (`SeedersRunner`, orden de FK) → `npm run db:seed`; idempotente.
 - Dependencias: express 5, cors, dotenv, morgan, swagger-ui-express 5, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @faker-js/faker 10, @types/*.
@@ -28,7 +29,7 @@
 - Credenciales del `.env`: no cambiarlas sin pedido del usuario.
 
 ## Aún no existe
-- Features ISS-10..ISS-15 (material-rates, plants, material-lots, weighings, material-sales, settlements).
+- Features ISS-11..ISS-15 (plants, material-lots, weighings, material-sales, settlements).
 
 ## Decisiones y desviaciones respecto a los ISS
 - `db.ts` usa `DB_DIALECT` + `DB_<MOTOR>_*` (no `DB_ENGINE`/`MYSQL_HOST`); `getDatabaseInfo()` no expone la contraseña; sin `@types/sequelize`.
@@ -44,4 +45,4 @@
 - Skill `.claude/skills/issue-flow/`: tablero Project 9, DoD, evidencias PNG, commits `feat(iss-XX)` y `docs(iss-XX)` con push, hash en la trazabilidad y cierre del issue. Sin trailers ni leyendas de IA.
 
 ## Próximo paso
-- ISS-10: feature `material-rates` (precio por kilo vigente por material, FK `materialId`), seeder sobre materiales activos.
+- ISS-11: feature `plants` (plantas de clasificación/acopio, sin FKs); luego ISS-12 `material-lots` con FKs a plants y materials.

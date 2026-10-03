@@ -1,0 +1,18 @@
+### MaterialRates — UPDATE PATCH, partial update (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/material-rates/{{id}}
+Content-Type: application/json
+
+{
+  "pricePerKg": 1300
+}
+
+### MaterialRates — PATCH status active re-activates a history rate (expects 200 OK; previousRatesClosed = 1)
+PATCH {{baseUrl}}/api/material-rates/{{id}}
+Content-Type: application/json
+
+{
+  "status": "active"
+}

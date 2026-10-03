@@ -1,0 +1,36 @@
+### MaterialRates — CREATE (expects 201 Created; closes the material's previous active rate)
+@baseUrl = http://localhost:3002
+@materialId = 1
+
+POST {{baseUrl}}/api/material-rates
+Content-Type: application/json
+
+{
+  "name": "Tarifa octubre",
+  "materialId": {{materialId}},
+  "pricePerKg": 1250.50,
+  "validFrom": "2026-10-01",
+  "description": "Ajuste por aumento de demanda",
+  "status": "active"
+}
+
+### MaterialRates — CREATE with a non-positive price (expects 400 Bad Request)
+POST {{baseUrl}}/api/material-rates
+Content-Type: application/json
+
+{
+  "name": "Tarifa inválida",
+  "materialId": {{materialId}},
+  "pricePerKg": 0
+}
+
+### MaterialRates — CREATE same material and start date (expects 409 Conflict)
+POST {{baseUrl}}/api/material-rates
+Content-Type: application/json
+
+{
+  "name": "Tarifa repetida",
+  "materialId": {{materialId}},
+  "pricePerKg": 1300,
+  "validFrom": "2026-10-01"
+}

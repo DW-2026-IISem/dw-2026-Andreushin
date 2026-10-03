@@ -1,0 +1,16 @@
+### MaterialRates — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+@materialId = 1
+
+PUT {{baseUrl}}/api/material-rates/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Tarifa octubre (corregida)",
+  "materialId": {{materialId}},
+  "pricePerKg": 1280,
+  "validFrom": "2026-10-01",
+  "description": "Se corrigió el precio",
+  "status": "active"
+}

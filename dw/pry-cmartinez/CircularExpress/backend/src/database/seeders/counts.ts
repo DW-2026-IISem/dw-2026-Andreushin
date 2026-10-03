@@ -19,7 +19,7 @@ export const DEFAULT_SEED_COUNTS: SeedCounts = {
   collectionPoints: 15,
   collections: 10,
   materials: 8,
-  materialRates: 8,
+  materialRates: 16, // one current rate per material + one history row
   plants: 3,
   materialLots: 6,
   weighings: 20,

@@ -3,6 +3,7 @@ import { RoutesRoutes } from "../features/business/routes/routes.routes";
 import { CollectionPointsRoutes } from "../features/business/collection-points/collection-points.routes";
 import { CollectionsRoutes } from "../features/business/collections/collections.routes";
 import { MaterialsRoutes } from "../features/business/materials/materials.routes";
+import { MaterialRatesRoutes } from "../features/business/material-rates/material-rates.routes";
 
 // Aggregator: one <Plural>Routes instance per feature, registered from App.routes().
 export class Routes {
@@ -11,4 +12,5 @@ export class Routes {
   public collectionPointsRoutes: CollectionPointsRoutes = new CollectionPointsRoutes();
   public collectionsRoutes: CollectionsRoutes = new CollectionsRoutes();
   public materialsRoutes: MaterialsRoutes = new MaterialsRoutes();
+  public materialRatesRoutes: MaterialRatesRoutes = new MaterialRatesRoutes();
 }
