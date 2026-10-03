@@ -49,29 +49,75 @@ El sistema se compone de 11 entidades de negocio organizadas en 4 subsistemas pr
 - **Poblado de Datos**: `@faker-js/faker` con runner de seeders externos.
 - **Documentación API**: **OpenAPI 3.0** / Swagger (`swagger-ui-express`).
 
-### 3.2 Estrategia de Archivos por Feature (`src/features/business/<feature>/`)
-Cada entidad de negocio debe aislarse completamente en su carpeta de feature con la siguiente estructura estandarizada:
+### 3.2 Estructura por capas (`src/features/business/<plural>/`)
+Cada entidad de negocio se aísla en su carpeta de feature (en **plural**, kebab-case) y se organiza **por capas**. El flujo es obligatorio:
 
 ```text
-src/features/business/<feature>/
-├── <feature>.model.ts        # Definición del modelo Sequelize (campos snake_case, interfaces TS)
-├── <feature>.controller.ts   # Métodos CRUD (create, getAll, getOne, updatePut, updatePatch, deletePhysical, deleteLogical)
-├── <feature>.routes.ts       # Definición de endpoints Express (sin autenticación en esta fase)
-├── <feature>.associations.ts # Mapeo de Claves Foráneas (FK) y relaciones Sequelize (belongsTo, hasMany)
-├── <feature>.seeder.ts       # Generación de datos falsos idempotentes con Faker
-├── <feature>.swagger.ts      # Esferas de OpenAPI 3.0 para Swagger
-└── http/                     # Archivos de prueba para REST Client
-    ├── <feature>s.create.http
-    ├── <feature>s.get-all.http
-    └── ...
+HTTP (routes) -> Controller -> Service -> Repository -> Model -> Sequelize -> BD
 ```
+
+```text
+src/
+├── config/                       # clase App: middlewares, rutas, conexión y sync
+├── database/
+│   ├── db.ts                     # instancia Sequelize multi-motor
+│   └── seeders/                  # index.ts (runner) + counts.ts → npm run db:seed
+├── routes/index.ts               # agregador de rutas de todos los features
+├── shared/                       # utilidades transversales
+│   ├── errors/app-error.ts       # AppError, NotFoundError, ValidationError
+│   ├── http/base-controller.ts   # traduce AppError a status HTTP
+│   └── database/with-transaction.ts  # unit of work (sequelize.transaction)
+├── features/business/<plural>/
+│   ├── <singular>.model.ts       # modelo Sequelize (atributos camelCase, underscored: true)
+│   ├── dto/                      # un archivo por operación (create/update/patch/response)
+│   ├── <plural>.repository.ts    # acceso a datos: ÚNICA capa que usa Sequelize
+│   ├── <plural>.service.ts       # reglas de negocio, validaciones y transacciones
+│   ├── <plural>.controller.ts    # req/res y status codes (extiende BaseController)
+│   ├── <plural>.routes.ts        # endpoints Express (sin autenticación en esta fase)
+│   ├── <plural>.associations.ts  # FK y relaciones (belongsTo, hasMany)
+│   ├── <plural>.seeder.ts        # datos falsos idempotentes con Faker
+│   ├── <plural>.swagger.ts       # especificación OpenAPI 3.0
+│   └── http/<plural>.<operación>.http   # pruebas REST Client
+└── server.ts
+```
+
+| Capa | Archivo | Responsabilidad |
+| :--- | :--- | :--- |
+| Controller | `<plural>.controller.ts` | HTTP: leer `req`, responder con status codes. Métodos: `create`, `getAll`, `getOne`, `updatePut`, `updatePatch`, `deletePhysical`, `deleteLogical`. |
+| Service | `<plural>.service.ts` | Reglas de negocio, validaciones, transacciones; lanza `AppError`. |
+| Repository | `<plural>.repository.ts` | Consultas Sequelize; no conoce HTTP. |
+| DTO | `dto/*.dto.ts` | Contrato de entrada/salida por operación. |
+| Model | `<singular>.model.ts` | Tabla, atributos, hooks. |
 
 ### 3.3 Agregadores Globales de Integración
 Cualquier nuevo feature debe integrarse en los agregadores centrales del sistema:
-- `src/routes/index.ts`: Mapeo central de rutas HTTP (`/api/<feature>s`).
+- `src/routes/index.ts`: Mapeo central de rutas HTTP (`/api/<plural>`).
 - `src/config/index.ts`: Registro global de modelos y asociaciones en el ORM.
 - `src/swagger/index.ts`: Registro central de documentación OpenAPI.
 - `src/database/seeders/index.ts`: Orquestador global de ejecución de seeders.
+
+### 3.4 Convenciones obligatorias
+Estas reglas **prevalecen sobre el código de referencia de los archivos ISS**: ese código indica *qué* construir; aquí se define *cómo* escribirlo.
+
+**Idioma**
+- Código en **inglés**: identificadores, comentarios, logs de consola y rutas (`/api/recyclers`).
+- Los mensajes que devuelve la API al cliente (errores, confirmaciones) pueden ir en **español**.
+- Documentación (`docs/`, `trazabilidad/`, `MEMORY.md`) y mensajes de commit en español.
+
+**Nombres**
+- camelCase para variables, atributos y métodos (`documentNumber`); PascalCase para clases y tipos.
+- Las columnas de BD quedan en snake_case automáticamente con `underscored: true` (`document_number`, `created_at`).
+- Carpetas, archivos y rutas multi-palabra en kebab-case (`collection-points`); tablas en snake_case (`collection_points`).
+
+**Singular vs plural**: plural = la colección / el recurso REST; singular = una instancia.
+
+| Plural | Singular |
+| :--- | :--- |
+| Ruta `/api/recyclers`, tabla `recyclers`, carpeta `recyclers/` | Modelo `Recycler` en `recycler.model.ts` |
+| Archivos y clases de capa: `recyclers.service.ts` → `RecyclersService` | DTO `CreateRecyclerDto` en `dto/create-recycler.dto.ts` |
+| Respuesta de lista `{ recyclers: [...] }`, `hasMany(..., { as: "collections" })` | Respuesta de uno `{ recycler: {...} }`, FK `recyclerId` → `recycler_id`, `belongsTo(..., { as: "recycler" })` |
+
+Mapa de features: `recyclers`, `routes`, `collection-points`, `collections`, `materials`, `material-rates`, `plants`, `material-lots`, `weighings`, `material-sales`, `settlements`.
 
 ---
 
@@ -114,9 +160,9 @@ Usa esta matriz como mapa maestro de referencia para el seguimiento del proyecto
 | **ISS-00** | Entorno & Requisitos | Ninguno | Node.js, npm, Docker/SQL DB | Entorno verificado con `node -v` y `npm -v`. |
 | **ISS-01** | Esqueleto Base Express | ISS-00 | `package.json`, `tsconfig.json`, `src/server.ts` | Servidor Express respondiendo en `/api/health`. |
 | **ISS-02** | Infraestructura DB | ISS-01 | `src/database/db.ts`, `.env` | Conexión exitosa a BD (MySQL/PostgreSQL/MSSQL/Oracle). |
-| **ISS-03** | Feature Recycler | ISS-02 | `recycler.model.ts`, `controller.ts`, `routes.ts` | CRUD completo funcional de Recicladores (`/api/recyclers`). |
-| **ISS-04** | Seeders con Faker | ISS-03 | `recycler.seeder.ts`, `seeders/index.ts` | Poblamiento automático de BD mediante `npm run seed`. |
-| **ISS-05** | Swagger / OpenAPI 3 | ISS-03 | `recycler.swagger.ts`, `swagger/index.ts` | Interfaz interactiva Swagger accesible en `/api/docs`. |
+| **ISS-03** | Feature Recycler | ISS-02 | `recyclers/` (model, dto, repository, service, controller, routes) | CRUD completo funcional de Recicladores (`/api/recyclers`). |
+| **ISS-04** | Seeders con Faker | ISS-03 | `recyclers.seeder.ts`, `seeders/{index,counts}.ts` | Poblamiento automático de BD mediante `npm run db:seed`. |
+| **ISS-05** | Swagger / OpenAPI 3 | ISS-03 | `recyclers.swagger.ts`, `swagger/index.ts` | Interfaz interactiva Swagger accesible en `/api/docs`. |
 | **ISS-06** | Feature Route | ISS-03 | `route.model.ts`, `controller.ts`, `routes.ts` | CRUD de Rutas de Recolección por Municipio. |
 | **ISS-07** | Feature CollectionPoint | ISS-06 | `collection-point.model.ts`, `associations.ts` | Relación 1:N (`Route -> CollectionPoints`) en BD. |
 | **ISS-08** | Feature Collection | ISS-07 | `collection.model.ts`, `associations.ts` | Jornadas vinculando Reciclador + Ruta (`collections`). |

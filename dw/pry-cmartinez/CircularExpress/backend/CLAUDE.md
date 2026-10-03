@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-CircularGuajira backend: an Express 5 + TypeScript REST API (Sequelize ORM, multi-engine DB) for traceability of the recycling supply chain in La Guajira, Colombia. Code comments, log messages, docs and API error strings are in Spanish; keep that convention.
+CircularGuajira backend: an Express 5 + TypeScript REST API (Sequelize ORM, multi-engine DB) for traceability of the recycling supply chain in La Guajira, Colombia. **All code is in English** (identifiers, comments, console logs, routes). API response messages may be Spanish; docs (`docs/`, `trazabilidad/`, `MEMORY.md`), commit messages and conversation with the user are in Spanish. Full naming rules live in `docs/prompt.MD` §3.4 and override the ISS reference code: the ISS files say *what* to build, not *how* to write it — never copy their code verbatim.
 
 The project is built **incrementally, issue by issue**. `docs/prompt.MD` is the master spec (domain model, architecture rules, execution protocol) and `trazabilidad/ISS-00` … `ISS-16` are the work items, each with DoR prerequisites, reference code and DoD checks. Before implementing anything, read the relevant ISS file and confirm its prerequisite issues are done. Placeholder comments like `// ISS-03 §4.3` in the code mark where a future issue plugs in.
 
@@ -48,12 +48,13 @@ The README is ahead of/out of sync with the code: it mentions `tsx`, `npm run se
 - `src/server.ts` → instantiates `App` from `src/config/index.ts` and calls `listen()`.
 - `src/config/index.ts` — `App` class that runs `settings()`, `middlewares()` (morgan, cors, json, urlencoded), `routes()` and `dbConnection()` in its constructor. This is the central place where models are imported, routes are registered, and (per ISS-03) `sequelize.sync({ alter: true })` runs.
 
-Target structure once issues land (see `docs/prompt.MD` §3):
+Feature structure (see `docs/prompt.MD` §3.2–3.4). Mandatory flow: `routes → controller → service → repository → model → Sequelize`.
 
-- **Feature modules** in `src/features/business/<feature>/` with files `<feature>.model.ts`, `.controller.ts`, `.routes.ts`, `.associations.ts`, `.seeder.ts`, `.swagger.ts` and an `http/` folder. Multi-word features use kebab-case (`collection-point`, `material-rate`).
-- **Every new feature must be wired into the global aggregators**: `src/routes/index.ts` (a `Routes` class holding each `<Feature>Routes` instance), `src/config/index.ts` (model import + `routes()` call + associations), `src/swagger/index.ts`, and `src/database/seeders/index.ts` (with per-table counts in `seeders/counts.ts`).
-- **Controller convention**: class with `create`, `getAll`, `getOne`, `updatePut`, `updatePatch`, `deletePhysical`, `deleteLogical`. Logical delete sets `status: "inactive"`; `getAll` returns only active rows. Routes classes expose `routes(app)` and bind controller methods with `.bind(controller)`. No authentication in this phase.
-- **Models**: Sequelize `Model` subclass + a `<Entity>I` interface, snake_case columns, explicit `tableName`, `timestamps: true`.
+- **Feature modules** in `src/features/business/<plural>/` (kebab-case: `recyclers`, `collection-points`): `<singular>.model.ts`, `dto/` (one file per operation), `<plural>.repository.ts` (the only layer that touches Sequelize), `<plural>.service.ts` (business rules, validation, transactions; throws `AppError`), `<plural>.controller.ts` (extends `BaseController`, only req/res), `<plural>.routes.ts`, plus `<plural>.associations.ts`, `.seeder.ts`, `.swagger.ts` and `http/` as issues require.
+- **Shared** in `src/shared/`: `errors/app-error.ts` (`AppError`, `NotFoundError`, `ValidationError`), `http/base-controller.ts`, `database/with-transaction.ts`.
+- **Naming**: camelCase attributes with `underscored: true` so DB columns are snake_case; plural for the collection (routes `/api/recyclers`, tables, folders, layer files and classes like `RecyclersService`), singular for one instance (model `Recycler`, `CreateRecyclerDto`, FK `recyclerId`).
+- **Every new feature must be wired into the global aggregators**: `src/routes/index.ts` (a `Routes` class holding each `<Plural>Routes` instance), `src/config/index.ts` (model import + `routes()` call + associations), `src/swagger/index.ts`, and `src/database/seeders/index.ts` (with per-table counts in `seeders/counts.ts`, run by `npm run db:seed`).
+- **Controller convention**: `create`, `getAll`, `getOne`, `updatePut`, `updatePatch`, `deletePhysical`, `deleteLogical`. Logical delete sets `status: "inactive"`; `getAll` returns only active rows. Routes classes expose `routes(app)` and bind controller methods. No authentication in this phase.
 - **Seeders**: idempotent (skip if the table already has rows), using `@faker-js/faker`.
 - **Domain**: 11 tables in 4 subsystems: recyclers / routes / collection_points / collections; materials / material_rates; plants / material_lots / weighings; material_sales / settlements. FK relationships and issue order are in the matrix in `docs/prompt.MD` §5.
 

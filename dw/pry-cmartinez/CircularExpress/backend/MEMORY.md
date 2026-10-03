@@ -30,10 +30,11 @@
 - `getDatabaseInfo()` no expone la contraseña.
 - ISS-02 solo hace `authenticate()`; el `sync({ alter: true })` llega en ISS-03.
 - `cors` se importa con `import`. Health check añadido en ISS-01.
+- **Convenciones (2026-10-03, `docs/prompt.MD` §3.4)**: código en inglés y camelCase (BD snake_case con `underscored: true`); features por capas routes → controller → service → repository → model en `features/business/<plural>/`, con `src/shared/`. Mensajes de la API pueden ir en español. Mandan sobre el código de referencia de los ISS.
+- Rutas en plural inglés (`/api/recyclers`), no `/api/recicladores` del ISS-03.
 
 ## Pendientes / problemas conocidos
 - README desactualizado: menciona `tsx`, `npm run seed` y variables `DB_HOST`.
-- Ruta de recicladores sin definir: `/api/recicladores` (ISS-03) vs `/api/<feature>s` (prompt maestro).
 - `health.http` usa el puerto 4000, pero el `.env` define 3002.
 
 ## Flujo por issue (estándar)

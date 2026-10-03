@@ -15,18 +15,18 @@ interface DatabaseConfig {
   database: string;
 }
 
-// Fail-Fast: DB_DIALECT debe ser uno de los motores soportados.
+// Fail-fast: DB_DIALECT must be one of the supported engines.
 function getDialect(): DbDialect {
   const raw = (process.env.DB_DIALECT || "").toLowerCase();
   if (!SUPPORTED_DIALECTS.includes(raw as DbDialect)) {
     throw new Error(
-      `DB_DIALECT inválido o no definido ("${raw}"). Valores permitidos: ${SUPPORTED_DIALECTS.join(", ")}`
+      `Invalid or missing DB_DIALECT ("${raw}"). Allowed values: ${SUPPORTED_DIALECTS.join(", ")}`
     );
   }
   return raw as DbDialect;
 }
 
-// Fail-Fast: solo el bloque DB_<MOTOR>_* del motor activo es obligatorio.
+// Fail-fast: only the DB_<ENGINE>_* block of the active engine is required.
 function getConfig(dialect: DbDialect): DatabaseConfig {
   const prefix = `DB_${dialect.toUpperCase()}`;
   const keys = ["HOST", "PORT", "USERNAME", "PASSWORD", "NAME"] as const;
@@ -36,7 +36,7 @@ function getConfig(dialect: DbDialect): DatabaseConfig {
     const envKey = `${prefix}_${key}`;
     const value = process.env[envKey];
     if (!value) {
-      throw new Error(`Falta la variable de entorno requerida: ${envKey}`);
+      throw new Error(`Missing required environment variable: ${envKey}`);
     }
     values[key] = value;
   }
@@ -53,7 +53,7 @@ function getConfig(dialect: DbDialect): DatabaseConfig {
 const selectedEngine = getDialect();
 const selectedConfig = getConfig(selectedEngine);
 
-console.log(`🔌 Conectando a base de datos CircularGuajira: ${selectedEngine.toUpperCase()}`);
+console.log(`🔌 Connecting to CircularGuajira database: ${selectedEngine.toUpperCase()}`);
 
 export const sequelize = new Sequelize(
   selectedConfig.database,
@@ -73,7 +73,7 @@ export const sequelize = new Sequelize(
   }
 );
 
-// No expone la contraseña.
+// Never exposes the password.
 export const getDatabaseInfo = () => {
   return {
     engine: selectedEngine,
@@ -87,10 +87,10 @@ export const getDatabaseInfo = () => {
 export const testConnection = async (): Promise<boolean> => {
   try {
     await sequelize.authenticate();
-    console.log(`✅ Conexión exitosa a ${selectedEngine.toUpperCase()}`);
+    console.log(`✅ Connected to ${selectedEngine.toUpperCase()}`);
     return true;
   } catch (error) {
-    console.error(`❌ Error de conexión a ${selectedEngine.toUpperCase()}:`, error);
+    console.error(`❌ Connection error on ${selectedEngine.toUpperCase()}:`, error);
     return false;
   }
 };
