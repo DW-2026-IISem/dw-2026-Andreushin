@@ -1,0 +1,37 @@
+### MaterialLots — CREATE (expects 201 Created; plant and material must be active)
+@baseUrl = http://localhost:3002
+@plantId = 1
+@materialId = 1
+
+POST {{baseUrl}}/api/material-lots
+Content-Type: application/json
+
+{
+  "name": "LT-RIO-PET-202610-100",
+  "plantId": {{plantId}},
+  "materialId": {{materialId}},
+  "weightKg": 0,
+  "description": "Lote nuevo de PET para pacas de 50 kg",
+  "status": "active"
+}
+
+### MaterialLots — CREATE with negative stock (expects 400 Bad Request)
+POST {{baseUrl}}/api/material-lots
+Content-Type: application/json
+
+{
+  "name": "LT-NEGATIVO",
+  "plantId": {{plantId}},
+  "materialId": {{materialId}},
+  "weightKg": -5
+}
+
+### MaterialLots — CREATE duplicate lot code (expects 409 Conflict)
+POST {{baseUrl}}/api/material-lots
+Content-Type: application/json
+
+{
+  "name": "LT-RIO-PET-202610-100",
+  "plantId": {{plantId}},
+  "materialId": {{materialId}}
+}

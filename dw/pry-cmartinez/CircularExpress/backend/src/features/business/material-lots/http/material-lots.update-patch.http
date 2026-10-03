@@ -1,0 +1,18 @@
+### MaterialLots — UPDATE PATCH, partial update (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/material-lots/{{id}}
+Content-Type: application/json
+
+{
+  "description": "Compactado en pacas de 50 kg"
+}
+
+### MaterialLots — PATCH material of a lot with stock (expects 409 Conflict)
+PATCH {{baseUrl}}/api/material-lots/{{id}}
+Content-Type: application/json
+
+{
+  "materialId": 2
+}

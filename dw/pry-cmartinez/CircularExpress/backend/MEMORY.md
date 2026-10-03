@@ -4,21 +4,22 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Issues completadas: **ISS-00** a **ISS-11** (feature Plants). Siguiente: **ISS-12** (feature MaterialLots: lotes por planta y material).
-- Progreso: 12 / 17 issues (ISS-00..ISS-16).
+- Issues completadas: **ISS-00** a **ISS-12** (feature MaterialLots). Siguiente: **ISS-13** (feature Weighings: pesajes que suman existencias a un lote).
+- Progreso: 13 / 17 issues (ISS-00..ISS-16).
 
 ## Qué existe hoy
 - `src/server.ts` → `App` + `listen()`. `src/config/index.ts` → clase `App`: PORT del `.env` (3002), middlewares, `GET /api/health`, importa modelos y luego asociaciones, rutas vía `Routes`, `setupSwagger()`, `dbConnection()` (conecta, `syncDatabase()`, `process.exit(1)` si falla).
 - `src/database/db.ts` → fija `process.env.TZ = "UTC"` (si no, oracledb/tedious corren las fechas DATEONLY un día en hosts UTC-5); exporta `sequelize`, `getDatabaseInfo()`, `testConnection()`, `syncDatabase()` (alter salvo en MSSQL: solo crea tablas faltantes). Fail-fast de `DB_DIALECT` y `DB_<MOTOR>_*`.
-- `src/shared/`: `utils/dates.ts` (hoy en America/Bogota, validación y resta de fechas `YYYY-MM-DD`), `validation/query-filters.ts` (`parseIdFilter`, `parseTextFilter`), `errors/app-error.ts` (NotFound 404, Validation 400, Conflict 409), `http/base-controller.ts` (`handle()`, `parseId()`; mapea `ForeignKeyConstraintError`/`UniqueConstraintError` de la BD a 409), `database/with-transaction.ts`.
-- Features en `src/features/business/<plural>/` (model, `dto/`, repository, service, controller, routes, seeder, swagger, `http/`):
+- `src/shared/`: `utils/dates.ts` (hoy en America/Bogota, validación y resta de fechas `YYYY-MM-DD`), `validation/query-filters.ts` (`parseIdFilter`, `parseTextFilter`), `errors/app-error.ts` (NotFound 404, Validation 400, Conflict 409), `http/base-controller.ts` (`handle()`, `parseId()`; mapea `ForeignKeyConstraintError`/`UniqueConstraintError` de la BD a 409), `database/with-transaction.ts`, `database/decimal.ts` (DECIMAL → número en getters).
+- Features en `src/features/business/<plural>/` (model, `dto/`, repository, service, controller, routes, seeder, swagger, `http/`; FKs en `*.associations.ts` con `NO ACTION`; las respuestas incluyen las entidades relacionadas):
   - `recyclers/` → `/api/recyclers` (unicidad `documentNumber`).
   - `routes/` → `/api/routes` (`municipality`, único `name+municipality`).
-  - `collection-points/` → `/api/collection-points` (FK `routeId`, único `name+route_id`, `?routeId=`, respuesta incluye `route`; la ruta debe existir y estar activa). `collection-points.associations.ts`: belongsTo/hasMany, `onDelete: "NO ACTION"`.
-  - `collections/` → `/api/collections` (FKs `recyclerId` y `routeId`, `collectionDate` DATEONLY no futura y por defecto hoy, único `recycler+route+date`, filtros `?recyclerId=&routeId=`, respuesta incluye `recycler` y `route`).
+  - `collection-points/` → `/api/collection-points` (FK `routeId` activa, único `name+route_id`, `?routeId=`).
+  - `collections/` → `/api/collections` (FKs `recyclerId`/`routeId` activos, `collectionDate` DATEONLY no futura (def. hoy), único `recycler+route+date`).
   - `materials/` → `/api/materials` (catálogo, `name` único; seeder con 10 materiales reales fijos, no aleatorios).
-  - `material-rates/` → `/api/material-rates` (historial: `pricePerKg` DECIMAL(10,2) expuesto como número vía getter, `validFrom` DATEONLY, único `material+valid_from`; crear/activar una tarifa cierra la vigente anterior del material → 1 vigente por material; respuesta de escritura incluye `previousRatesClosed`; `?materialId=`).
+  - `material-rates/` → `/api/material-rates` (historial: `pricePerKg` DECIMAL, `validFrom`; crear/activar cierra la vigente anterior → 1 vigente por material, `previousRatesClosed`).
   - `plants/` → `/api/plants` (`name` único, `municipality`, `address`; `?municipality=`).
+  - `material-lots/` → `/api/material-lots` (inventario: FKs `plantId`/`materialId` activos, código `name` único, `weightKg` DECIMAL(12,2) = existencias; solo se fija al crear, PUT/PATCH lo rechazan (400) y un lote con existencias no cambia de planta/material (409); `?plantId=&materialId=`).
 - `src/swagger/`: `swagger.types.ts`, `swagger.helpers.ts`, `index.ts` (registry, `/api/health`, `Error`, respuestas comunes) → `/api/docs` y `/api/docs.json`.
 - `src/database/seeders/`: `counts.ts` (camelCase, CLI `--tabla=N`) e `index.ts` (`SeedersRunner`, orden de FK) → `npm run db:seed`; idempotente.
 - Dependencias: express 5, cors, dotenv, morgan, swagger-ui-express 5, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @faker-js/faker 10, @types/*.
@@ -30,7 +31,7 @@
 - Credenciales del `.env`: no cambiarlas sin pedido del usuario.
 
 ## Aún no existe
-- Features ISS-12..ISS-15 (material-lots, weighings, material-sales, settlements).
+- Features ISS-13..ISS-15 (weighings, material-sales, settlements).
 
 ## Decisiones y desviaciones respecto a los ISS
 - `db.ts` usa `DB_DIALECT` + `DB_<MOTOR>_*` (no `DB_ENGINE`/`MYSQL_HOST`); `getDatabaseInfo()` no expone la contraseña; sin `@types/sequelize`.
@@ -46,4 +47,4 @@
 - Skill `.claude/skills/issue-flow/`: tablero Project 9, DoD, evidencias PNG, commits `feat(iss-XX)` y `docs(iss-XX)` con push, hash en la trazabilidad y cierre del issue. Sin trailers ni leyendas de IA.
 
 ## Próximo paso
-- ISS-12: feature `material-lots` (lotes inventariados por planta y material, FKs `plantId` y `materialId`), seeder sobre plantas y materiales activos.
+- ISS-13: feature `weighings` (bruto, tara, neto calculado; FKs `collectionId`, `materialId`, `materialLotId`); al registrar un pesaje, sumar el neto a `weightKg` del lote en la misma transacción (y restar al anular/borrar).

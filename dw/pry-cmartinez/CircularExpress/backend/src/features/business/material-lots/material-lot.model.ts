@@ -10,27 +10,30 @@ import {
 import { sequelize } from "../../../database/db";
 import { decimalToNumber } from "../../../shared/database/decimal";
 import { Material } from "../materials/material.model";
+import { Plant } from "../plants/plant.model";
 
-export const MATERIAL_RATE_STATUSES = ["active", "inactive"] as const;
-export type MaterialRateStatus = (typeof MATERIAL_RATE_STATUSES)[number];
+export const MATERIAL_LOT_STATUSES = ["active", "inactive"] as const;
+export type MaterialLotStatus = (typeof MATERIAL_LOT_STATUSES)[number];
 
-// Price per kilo of a material from `validFrom` on; the single "active" rate of a material is the current one.
-export class MaterialRate extends Model<InferAttributes<MaterialRate>, InferCreationAttributes<MaterialRate>> {
+// Inventory of one material stored at one plant; weightKg is the current stock
+// (raised by weighings and lowered by sales, never edited by hand).
+export class MaterialLot extends Model<InferAttributes<MaterialLot>, InferCreationAttributes<MaterialLot>> {
   declare id: CreationOptional<number>;
-  declare name: string;
+  declare name: string; // lot code
   declare description: CreationOptional<string | null>;
-  declare pricePerKg: number;
-  declare validFrom: string; // DATEONLY, "YYYY-MM-DD"
+  declare weightKg: CreationOptional<number>;
+  declare plantId: ForeignKey<Plant["id"]>;
   declare materialId: ForeignKey<Material["id"]>;
-  declare status: CreationOptional<MaterialRateStatus>;
+  declare status: CreationOptional<MaterialLotStatus>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 
-  // Filled when the query includes the "material" association.
+  // Filled when the query includes the associations.
+  declare plant?: NonAttribute<Plant>;
   declare material?: NonAttribute<Material>;
 }
 
-MaterialRate.init(
+MaterialLot.init(
   {
     id: {
       type: DataTypes.INTEGER,
@@ -38,22 +41,23 @@ MaterialRate.init(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(150),
+      type: DataTypes.STRING(60),
       allowNull: false,
     },
     description: {
       type: DataTypes.STRING(255),
       allowNull: true,
     },
-    pricePerKg: {
-      type: DataTypes.DECIMAL(10, 2),
+    weightKg: {
+      type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
+      defaultValue: 0,
       get() {
-        return decimalToNumber(this.getDataValue("pricePerKg"));
+        return decimalToNumber(this.getDataValue("weightKg"));
       },
     },
-    validFrom: {
-      type: DataTypes.DATEONLY,
+    plantId: {
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     materialId: {
@@ -64,18 +68,17 @@ MaterialRate.init(
       type: DataTypes.STRING(10),
       allowNull: false,
       defaultValue: "active",
-      validate: { isIn: [[...MATERIAL_RATE_STATUSES]] },
+      validate: { isIn: [[...MATERIAL_LOT_STATUSES]] },
     },
     createdAt: DataTypes.DATE,
     updatedAt: DataTypes.DATE,
   },
   {
     sequelize,
-    modelName: "MaterialRate",
-    tableName: "material_rates",
+    modelName: "MaterialLot",
+    tableName: "material_lots",
     timestamps: true,
     underscored: true,
-    // One rate per material and start date.
-    indexes: [{ name: "material_rates_material_valid_from_unique", unique: true, fields: ["material_id", "valid_from"] }],
+    indexes: [{ name: "material_lots_name_unique", unique: true, fields: ["name"] }],
   }
 );

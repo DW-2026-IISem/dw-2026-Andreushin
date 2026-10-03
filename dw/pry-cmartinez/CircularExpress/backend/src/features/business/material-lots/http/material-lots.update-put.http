@@ -1,0 +1,27 @@
+### MaterialLots — UPDATE PUT, editable fields only (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+@plantId = 1
+@materialId = 1
+
+PUT {{baseUrl}}/api/material-lots/{{id}}
+Content-Type: application/json
+
+{
+  "name": "LT-RIO-PET-202610-100",
+  "plantId": {{plantId}},
+  "materialId": {{materialId}},
+  "description": "Lote de PET compactado",
+  "status": "active"
+}
+
+### MaterialLots — PUT with weightKg (expects 400 Bad Request: stock changes only with weighings and sales)
+PUT {{baseUrl}}/api/material-lots/{{id}}
+Content-Type: application/json
+
+{
+  "name": "LT-RIO-PET-202610-100",
+  "plantId": {{plantId}},
+  "materialId": {{materialId}},
+  "weightKg": 9999
+}

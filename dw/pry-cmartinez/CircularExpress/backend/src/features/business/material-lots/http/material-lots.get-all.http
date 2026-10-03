@@ -1,0 +1,9 @@
+### MaterialLots — GET ALL, active only, with plant, material and stock (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/material-lots
+Accept: application/json
+
+### MaterialLots — GET ALL filtered by plant and material (expects 200 OK)
+GET {{baseUrl}}/api/material-lots?plantId=1&materialId=1
+Accept: application/json
