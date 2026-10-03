@@ -1,0 +1,22 @@
+{
+  "includeCoAuthoredBy": false,
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  },
+  "permissions": {
+    "allow": [
+      "Bash(gh issue:*)",
+      "Bash(gh project:*)",
+      "Bash(gh label:*)",
+      "Bash(gh api:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push origin main)",
+      "Bash(python3 .claude/skills/issue-flow/scripts/sync_issue.py:*)",
+      "Bash(.claude/skills/issue-flow/scripts/board.sh:*)",
+      "Bash(node .claude/skills/issue-flow/scripts/evidence.mjs:*)"
+    ]
+  }
+}

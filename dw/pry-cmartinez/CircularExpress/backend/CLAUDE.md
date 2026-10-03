@@ -8,7 +8,7 @@ CircularGuajira backend: an Express 5 + TypeScript REST API (Sequelize ORM, mult
 
 The project is built **incrementally, issue by issue**. `docs/prompt.MD` is the master spec (domain model, architecture rules, execution protocol) and `trazabilidad/ISS-00` … `ISS-16` are the work items, each with DoR prerequisites, reference code and DoD checks. Before implementing anything, read the relevant ISS file and confirm its prerequisite issues are done. Placeholder comments like `// ISS-03 §4.3` in the code mark where a future issue plugs in.
 
-Current state: only ISS-01 (skeleton + `GET /api/health`) is implemented. Sequelize, DB drivers, Faker and Swagger are **not installed yet**, and `src/database`, `src/routes`, `src/swagger` do not exist yet.
+Current state: see `MEMORY.md` (it is always up to date; this file only holds stable rules).
 
 ## MEMORY.md: project memory cache (mandatory rule)
 
@@ -20,14 +20,15 @@ Current state: only ISS-01 (skeleton + `GET /api/health`) is implemented. Sequel
 - Keep its sections: current state/issue progress, implemented structure, decisions and deviations from the ISS specs, pending issues/known problems, next step, and last-update date.
 - Write it in Spanish, like the rest of the project docs.
 
-## Commit per issue (mandatory rule)
+## Issue workflow: skill `issue-flow` (mandatory standard)
 
-Never run `git commit` yourself; the user always commits by hand. When an ISS is finished (DoD verified, `npx tsc --noEmit` passing and `MEMORY.md` updated), **deliver the commit** so the user can run it, with one commit per issue in ISS order:
+Every ISS is started and closed with the project skill `.claude/skills/issue-flow/` (read its `SKILL.md`). Claude runs the whole flow itself; the user only reviews:
 
-- Git root is `/home/andrehau/ia-lab/projects`, so give paths relative to it (`dw/pry-cmartinez/CircularExpress/backend/...`) or run the commands from `backend/`.
-- Deliver the `git add` for exactly the files that issue touched (never `.env` or `node_modules/`), followed by `git commit` with the message.
-- Message format (Conventional Commits in Spanish, matching repo history): `feat(iss-XX): <resumen>` for code, `docs(iss-XX): ...` for docs-only changes, then a body with what was done and how it was verified.
-- Don't add `Co-Authored-By` or other AI trailers.
+- **Start:** check DoR, move the card to *En curso* on GitHub Project 9 (https://github.com/orgs/DW-2026-IISem/projects/9) and comment the plan on the issue.
+- **Close:** card to *Verificacion* → run the DoD (`npx tsc --noEmit`, server start, endpoints) → generate PNG evidence with `scripts/evidence.mjs` into `trazabilidad/images/` → update `MEMORY.md` → `git add` **only that issue's files** (explicit paths; never `.env`, `node_modules/`, `dist/` or anything outside `backend/`) → `feat(iss-XX): ...` commit with `Refs #N` → `git push origin main` → write the commit hash, checked criteria and evidence into `trazabilidad/ISS-XX_*.md` (section "4. Cierre y trazabilidad") → `docs(iss-XX): evidencias y cierre de trazabilidad ISS-XX` commit with `Closes #N` → push → `scripts/sync_issue.py ISS-XX`, closing comment on the issue, card to *Hecho*.
+- Git root is `/home/andrehau/ia-lab/projects` (branch `main`). GitHub issue numbers don't match ISS numbers; use `scripts/board.sh ISS-XX numero`.
+- Messages: Conventional Commits in Spanish, matching repo history (bullet body + `Verificación: ...`).
+- **Never** add `Co-Authored-By`, `Claude-Session`, "Generated with Claude Code" or any AI legend to commits, PRs, issues or comments. Check `git log -1 --format=%B` before every push. No `--force`, no `--no-verify`.
 
 ## Commands
 
