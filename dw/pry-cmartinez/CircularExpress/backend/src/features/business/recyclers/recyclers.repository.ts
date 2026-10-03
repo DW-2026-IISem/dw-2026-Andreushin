@@ -23,8 +23,16 @@ export class RecyclersRepository {
     });
   }
 
+  count(transaction?: Transaction): Promise<number> {
+    return Recycler.count({ transaction });
+  }
+
   create(data: CreationAttributes<Recycler>, transaction?: Transaction): Promise<Recycler> {
     return Recycler.create(data, { transaction });
+  }
+
+  bulkCreate(rows: CreationAttributes<Recycler>[], transaction?: Transaction): Promise<Recycler[]> {
+    return Recycler.bulkCreate(rows, { transaction });
   }
 
   update(recycler: Recycler, changes: RecyclerChanges, transaction?: Transaction): Promise<Recycler> {
