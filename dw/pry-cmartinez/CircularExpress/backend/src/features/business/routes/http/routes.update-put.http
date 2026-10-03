@@ -1,0 +1,13 @@
+### Routes — UPDATE PUT, full replacement (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PUT {{baseUrl}}/api/routes/{{id}}
+Content-Type: application/json
+
+{
+  "name": "Ruta Centro Histórico",
+  "municipality": "Riohacha",
+  "description": "Recorrido interdiario por el centro histórico y el malecón",
+  "status": "active"
+}

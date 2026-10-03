@@ -1,0 +1,29 @@
+### Routes — CREATE (expects 201 Created)
+@baseUrl = http://localhost:3002
+
+POST {{baseUrl}}/api/routes
+Content-Type: application/json
+
+{
+  "name": "Ruta Centro",
+  "municipality": "Riohacha",
+  "description": "Recorrido diario por el sector centro de Riohacha",
+  "status": "active"
+}
+
+### Routes — CREATE without municipality (expects 400 Bad Request)
+POST {{baseUrl}}/api/routes
+Content-Type: application/json
+
+{
+  "name": "Ruta sin municipio"
+}
+
+### Routes — CREATE duplicate name in the same municipality (expects 409 Conflict)
+POST {{baseUrl}}/api/routes
+Content-Type: application/json
+
+{
+  "name": "Ruta Centro",
+  "municipality": "Riohacha"
+}

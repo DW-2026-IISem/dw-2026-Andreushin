@@ -1,0 +1,5 @@
+### Routes — GET ALL, active only (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/routes
+Accept: application/json

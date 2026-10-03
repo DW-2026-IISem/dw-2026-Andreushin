@@ -4,8 +4,8 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Issues completadas: **ISS-00** a **ISS-05** (Swagger). Siguiente: **ISS-06** (feature Routes: rutas de recolección por municipio).
-- Progreso: 6 / 17 issues (ISS-00..ISS-16).
+- Issues completadas: **ISS-00** a **ISS-06** (feature Routes). Siguiente: **ISS-07** (feature CollectionPoints, relación 1:N con Routes).
+- Progreso: 7 / 17 issues (ISS-00..ISS-16).
 
 ## Qué existe hoy
 - `src/server.ts` → crea `App` y llama `listen()`.
@@ -13,7 +13,8 @@
 - `src/database/db.ts` → exporta `sequelize`, `getDatabaseInfo()`, `testConnection()` y `syncDatabase()` (alter salvo en MSSQL, donde solo crea tablas faltantes). Valida de forma fail-fast `DB_DIALECT` y el bloque `DB_<MOTOR>_*` del motor activo.
 - `src/shared/`: `errors/app-error.ts` (AppError, NotFoundError 404, ValidationError 400, ConflictError 409), `http/base-controller.ts` (`handle()`, `parseId()`), `database/with-transaction.ts`.
 - `src/features/business/recyclers/`: model (`underscored`), `dto/`, repository, service (validación + unicidad de `documentNumber`), controller, routes `/api/recyclers` (+ `/:id`, `/:id/deactivate`), `http/` (7 `.http`), `recyclers.seeder.ts`, `recyclers.swagger.ts`. `src/routes/index.ts` agrega `RecyclersRoutes`.
-- `src/swagger/`: `swagger.types.ts` (`FeatureSwagger`) e `index.ts` (registry + `/api/health`, esquema `Error`, respuestas BadRequest/NotFound/Conflict) → UI `/api/docs`, JSON `/api/docs.json`.
+- `src/swagger/`: `swagger.types.ts` (`FeatureSwagger`), `swagger.helpers.ts` (idParam, jsonBody, entity/list/messageResponse, errorRef) e `index.ts` (registry + `/api/health`, esquema `Error`, respuestas BadRequest/NotFound/Conflict) → UI `/api/docs`, JSON `/api/docs.json`.
+- `src/features/business/routes/`: mismo patrón (model con `municipality`, índice único `name+municipality`), `/api/routes`, seeder y swagger.
 - `src/database/seeders/`: `counts.ts` (conteos camelCase, CLI `--tabla=N`) e `index.ts` (`SeedersRunner`) → `npm run db:seed`; idempotente.
 - `.http` apuntan al puerto 3002.
 - Dependencias: express 5, cors, dotenv, morgan, swagger-ui-express 5, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @faker-js/faker 10, @types/* (incl. swagger-ui-express).
@@ -25,7 +26,7 @@
 - CRUD de recyclers verificado en los 4 motores. Credenciales del `.env`: no cambiarlas sin pedido del usuario.
 
 ## Aún no existe
-- Features de negocio salvo recyclers.
+- Features de negocio salvo recyclers y routes; asociaciones (`*.associations.ts`).
 
 ## Decisiones y desviaciones respecto a los ISS
 - `db.ts` lee `DB_DIALECT` + `DB_<MOTOR>_HOST/PORT/USERNAME/PASSWORD/NAME`, no los nombres `DB_ENGINE`/`MYSQL_HOST` del ISS-02.
@@ -45,4 +46,4 @@
 - Tablero: campos Status (Preparado/En curso/Verificacion/Hecho), Size y Prioridad (P0–P2); metadatos en `scripts/sync_issue.py`.
 
 ## Próximo paso
-- ISS-06: feature `routes` (`route.model.ts`, dto, repository, service, controller, routes, seeder, swagger) cableado en los 4 agregadores. Cada feature nuevo debe registrar su `.swagger.ts` en `src/swagger/index.ts` y su seeder en `SeedersRunner`.
+- ISS-07: feature `collection-points` con FK `routeId` → `routes` (`collection-points.associations.ts`, belongsTo/hasMany), seeder que use rutas existentes. Cada feature nuevo se registra en los 4 agregadores.

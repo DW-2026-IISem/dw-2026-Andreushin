@@ -1,28 +1,15 @@
+import {
+  entityResponse,
+  errorRef,
+  idParam,
+  jsonBody,
+  listResponse,
+  messageResponse,
+} from "../../../swagger/swagger.helpers";
 import { FeatureSwagger } from "../../../swagger/swagger.types";
 
 const TAG = "Recyclers";
-
-const idParam = {
-  name: "id",
-  in: "path",
-  required: true,
-  description: "Id del reciclador",
-  schema: { type: "integer", minimum: 1, example: 1 },
-};
-
-const recyclerResponse = (description: string) => ({
-  description,
-  content: {
-    "application/json": {
-      schema: { type: "object", properties: { recycler: { $ref: "#/components/schemas/Recycler" } } },
-    },
-  },
-});
-
-const jsonBody = (schema: string) => ({
-  required: true,
-  content: { "application/json": { schema: { $ref: `#/components/schemas/${schema}` } } },
-});
+const id = idParam("Id del reciclador");
 
 export const recyclersSwagger: FeatureSwagger = {
   tags: [{ name: TAG, description: "Recicladores de oficio y asociaciones de La Guajira" }],
@@ -32,28 +19,16 @@ export const recyclersSwagger: FeatureSwagger = {
         tags: [TAG],
         summary: "Listar recicladores activos",
         description: "Los recicladores con baja lógica (status inactive) no se incluyen.",
-        responses: {
-          "200": {
-            description: "Lista de recicladores activos",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: { recyclers: { type: "array", items: { $ref: "#/components/schemas/Recycler" } } },
-                },
-              },
-            },
-          },
-        },
+        responses: { "200": listResponse("Lista de recicladores activos", "recyclers", "Recycler") },
       },
       post: {
         tags: [TAG],
         summary: "Crear un reciclador",
         requestBody: jsonBody("RecyclerCreate"),
         responses: {
-          "201": recyclerResponse("Reciclador creado"),
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "409": { $ref: "#/components/responses/Conflict" },
+          "201": entityResponse("Reciclador creado", "recycler", "Recycler"),
+          "400": errorRef("BadRequest"),
+          "409": errorRef("Conflict"),
         },
       },
     },
@@ -61,58 +36,45 @@ export const recyclersSwagger: FeatureSwagger = {
       get: {
         tags: [TAG],
         summary: "Obtener un reciclador por id",
-        parameters: [idParam],
+        parameters: [id],
         responses: {
-          "200": recyclerResponse("Reciclador encontrado"),
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "404": { $ref: "#/components/responses/NotFound" },
+          "200": entityResponse("Reciclador encontrado", "recycler", "Recycler"),
+          "400": errorRef("BadRequest"),
+          "404": errorRef("NotFound"),
         },
       },
       put: {
         tags: [TAG],
         summary: "Reemplazar un reciclador",
         description: "Los campos opcionales que no se envían quedan en null.",
-        parameters: [idParam],
+        parameters: [id],
         requestBody: jsonBody("RecyclerCreate"),
         responses: {
-          "200": recyclerResponse("Reciclador actualizado"),
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "404": { $ref: "#/components/responses/NotFound" },
-          "409": { $ref: "#/components/responses/Conflict" },
+          "200": entityResponse("Reciclador actualizado", "recycler", "Recycler"),
+          "400": errorRef("BadRequest"),
+          "404": errorRef("NotFound"),
+          "409": errorRef("Conflict"),
         },
       },
       patch: {
         tags: [TAG],
         summary: "Actualizar parcialmente un reciclador",
-        parameters: [idParam],
+        parameters: [id],
         requestBody: jsonBody("RecyclerPatch"),
         responses: {
-          "200": recyclerResponse("Reciclador actualizado"),
-          "400": { $ref: "#/components/responses/BadRequest" },
-          "404": { $ref: "#/components/responses/NotFound" },
-          "409": { $ref: "#/components/responses/Conflict" },
+          "200": entityResponse("Reciclador actualizado", "recycler", "Recycler"),
+          "400": errorRef("BadRequest"),
+          "404": errorRef("NotFound"),
+          "409": errorRef("Conflict"),
         },
       },
       delete: {
         tags: [TAG],
         summary: "Eliminar físicamente un reciclador",
-        parameters: [idParam],
+        parameters: [id],
         responses: {
-          "200": {
-            description: "Reciclador eliminado",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: { type: "string", example: "Reciclador eliminado" },
-                    id: { type: "integer", example: 1 },
-                  },
-                },
-              },
-            },
-          },
-          "404": { $ref: "#/components/responses/NotFound" },
+          "200": messageResponse("Reciclador eliminado", "Reciclador eliminado", { id: { type: "integer", example: 1 } }),
+          "404": errorRef("NotFound"),
         },
       },
     },
@@ -121,23 +83,12 @@ export const recyclersSwagger: FeatureSwagger = {
         tags: [TAG],
         summary: "Baja lógica de un reciclador",
         description: "Cambia status a inactive; el registro deja de aparecer en el listado.",
-        parameters: [idParam],
+        parameters: [id],
         responses: {
-          "200": {
-            description: "Reciclador desactivado",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    message: { type: "string", example: "Reciclador desactivado" },
-                    recycler: { $ref: "#/components/schemas/Recycler" },
-                  },
-                },
-              },
-            },
-          },
-          "404": { $ref: "#/components/responses/NotFound" },
+          "200": messageResponse("Reciclador desactivado", "Reciclador desactivado", {
+            recycler: { $ref: "#/components/schemas/Recycler" },
+          }),
+          "404": errorRef("NotFound"),
         },
       },
     },

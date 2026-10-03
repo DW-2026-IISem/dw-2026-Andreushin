@@ -4,6 +4,7 @@ import morgan from "morgan";
 import cors from "cors";
 import { getDatabaseInfo, syncDatabase, testConnection } from "../database/db";
 import "../features/business/recyclers/recycler.model";
+import "../features/business/routes/route.model";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -37,6 +38,7 @@ export class App {
       res.status(200).json({ status: 'ok', service: 'circularguajira-api', timestamp: new Date().toISOString() });
     });
     this.routePrv.recyclersRoutes.routes(this.app);
+    this.routePrv.routesRoutes.routes(this.app);
     setupSwagger(this.app);
   }
 
