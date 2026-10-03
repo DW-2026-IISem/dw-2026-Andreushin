@@ -5,6 +5,7 @@ import cors from "cors";
 import { getDatabaseInfo, syncDatabase, testConnection } from "../database/db";
 import "../features/business/recyclers/recycler.model";
 import { Routes } from "../routes/index";
+import { setupSwagger } from "../swagger/index";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ export class App {
       res.status(200).json({ status: 'ok', service: 'circularguajira-api', timestamp: new Date().toISOString() });
     });
     this.routePrv.recyclersRoutes.routes(this.app);
+    setupSwagger(this.app);
   }
 
   private async dbConnection(): Promise<void> {
