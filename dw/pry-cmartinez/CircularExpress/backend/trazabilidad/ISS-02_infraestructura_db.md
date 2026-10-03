@@ -24,9 +24,9 @@ Antes de iniciar el desarrollo de esta Issue, verifica que:
 **Bloqueado por:** ISS-01.
 
 ##### Criterios de aceptación
-* [ ] Sequelize y drivers instalados (`mysql2`, `pg`, `pg-hstore`, `tedious`, `oracledb`).
-* [ ] Archivo `.env` configurado con soporte para varios motores de BD.
-* [ ] Archivo `src/database/db.ts` exportando `sequelize`, `getDatabaseInfo`, `testConnection`.
+* [x] Sequelize y drivers instalados (`mysql2`, `pg`, `pg-hstore`, `tedious`, `oracledb`).
+* [x] Archivo `.env` configurado con soporte para varios motores de BD.
+* [x] Archivo `src/database/db.ts` exportando `sequelize`, `getDatabaseInfo`, `testConnection`.
 
 #### 3.1 Drivers y `.env`
 ```bash
@@ -148,6 +148,14 @@ EOF
 npx tsc --noEmit
 ```
 
+**Evidencias:**
+
+![ISS-02 type-check](images/ISS-02-tsc.png)
+![ISS-02 Sequelize y drivers instalados](images/ISS-02-dependencias.png)
+![ISS-02 arranque y conexión a MySQL](images/ISS-02-conexion.png)
+![ISS-02 health check](images/ISS-02-health.png)
+![ISS-02 validación fail-fast de DB_DIALECT](images/ISS-02-failfast.png)
+
 ---
 
 ---
@@ -158,3 +166,17 @@ Para marcar esta Issue como **Completada**, debes validar:
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`a15f366`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/a15f3666021f97ace4f723de8d863f89a5c6f531) |
+| **Hash completo** | `a15f3666021f97ace4f723de8d863f89a5c6f531` |
+| **Issue GitHub** | [#16](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/16) |
+| **Fecha de cierre** | 2026-10-03 |
+
+**Verificación realizada:** `npx tsc --noEmit` sin errores; `npm run dev` conecta a MySQL (`SELECT 1+1`) y levanta en el puerto 3002; `GET /api/health` responde 200; un `DB_DIALECT` no soportado aborta con error explícito. El punto 4 del DoD (persistencia / Swagger) no aplica a este issue: no hay modelos ni `/api/docs` todavía (llegan en ISS-03 e ISS-05).
+**Desviaciones respecto al ISS:** `db.ts` lee `DB_DIALECT` + `DB_<MOTOR>_HOST/PORT/USERNAME/PASSWORD/NAME` del `.env` existente en lugar de `DB_ENGINE`/`MYSQL_HOST`; no se instaló `@types/sequelize` (Sequelize 6 trae tipos); `getDatabaseInfo()` no expone la contraseña.
