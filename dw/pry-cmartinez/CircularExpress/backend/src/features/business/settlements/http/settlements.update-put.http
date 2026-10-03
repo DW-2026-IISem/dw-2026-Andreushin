@@ -1,0 +1,14 @@
+### Settlements — UPDATE PUT, pending only: replaces and recalculates (expects 200 OK; 409 if not pending)
+@baseUrl = http://localhost:3002
+@id = 1
+@recyclerId = 1
+
+PUT {{baseUrl}}/api/settlements/{{id}}
+Content-Type: application/json
+
+{
+  "recyclerId": {{recyclerId}},
+  "periodStart": "2026-08-01",
+  "periodEnd": "2026-10-01",
+  "observations": "Se amplió el período hasta el 1 de octubre"
+}

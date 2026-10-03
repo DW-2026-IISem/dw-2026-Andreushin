@@ -1,4 +1,4 @@
-import { CreationAttributes, InferAttributes, Transaction, WhereOptions } from "sequelize";
+import { CreationAttributes, InferAttributes, Op, Transaction, WhereOptions } from "sequelize";
 import { Collection } from "../collections/collection.model";
 import { MaterialLot } from "../material-lots/material-lot.model";
 import { Material } from "../materials/material.model";
@@ -31,6 +31,24 @@ export class WeighingsRepository {
 
   findById(id: number, transaction?: Transaction): Promise<Weighing | null> {
     return Weighing.findByPk(id, { include: withRelations, transaction });
+  }
+
+  // Active weighings of the recycler's collections dated within [from, to] (used by settlements).
+  findActiveForRecyclerInPeriod(recyclerId: number, from: string, to: string, transaction?: Transaction): Promise<Weighing[]> {
+    return Weighing.findAll({
+      where: { status: "active" },
+      include: [
+        {
+          model: Collection,
+          as: "collection",
+          attributes: ["id", "name", "collectionDate"],
+          where: { recyclerId, collectionDate: { [Op.between]: [from, to] } },
+          required: true,
+        },
+        { model: Material, as: "material", attributes: ["id", "name"] },
+      ],
+      transaction,
+    });
   }
 
   count(transaction?: Transaction): Promise<number> {

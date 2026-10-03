@@ -1,0 +1,35 @@
+### Settlements — approve (expects 200 OK)
+@baseUrl = http://localhost:3002
+@id = 1
+
+PATCH {{baseUrl}}/api/settlements/{{id}}
+Content-Type: application/json
+
+{
+  "state": "approved"
+}
+
+### Settlements — pay (expects 200 OK)
+PATCH {{baseUrl}}/api/settlements/{{id}}
+Content-Type: application/json
+
+{
+  "state": "paid",
+  "observations": "Pagado por transferencia el 3 de octubre"
+}
+
+### Settlements — invalid transition paid → pending (expects 409 Conflict)
+PATCH {{baseUrl}}/api/settlements/{{id}}
+Content-Type: application/json
+
+{
+  "state": "pending"
+}
+
+### Settlements — change the period of a paid settlement (expects 409 Conflict)
+PATCH {{baseUrl}}/api/settlements/{{id}}
+Content-Type: application/json
+
+{
+  "periodEnd": "2026-10-02"
+}

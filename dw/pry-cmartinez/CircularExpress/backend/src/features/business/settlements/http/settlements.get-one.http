@@ -1,0 +1,6 @@
+### Settlements — GET ONE (expects 200 OK; 404 when missing)
+@baseUrl = http://localhost:3002
+@id = 1
+
+GET {{baseUrl}}/api/settlements/{{id}}
+Accept: application/json

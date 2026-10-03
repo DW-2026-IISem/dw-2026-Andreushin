@@ -4,7 +4,7 @@
 > Última actualización: 2026-10-03
 
 ## Estado actual
-- Completadas **ISS-00** a **ISS-14** (15 / 17). Siguiente: **ISS-15** (Settlements: liquidaciones a recicladores). Falta también ISS-16 (verificación global).
+- Completadas **ISS-00** a **ISS-15** (16 / 17). Siguiente y última: **ISS-16** (verificación global de integridad y sincronización).
 
 ## Qué existe hoy
 - `src/server.ts` → `App` + `listen()`. `src/config/index.ts` → clase `App`: PORT del `.env` (3002), middlewares, `GET /api/health`, importa modelos y luego asociaciones, rutas vía `Routes`, `setupSwagger()`, `dbConnection()` (conecta, `syncDatabase()`, `process.exit(1)` si falla).
@@ -21,6 +21,7 @@
   - `material-lots/` → `/api/material-lots` (inventario: FKs `plantId`/`materialId`, código único, `weightKg` = existencias; no editable por PUT/PATCH (400); con existencias no cambia de planta/material (409)). Stock solo vía `material-lots.stock.ts` → `applyStockChange()` (deltas por lote en orden de id) → `adjustWeight()`: UPDATE atómico `weight_kg = weight_kg + Δ` con guarda `>= 0` (SELECT FOR UPDATE perdía actualizaciones en MSSQL).
   - `weighings/` → `/api/weighings` (FKs `collectionId`, `materialId`, `materialLotId` opcional del mismo material; neto = bruto − tara calculado en el servidor; crear/editar/anular/borrar ajusta el lote antes de escribir el pesaje (evita deadlock FK); 409 si el lote quedaría negativo). Seeder vía service.
   - `material-sales/` → `/api/material-sales` (FK `materialLotId`, `buyerName`, `saleDate`, total = cantidad × precio calculado; una venta activa descuenta del lote, 409 si no alcanza; anular/borrar devuelve). Seeder vía service. Sobreventa concurrente bloqueada en los 4 motores.
+  - `settlements/` → `/api/settlements` (FK `recyclerId`; monto calculado = Σ pesajes del reciclador en `periodStart..periodEnd` × tarifa vigente en la fecha de cada jornada (MAX validFrom ≤ fecha); `state` pending→approved|rejected, approved→paid|rejected; solo pending edita período/reciclador (recalcula); aprobada/pagada no se anula ni borra; sin períodos solapados vigentes; `referenceCode` único, autogenerado).
 - `src/swagger/`: `swagger.types.ts`, `swagger.helpers.ts`, `index.ts` (registry, `/api/health`, `Error`, respuestas comunes) → `/api/docs` y `/api/docs.json`.
 - `src/database/seeders/`: `counts.ts` (camelCase, CLI `--tabla=N`) e `index.ts` (`SeedersRunner`, orden de FK) → `npm run db:seed`; idempotente.
 - Dependencias: express 5, cors, dotenv, morgan, swagger-ui-express 5, sequelize 6, mysql2, pg, pg-hstore, tedious, oracledb; dev: typescript, ts-node, nodemon, @faker-js/faker 10, @types/*.
@@ -46,4 +47,4 @@
 - Skill `.claude/skills/issue-flow/`: tablero Project 9, DoD, evidencias PNG, commits `feat(iss-XX)` y `docs(iss-XX)` con push, hash en la trazabilidad y cierre del issue. Sin trailers ni leyendas de IA.
 
 ## Próximo paso
-- ISS-15: `settlements` (liquidación a un reciclador por período: FK `recyclerId`, monto calculado desde sus pesajes × tarifa vigente; revisar el ISS-15 antes de diseñar).
+- ISS-16: verificación global (revisar el ISS-16: `config/index.ts` consolidado, sync de las 11 tablas, Swagger con los 11 features, seed completo y prueba de extremo a extremo en los 4 motores).

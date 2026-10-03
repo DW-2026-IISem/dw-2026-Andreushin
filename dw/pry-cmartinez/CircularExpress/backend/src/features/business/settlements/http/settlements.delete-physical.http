@@ -1,0 +1,5 @@
+### Settlements — PHYSICAL DELETE, pending or rejected only (expects 200 OK; 409 if approved or paid)
+@baseUrl = http://localhost:3002
+@id = 1
+
+DELETE {{baseUrl}}/api/settlements/{{id}}

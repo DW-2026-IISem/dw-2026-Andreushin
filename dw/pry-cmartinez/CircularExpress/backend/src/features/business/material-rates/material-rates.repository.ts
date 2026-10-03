@@ -29,6 +29,17 @@ export class MaterialRatesRepository {
     });
   }
 
+  // Full rate history (active and inactive) of the given materials, oldest first; settlements price each
+  // weighing with the rate that was valid on its collection date.
+  findHistoryForMaterials(materialIds: number[], transaction?: Transaction): Promise<MaterialRate[]> {
+    if (materialIds.length === 0) return Promise.resolve([]);
+    return MaterialRate.findAll({
+      where: { materialId: { [Op.in]: materialIds } },
+      order: [["materialId", "ASC"], ["validFrom", "ASC"]],
+      transaction,
+    });
+  }
+
   // Marks every other active rate of the material as inactive; returns how many were closed.
   async deactivateOthers(materialId: number, keepId: number, transaction?: Transaction): Promise<number> {
     const [affected] = await MaterialRate.update(

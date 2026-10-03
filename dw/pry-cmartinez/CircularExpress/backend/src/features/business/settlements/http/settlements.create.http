@@ -1,0 +1,34 @@
+### Settlements — CREATE (expects 201 Created; amount computed from the recycler's weighings in the period)
+@baseUrl = http://localhost:3002
+@recyclerId = 1
+
+POST {{baseUrl}}/api/settlements
+Content-Type: application/json
+
+{
+  "recyclerId": {{recyclerId}},
+  "periodStart": "2026-08-01",
+  "periodEnd": "2026-09-30",
+  "observations": "Liquidación de agosto y septiembre"
+}
+
+### Settlements — CREATE overlapping a live settlement of the same recycler (expects 409 Conflict)
+POST {{baseUrl}}/api/settlements
+Content-Type: application/json
+
+{
+  "recyclerId": {{recyclerId}},
+  "periodStart": "2026-09-15",
+  "periodEnd": "2026-10-01"
+}
+
+### Settlements — CREATE sending amount (expects 400 Bad Request: the server computes it)
+POST {{baseUrl}}/api/settlements
+Content-Type: application/json
+
+{
+  "recyclerId": {{recyclerId}},
+  "periodStart": "2026-07-01",
+  "periodEnd": "2026-07-31",
+  "amount": 1000000
+}

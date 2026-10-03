@@ -1,0 +1,9 @@
+### Settlements — GET ALL, active only (expects 200 OK)
+@baseUrl = http://localhost:3002
+
+GET {{baseUrl}}/api/settlements
+Accept: application/json
+
+### Settlements — GET pending settlements of one recycler (expects 200 OK)
+GET {{baseUrl}}/api/settlements?recyclerId=1&state=pending
+Accept: application/json
