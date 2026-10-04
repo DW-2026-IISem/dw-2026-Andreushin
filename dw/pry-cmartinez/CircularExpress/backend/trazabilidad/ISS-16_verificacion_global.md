@@ -134,9 +134,46 @@ npm install -D typescript@~5.9.2 ts-node@^10.9.2 nodemon@^3.1.14   @types/node@^
 
 ---
 
+**Evidencias:**
+
+![ISS-16 type-check](images/ISS-16-tsc.png)
+![ISS-16 arranque del servidor](images/ISS-16-arranque.png)
+![ISS-16 seed desde cero con --fresh](images/ISS-16-seed.png)
+![ISS-16 invariantes globales en los 4 motores](images/ISS-16-invariantes.png)
+![ISS-16 flujo de extremo a extremo (MySQL)](images/ISS-16-e2e.png)
+![ISS-16 flujo de extremo a extremo en los 4 motores](images/ISS-16-e2e-motores.png)
+![ISS-16 errores globales en JSON](images/ISS-16-errores.png)
+![ISS-16 protección de --fresh en producción](images/ISS-16-fresh-prod.png)
+![ISS-16 Swagger con los 11 features](images/ISS-16-swagger.png)
+
+---
+
 ## 3. Definición de Done (DoD) y Verificación
 Para marcar esta Issue como **Completada**, debes validar:
 1. Compilación de TypeScript exitosa (`npm run build` o `npx tsc --noEmit`).
 2. Arranque del servidor sin errores de sintaxis o de conexión a BD (`npm run dev`).
 3. Ejecución y respuesta HTTP esperada en los endpoints del módulo (`.http` / REST Client).
 4. Verificación de persistencia en la base de datos o interfaz Swagger `/api/docs`.
+
+---
+
+## 4. Cierre y trazabilidad
+| Campo | Detalle |
+| :--- | :--- |
+| **Estado** | ✅ Completada |
+| **Commit de implementación** | [`23733d6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/23733d604db6d928911bd9a6c766bfe1398179f4) |
+| **Hash completo** | `23733d604db6d928911bd9a6c766bfe1398179f4` |
+| **Issue GitHub** | [#29](https://github.com/DW-2026-IISem/dw-2026-Andreushin/issues/29) |
+| **Fecha de cierre** | 2026-10-03 |
+
+**Verificación realizada:**
+- DoD 1: `npx tsc --noEmit` y `npm run build` sin errores; `npm start` (código compilado) arranca y sincroniza.
+- DoD 2: `npm run dev` conecta y sincroniza las 11 tablas.
+- DoD 3: flujo de extremo a extremo por HTTP (`core/http/e2e.http`) en MySQL, PostgreSQL, SQL Server y Oracle: 17 pasos sin códigos inesperados (pesaje de 118 kg netos, existencias 0 → 118 → 68 tras vender 50 kg por $75.000, liquidación de 118 kg × $1.000 = $118.000, aprobada protegida contra borrado, 404 y 400 en JSON) y limpieza en orden inverso con 11 `DELETE` 200.
+- DoD 4: `db:seed --fresh` desde cero en los 4 motores: 11 tablas y 11 llaves foráneas en cada uno; existencias = iniciales + pesajes − ventas en 6/6 lotes y ninguno en negativo; neto = bruto − tara, total de venta = cantidad × precio y una tarifa vigente por material; todas las liquidaciones sembradas coinciden con un cálculo SQL independiente. Swagger `/api/docs`: 12 tags (System + 11 features), 34 paths, 78 operaciones, sin `$ref` rotos.
+- `NODE_ENV=production npm run db:seed -- --fresh` termina con error sin tocar la base.
+
+**Desviaciones respecto al ISS:**
+- No se reemplazó `src/config/index.ts` por el código de referencia (rutas `recycler/…` en singular, solo 2 rutas registradas): el archivo ya estaba consolidado con los 11 features y las convenciones de `docs/prompt.MD` §3.4. Se agregaron el método `docs()` del ISS y `errorHandlers()` (404/400 en JSON).
+- Modelos y asociaciones en un registro único `src/database/models.ts` (lo comparten la App y el SeedersRunner).
+- Extras: `db:seed -- --fresh` (bloqueado en producción), `core/http/e2e.http` y README actualizado con el estado real del proyecto.
