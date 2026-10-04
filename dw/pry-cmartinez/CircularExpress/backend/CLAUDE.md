@@ -41,7 +41,7 @@ npx tsc --noEmit   # type-check; this is the per-issue verification step
 
 There is no test runner or linter. Verification is done by type-checking, starting the server, and running the REST Client `.http` files under each feature's `http/` folder (e.g. `src/features/business/core/http/health.http`).
 
-The README is ahead of/out of sync with the code: it mentions `tsx`, `npm run seed` (ISS-04 calls it `npm run db:seed`) and `DB_HOST`-style env vars, none of which exist yet. Trust `package.json` and `.env`.
+The README documents the real scripts, `.env` keys, architecture and endpoints (updated in ISS-16); `package.json` and `.env` remain the source of truth.
 
 ## Architecture
 

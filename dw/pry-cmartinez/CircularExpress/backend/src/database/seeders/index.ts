@@ -1,22 +1,5 @@
 import { sequelize, syncDatabase, testConnection } from "../db";
-import "../../features/business/recyclers/recycler.model";
-import "../../features/business/routes/route.model";
-import "../../features/business/collection-points/collection-point.model";
-import "../../features/business/collections/collection.model";
-import "../../features/business/materials/material.model";
-import "../../features/business/material-rates/material-rate.model";
-import "../../features/business/plants/plant.model";
-import "../../features/business/material-lots/material-lot.model";
-import "../../features/business/weighings/weighing.model";
-import "../../features/business/material-sales/material-sale.model";
-import "../../features/business/settlements/settlement.model";
-import "../../features/business/collection-points/collection-points.associations";
-import "../../features/business/collections/collections.associations";
-import "../../features/business/material-rates/material-rates.associations";
-import "../../features/business/material-lots/material-lots.associations";
-import "../../features/business/weighings/weighings.associations";
-import "../../features/business/material-sales/material-sales.associations";
-import "../../features/business/settlements/settlements.associations";
+import "../models";
 import { RecyclersSeeder } from "../../features/business/recyclers/recyclers.seeder";
 import { RoutesSeeder } from "../../features/business/routes/routes.seeder";
 import { CollectionPointsSeeder } from "../../features/business/collection-points/collection-points.seeder";
@@ -30,15 +13,27 @@ import { MaterialSalesSeeder } from "../../features/business/material-sales/mate
 import { SettlementsSeeder } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts, SeedCounts } from "./counts";
 
-// Runs every feature seeder in foreign-key order. Usage: npm run db:seed [-- --recyclers=25]
+// Runs every feature seeder in foreign-key order.
+// Usage: npm run db:seed [-- --recyclers=25] [-- --fresh]   (--fresh drops and recreates the 11 tables first)
 export class SeedersRunner {
-  constructor(private readonly counts: SeedCounts = resolveSeedCounts()) {}
+  constructor(
+    private readonly counts: SeedCounts = resolveSeedCounts(),
+    private readonly fresh: boolean = process.argv.includes("--fresh")
+  ) {}
 
   async run(): Promise<void> {
     console.log("🌱 Starting CircularGuajira SeedersRunner...");
     const connected = await testConnection();
     if (!connected) {
       throw new Error("No database connection");
+    }
+    if (this.fresh) {
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("--fresh is not allowed with NODE_ENV=production");
+      }
+      // Drops in reverse foreign-key order, then syncDatabase() recreates everything.
+      await sequelize.drop();
+      console.log("🗑️  --fresh: all tables dropped");
     }
     await syncDatabase();
 

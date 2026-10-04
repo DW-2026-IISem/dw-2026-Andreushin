@@ -1,81 +1,131 @@
-# CircularGuajira — Express TS Backend API
+# CircularGuajira — Backend API (Express 5 + TypeScript + Sequelize)
 
-API REST para la gestión integral de la cadena de suministro de reciclaje en La Guajira (recicladores, rutas, puntos de acopio, pesajes, lotes de clasificación, ventas y liquidaciones).
-
----
-
-##  Stack Tecnológico
-
-- **Runtime & Language:** Node.js (v20+) | TypeScript (v5+)
-- **Framework:** Express 5
-- **ORM & DB:** Sequelize (Soporte dinámico para MySQL, PostgreSQL, MSSQL, Oracle)
-- **Documentación:** Swagger UI / OpenAPI 3.0 (`/api/docs`)
-- **Testing Data:** `@faker-js/faker` (Seeders parametrizables)
+API REST para la trazabilidad de la cadena de reciclaje en La Guajira: recicladores, rutas, puntos de acopio, jornadas, materiales y tarifas, plantas, lotes, pesajes, ventas y liquidaciones. Funciona sobre **MySQL, PostgreSQL, SQL Server y Oracle** con el mismo código.
 
 ---
 
-##  Inicio Rápido
+## Stack
 
-### 1. Requisitos Previos
-- Node.js >= 20.0.0
-- npm >= 10.0.0
-- Instancia activa de Base de Datos (MySQL o PostgreSQL recomendados)
+- **Node.js 20+**, **TypeScript 5** (modo estricto)
+- **Express 5**
+- **Sequelize 6** con `mysql2`, `pg`/`pg-hstore`, `tedious` y `oracledb`
+- **Swagger UI / OpenAPI 3.0** en `/api/docs`
+- **@faker-js/faker** para los seeders
+
+---
+
+## Inicio rápido
+
+### 1. Requisitos
+- Node.js >= 20 y npm >= 10
+- Uno de los cuatro motores en ejecución (en este proyecto corren en Docker: MySQL 3306, PostgreSQL 5433, SQL Server 1433, Oracle XE 1521)
 
 ### 2. Instalación
 ```bash
-git clone https://github.com/tu-usuario/app-circularguajira-express.git
-cd app-circularguajira-express
 npm install
 ```
 
-### 3. Variables de Entorno
-Crea un archivo `.env` en la raíz del proyecto:
+### 3. Variables de entorno (`.env`)
+El motor activo se elige con `DB_DIALECT`; solo el bloque `DB_<MOTOR>_*` de ese motor es obligatorio (validación fail-fast al arrancar).
 
 ```env
-PORT=3000
-NODE_ENV=development
-DB_DIALECT=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_NAME=circular_guajira_db
-DB_USER=root
-DB_PASSWORD=secret
+PORT=3002
+NODE_ENV=development          # en development se registra el SQL en consola
+
+DB_DIALECT=mysql              # mysql | postgres | mssql | oracle
+
+DB_MYSQL_HOST=localhost
+DB_MYSQL_PORT=3306
+DB_MYSQL_USERNAME=usuario
+DB_MYSQL_PASSWORD=secreto
+DB_MYSQL_NAME=circularexpress_db
+
+# Igual para DB_POSTGRES_*, DB_MSSQL_* y DB_ORACLE_* (en Oracle, NAME es el servicio, p. ej. XE)
 ```
+
+Para probar otro motor sin editar el `.env`: `DB_DIALECT=postgres npm run dev`.
+
+### 4. Arranque
+```bash
+npm run db:seed     # crea/actualiza las 11 tablas y siembra datos de ejemplo (idempotente)
+npm run dev         # servidor con recarga en http://localhost:3002
+```
+Documentación interactiva: <http://localhost:3002/api/docs> (JSON en `/api/docs.json`).
 
 ---
 
-##  Scripts Disponibles
+## Scripts
 
 | Comando | Descripción |
 | :--- | :--- |
-| `npm run dev` | Inicia el servidor de desarrollo con recarga en vivo (`tsx`). |
-| `npm run build` | Compila el código TypeScript a JavaScript en `dist/`. |
-| `npm start` | Inicia el servidor compilado en modo producción. |
-| `npm run seed` | Poblado sintético de la base de datos con Faker. |
+| `npm run dev` | Servidor de desarrollo (nodemon + ts-node). |
+| `npm run build` | Compila a `dist/`. |
+| `npm start` | Ejecuta el servidor compilado (`dist/server.js`). |
+| `npm run db:seed` | Sincroniza el esquema y siembra datos; omite las tablas que ya tienen filas. |
+| `npm run db:seed -- --fresh` | Borra y recrea las 11 tablas antes de sembrar (bloqueado con `NODE_ENV=production`). |
+| `npm run db:seed -- --recyclers=25 --collection-points=40` | Cambia la cantidad de filas por tabla. |
+| `npx tsc --noEmit` | Verificación de tipos. |
 
 ---
 
-##  Arquitectura Modular por Features
+## Arquitectura
+
+Cada entidad vive en su carpeta de feature y se organiza por capas; el flujo es siempre
+`routes → controller → service → repository → model → Sequelize`.
 
 ```text
 src/
-├── config/             # Configuración global y variables de entorno
-├── database/           # Conexión Sequelize, sincronización y runner de seeders
-├── features/
-│   └── business/       # Módulos de dominio (recycler, route, collection, weighing, etc.)
-│       └── <feature>/  # model, controller, routes, associations, seeder, swagger
-├── routes/             # Agregador central de rutas REST
-├── swagger/            # Registry global OpenAPI 3.0
-└── server.ts           # Punto de entrada de la aplicación Express
+├── server.ts
+├── config/index.ts               # clase App: middlewares, rutas, Swagger, errores JSON, conexión y sync
+├── database/
+│   ├── db.ts                     # Sequelize multi-motor, syncDatabase(), proceso en UTC
+│   ├── models.ts                 # registro único de modelos y asociaciones
+│   └── seeders/                  # SeedersRunner (orden de FK) y conteos por tabla
+├── routes/index.ts               # agregador de rutas
+├── swagger/                      # registry OpenAPI, tipos y helpers
+├── shared/                       # AppError, BaseController, withTransaction (reintenta deadlocks), utilidades
+└── features/business/<plural>/
+    ├── <singular>.model.ts
+    ├── dto/
+    ├── <plural>.repository.ts    # única capa que usa Sequelize
+    ├── <plural>.service.ts       # reglas de negocio y transacciones
+    ├── <plural>.controller.ts
+    ├── <plural>.routes.ts
+    ├── <plural>.associations.ts  # FKs (NO ACTION)
+    ├── <plural>.seeder.ts
+    ├── <plural>.swagger.ts
+    └── http/                     # pruebas REST Client
 ```
 
----
-
-##  Guía de Desarrollo por Issues
-
-El proyecto incluye una metodología de desarrollo trazable guiada por IA o desarrolladores:
-- **`prompt.md`**: Contexto del sistema y reglas de arquitectura.
-- **`ISS-00` a `ISS-16`**: Incrementos de trabajo independientes con Criterios de Aceptación (DoR / DoD).
+Convenciones (detalle en `docs/prompt.MD` §3.4): código en inglés y camelCase (columnas en snake_case con `underscored: true`), rutas en plural (`/api/recyclers`), mensajes de la API en español.
 
 ---
 
+## Endpoints
+
+Todos los recursos exponen el mismo CRUD: `GET /api/<recurso>` (solo activos), `POST`, `GET /:id`, `PUT /:id`, `PATCH /:id`, `DELETE /:id` (borrado físico) y `PATCH /:id/deactivate` (baja lógica).
+
+| Recurso | Ruta | Reglas destacadas |
+| :--- | :--- | :--- |
+| Recicladores | `/api/recyclers` | Documento único |
+| Rutas | `/api/routes` | Nombre único por municipio |
+| Puntos de acopio | `/api/collection-points` | Pertenecen a una ruta activa; `?routeId=` |
+| Jornadas | `/api/collections` | Reciclador + ruta activos, fecha no futura, una por reciclador/ruta/día |
+| Materiales | `/api/materials` | Catálogo con nombre único |
+| Tarifas | `/api/material-rates` | Historial; crear/activar una tarifa cierra la vigente anterior del material |
+| Plantas | `/api/plants` | Nombre único; `?municipality=` |
+| Lotes | `/api/material-lots` | Inventario (`weightKg`) por planta y material; no se edita a mano |
+| Pesajes | `/api/weighings` | Neto = bruto − tara; suma existencias al lote |
+| Ventas | `/api/material-sales` | Total = cantidad × precio; descuenta existencias (409 si no alcanza) |
+| Liquidaciones | `/api/settlements` | Monto = pesajes del período × tarifa vigente en cada fecha; flujo pending → approved → paid |
+| Salud | `/api/health` | — |
+
+Errores siempre en JSON: `400` datos inválidos o JSON mal formado, `404` recurso o ruta inexistente, `409` conflicto (duplicados, FKs, existencias, transiciones de estado).
+
+Flujo completo de ejemplo: `src/features/business/core/http/e2e.http`.
+
+---
+
+## Desarrollo por issues
+
+El proyecto se construyó de forma incremental y trazable: `docs/prompt.MD` (contexto y reglas) y `trazabilidad/ISS-00` … `ISS-16` (criterios de aceptación, evidencias y commit de cierre de cada incremento).

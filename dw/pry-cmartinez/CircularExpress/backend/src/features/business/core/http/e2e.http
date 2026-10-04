@@ -1,0 +1,157 @@
+### End-to-end flow across the 11 features (run the requests in order).
+### Recycler → route → collection point → collection → material → rate → plant → lot
+### → weighing (adds stock) → sale (removes stock) → settlement (amount from weighings × rate) → approve → pay.
+@baseUrl = http://localhost:3002
+
+### 1. Health
+GET {{baseUrl}}/api/health
+
+### 2. Recycler
+# @name recycler
+POST {{baseUrl}}/api/recyclers
+Content-Type: application/json
+
+{
+  "name": "Reciclador E2E {{$timestamp}}",
+  "documentNumber": "E2E-{{$timestamp}}",
+  "phone": "3001112233"
+}
+
+### 3. Route
+# @name route
+POST {{baseUrl}}/api/routes
+Content-Type: application/json
+
+{
+  "name": "Ruta E2E {{$timestamp}}",
+  "municipality": "Riohacha"
+}
+
+### 4. Collection point on the route
+# @name point
+POST {{baseUrl}}/api/collection-points
+Content-Type: application/json
+
+{
+  "name": "Punto E2E {{$timestamp}}",
+  "routeId": {{route.response.body.$.route.id}},
+  "address": "Calle 1 # 2-3, Riohacha"
+}
+
+### 5. Collection (workday) of the recycler on the route — date defaults to today
+# @name collection
+POST {{baseUrl}}/api/collections
+Content-Type: application/json
+
+{
+  "name": "Jornada E2E {{$timestamp}}",
+  "recyclerId": {{recycler.response.body.$.recycler.id}},
+  "routeId": {{route.response.body.$.route.id}}
+}
+
+### 6. Material
+# @name material
+POST {{baseUrl}}/api/materials
+Content-Type: application/json
+
+{
+  "name": "Material E2E {{$timestamp}}"
+}
+
+### 7. Rate of the material (valid from today)
+# @name rate
+POST {{baseUrl}}/api/material-rates
+Content-Type: application/json
+
+{
+  "name": "Tarifa E2E",
+  "materialId": {{material.response.body.$.material.id}},
+  "pricePerKg": 1000
+}
+
+### 8. Plant
+# @name plant
+POST {{baseUrl}}/api/plants
+Content-Type: application/json
+
+{
+  "name": "Planta E2E {{$timestamp}}",
+  "municipality": "Riohacha"
+}
+
+### 9. Lot of the material at the plant (starts empty)
+# @name lot
+POST {{baseUrl}}/api/material-lots
+Content-Type: application/json
+
+{
+  "name": "LT-E2E-{{$timestamp}}",
+  "plantId": {{plant.response.body.$.plant.id}},
+  "materialId": {{material.response.body.$.material.id}}
+}
+
+### 10. Weighing into the lot: net = 120.5 − 2.5 = 118 kg → lot stock 118
+# @name weighing
+POST {{baseUrl}}/api/weighings
+Content-Type: application/json
+
+{
+  "name": "Pesaje E2E",
+  "collectionId": {{collection.response.body.$.collection.id}},
+  "materialId": {{material.response.body.$.material.id}},
+  "materialLotId": {{lot.response.body.$.materialLot.id}},
+  "grossWeightKg": 120.5,
+  "tareWeightKg": 2.5
+}
+
+### 11. Sale from the lot: 50 kg × 1500 = 75000 → lot stock 68
+# @name sale
+POST {{baseUrl}}/api/material-sales
+Content-Type: application/json
+
+{
+  "name": "Venta E2E",
+  "buyerName": "Transformadora E2E S.A.S.",
+  "materialLotId": {{lot.response.body.$.materialLot.id}},
+  "quantityKg": 50,
+  "unitPricePerKg": 1500
+}
+
+### 12. Lot stock (expects weightKg 68)
+GET {{baseUrl}}/api/material-lots/{{lot.response.body.$.materialLot.id}}
+
+### 13. Settlement of the recycler for today: 118 kg × 1000 = 118000 (pending)
+# @name settlement
+POST {{baseUrl}}/api/settlements
+Content-Type: application/json
+
+{
+  "recyclerId": {{recycler.response.body.$.recycler.id}},
+  "periodStart": "{{collection.response.body.$.collection.collectionDate}}",
+  "periodEnd": "{{collection.response.body.$.collection.collectionDate}}"
+}
+
+### 14. Approve
+PATCH {{baseUrl}}/api/settlements/{{settlement.response.body.$.settlement.id}}
+Content-Type: application/json
+
+{
+  "state": "approved"
+}
+
+### 15. Pay
+PATCH {{baseUrl}}/api/settlements/{{settlement.response.body.$.settlement.id}}
+Content-Type: application/json
+
+{
+  "state": "paid"
+}
+
+### 16. Global JSON errors: unknown route (404) and malformed JSON (400)
+GET {{baseUrl}}/api/no-existe
+
+###
+POST {{baseUrl}}/api/recyclers
+Content-Type: application/json
+
+{ "name": "sin cerrar"

@@ -1,27 +1,9 @@
 import dotenv from "dotenv";
-import express, { Application, Request, Response } from "express";
+import express, { Application, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import { getDatabaseInfo, syncDatabase, testConnection } from "../database/db";
-import "../features/business/recyclers/recycler.model";
-import "../features/business/routes/route.model";
-import "../features/business/collection-points/collection-point.model";
-import "../features/business/collections/collection.model";
-import "../features/business/materials/material.model";
-import "../features/business/material-rates/material-rate.model";
-import "../features/business/plants/plant.model";
-import "../features/business/material-lots/material-lot.model";
-import "../features/business/weighings/weighing.model";
-import "../features/business/material-sales/material-sale.model";
-import "../features/business/settlements/settlement.model";
-// Associations (must load after every model they reference)
-import "../features/business/collection-points/collection-points.associations";
-import "../features/business/collections/collections.associations";
-import "../features/business/material-rates/material-rates.associations";
-import "../features/business/material-lots/material-lots.associations";
-import "../features/business/weighings/weighings.associations";
-import "../features/business/material-sales/material-sales.associations";
-import "../features/business/settlements/settlements.associations";
+import "../database/models";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
 
@@ -36,6 +18,8 @@ export class App {
     this.settings();
     this.middlewares();
     this.routes();
+    this.docs();
+    this.errorHandlers();
     this.dbConnection();
   }
 
@@ -65,7 +49,31 @@ export class App {
     this.routePrv.weighingsRoutes.routes(this.app);
     this.routePrv.materialSalesRoutes.routes(this.app);
     this.routePrv.settlementsRoutes.routes(this.app);
+  }
+
+  private docs(): void {
     setupSwagger(this.app);
+  }
+
+  // Registered last: JSON answers for unknown routes and for errors thrown before a controller runs
+  // (e.g. malformed JSON bodies), instead of Express' default HTML pages.
+  private errorHandlers(): void {
+    this.app.use((req: Request, res: Response) => {
+      res.status(404).json({ error: 'Ruta no encontrada', details: { method: req.method, path: req.originalUrl } });
+    });
+    this.app.use((error: unknown, _req: Request, res: Response, _next: NextFunction) => {
+      const parseError = error as { type?: string; status?: number };
+      if (parseError?.type === 'entity.parse.failed') {
+        res.status(400).json({ error: 'El cuerpo de la petición no es un JSON válido' });
+        return;
+      }
+      if (parseError?.status && parseError.status >= 400 && parseError.status < 500) {
+        res.status(parseError.status).json({ error: 'Petición inválida' });
+        return;
+      }
+      console.error('Unhandled error:', error);
+      res.status(500).json({ error: 'Error interno del servidor' });
+    });
   }
 
   private async dbConnection(): Promise<void> {
