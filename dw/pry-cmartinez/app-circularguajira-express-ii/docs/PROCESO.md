@@ -700,11 +700,86 @@ git commit -m "ISS-03-E: Feature collectors: delete físico y lógico"
 git push origin main
 ```
 
+Commit: [`575f7b6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/575f7b69943ead8570ac3daab7e6b5c579da01b4)
+
 ### ISS-04 — Seeders con Faker
 
 Crear seeders repetibles con datos de desarrollo para materiales, rutas, tarifas vigentes y recicladores. Mantener las relaciones válidas y evitar duplicados al volver a ejecutarlos.
 
 **Verificación:** los seeders se ejecutan en orden y generan datos relacionados utilizables en pruebas.
+
+En este ISS se crea el runner y el seeder de recicladores (única feature existente). Materiales, tarifas y rutas suman su seeder en ISS-06 e ISS-07 con el mismo patrón: archivo `<plural>.seeder.ts` en el feature, clave en `counts.ts` y llamada en el runner.
+
+Criterios de aceptación (ISS-04)
+
+- [x] `collectors/recyclers.seeder.ts` con @faker-js/faker, recibe `count` y es idempotente
+- [x] `src/database/seeders/index.ts` (SeedersRunner) llama a los seeders de las features; script `db:seed` en package.json
+- [x] `src/database/seeders/counts.ts` con la cantidad por entidad (default / env / CLI)
+- [x] `npm run db:seed` funciona y al repetirlo no duplica
+- [x] Se puede variar la cantidad: `npm run db:seed -- --recyclers=N` o `SEED_RECYCLERS=N`
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+npm install -D @faker-js/faker@^10.6.0
+
+# features/business/collectors/recyclers.seeder.ts: seedRecyclers(count) con fakerES; count es el total
+#   objetivo e inserta solo lo que falta. Replica los formatos de la validación: cédula o NIT con
+#   dígito de verificación (únicos), celular 3XXXXXXXXX, municipios de La Guajira, ~80 % activos
+# src/database/seeders/counts.ts: SeedCounts, DEFAULT_SEED_COUNTS y resolveSeedCounts (CLI > env > default)
+# src/database/seeders/index.ts: runAllSeeders (testConnection, sync sin alter, seeders en orden)
+# package.json -> "db:seed": "ts-node -- src/database/seeders/index.ts"
+git rm src/database/seeders/.gitkeep
+```
+
+### Verificación del ISS
+
+```bash
+npm run db:seed
+npm run db:seed -- --recyclers=25
+SEED_RECYCLERS=5 npm run db:seed
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Seeder del feature:** `grep` muestra el import de `fakerES`, los formatos de NIT/cédula y celular, `seedRecyclers(count)`, el cálculo `count - existing` y `bulkCreate`.
+
+![Ev1 ISS-04](images/Ev1-ISS-04.png)
+
+**Ev2 — Runner y script:** `index.ts` importa `seedRecyclers` y `resolveSeedCounts`, hace `sync()` y llama al seeder; `package.json` tiene `db:seed`.
+
+![Ev2 ISS-04](images/Ev2-ISS-04.png)
+
+**Ev3 — Conteos:** `counts.ts` con `recyclers: 10` por defecto, lectura de `SEED_<ENTIDAD>` y de `--<entidad>=N`.
+
+![Ev3 ISS-04](images/Ev3-ISS-04.png)
+
+**Ev4 — db:seed:** la primera ejecución inserta 6 filas hasta completar 10; la segunda responde `already present ... skipped`.
+
+![Ev4 ISS-04](images/Ev4-ISS-04.png)
+
+**Ev5 — Cantidad variable:** `--recyclers=25` inserta 5 (había 20 de una corrida previa con `--recyclers=20`), `SEED_RECYCLERS=5` se omite y MySQL cuenta 23 activos y 2 inactivos.
+
+![Ev5 ISS-04](images/Ev5-ISS-04.png)
+
+**Ev6 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev6 ISS-04](images/Ev6-ISS-04.png)
+
+### Commit
+
+```bash
+git add package.json package-lock.json \
+  src/features/business/collectors/recyclers.seeder.ts \
+  src/database/seeders/counts.ts src/database/seeders/index.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-04.png docs/images/Ev2-ISS-04.png \
+  docs/images/Ev3-ISS-04.png docs/images/Ev4-ISS-04.png docs/images/Ev5-ISS-04.png \
+  docs/images/Ev6-ISS-04.png
+git commit -m "ISS-04: Seeders con Faker"
+git push origin main
+```
 
 ### ISS-05 — Swagger / OpenAPI
 

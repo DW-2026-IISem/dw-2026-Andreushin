@@ -1,0 +1,49 @@
+import dotenv from "dotenv";
+import { sequelize, testConnection } from "../db";
+import { seedRecyclers } from "../../features/business/collectors/recyclers.seeder";
+import { resolveSeedCounts } from "./counts";
+
+dotenv.config();
+
+/**
+ * SeedersRunner: runs every feature seeder.
+ *
+ * Lives in `src/database/seeders/` (orchestration outside the features); each feature
+ * exports its own seeder (e.g. `features/business/collectors/recyclers.seeder.ts`).
+ *
+ * Usage:
+ *   npm run db:seed
+ *   npm run db:seed -- --recyclers=20
+ *   SEED_RECYCLERS=5 npm run db:seed
+ */
+export async function runAllSeeders(): Promise<void> {
+  const counts = resolveSeedCounts();
+  console.log("🌱 SeedersRunner starting...");
+  console.log("📊 Counts:", counts);
+
+  const connected = await testConnection();
+  if (!connected) {
+    throw new Error("Database connection failed");
+  }
+
+  // Same sync as the App (no alter): the seeders never change the schema.
+  await sequelize.sync();
+
+  // Order: business parents -> children.
+  await seedRecyclers(counts.recyclers);
+
+  console.log("🌱 SeedersRunner finished");
+}
+
+if (require.main === module) {
+  runAllSeeders()
+    .then(async () => {
+      await sequelize.close();
+      process.exit(0);
+    })
+    .catch(async (error: unknown) => {
+      console.error("❌ Seeders failed:", error);
+      await sequelize.close();
+      process.exit(1);
+    });
+}
