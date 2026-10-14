@@ -13,6 +13,11 @@ export type SeedCounts = {
   routes: number;
   // Collection points per route.
   collectionPoints: number;
+  collections: number;
+  // Weighings per collection.
+  weighings: number;
+  // Target of issued settlements.
+  settlements: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
@@ -21,6 +26,9 @@ export const DEFAULT_SEED_COUNTS: SeedCounts = {
   materialRates: 3,
   routes: 6,
   collectionPoints: 4,
+  collections: 8,
+  weighings: 3,
+  settlements: 4,
 };
 
 const toCount = (raw: string, source: string): number => {

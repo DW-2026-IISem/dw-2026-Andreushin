@@ -25,6 +25,10 @@ export class MaterialRatesRepository {
     });
   }
 
+  findById(id: number): Promise<MaterialRate | null> {
+    return MaterialRate.findByPk(id);
+  }
+
   countByMaterial(materialId: number): Promise<number> {
     return MaterialRate.count({ where: { materialId } });
   }

@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:4000/api
+
+### create: liquida una recolección -> 201
+POST {{baseUrl}}/settlements
+Content-Type: application/json
+
+{
+  "collectionId": 1,
+  "notes": "Pago en efectivo"
+}
+
+### create: la recolección ya está liquidada -> 409
+POST {{baseUrl}}/settlements
+Content-Type: application/json
+
+{
+  "collectionId": 1
+}
+
+### getAll / getOne (con la recolección y sus pesajes)
+GET {{baseUrl}}/settlements
+
+###
+GET {{baseUrl}}/settlements/1
+
+### verify: recalcula y compara con lo guardado
+GET {{baseUrl}}/settlements/1/verify
+
+### PATCH: solo notas -> 200
+PATCH {{baseUrl}}/settlements/1
+Content-Type: application/json
+
+{
+  "notes": "Pago por transferencia"
+}
+
+### un pesaje de una recolección liquidada no se puede modificar -> 409
+PATCH {{baseUrl}}/weighings/1
+Content-Type: application/json
+
+{
+  "tareKg": 1
+}
+
+### delete de una liquidación emitida -> 409
+DELETE {{baseUrl}}/settlements/1
+
+### void (lógico): anula y reabre la recolección -> 200
+PATCH {{baseUrl}}/settlements/1/void
+
+### delete de una liquidación anulada (físico) -> 200
+DELETE {{baseUrl}}/settlements/1

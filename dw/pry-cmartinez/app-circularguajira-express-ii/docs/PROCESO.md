@@ -1057,11 +1057,117 @@ git commit -m "ISS-07: Feature routes (rutas y puntos de recolección)"
 git push origin main
 ```
 
+Commit: [`aa48f2d`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/aa48f2d2576cf00c7a0cd3b8dd27af4b2c905ee2)
+
 ### ISS-08 — Features `weighing` / `settlements` (recolección, pesaje y liquidación)
 
 Implementar el flujo central: registrar la recolección, pesar por material, descontar la tara para obtener el peso neto, aplicar la tarifa vigente y generar una liquidación verificable. Guardar los valores y referencias usados en el cálculo para mantener trazabilidad; ejecutar escrituras relacionadas en una transacción.
 
 **Verificación:** pruebas de peso neto, importe, tarifa aplicable, entradas inválidas y consistencia ante fallos.
+
+Equivalencia con StoreLab: la venta (cabecera) es la **recolección** (reciclador + ruta + fecha) y el detalle de venta es el **pesaje** (material, bruto, tara). La **liquidación** es nueva. Reglas:
+
+- neto = bruto − tara (bruto > tara); importe = neto × tarifa vigente en la fecha de la recolección (404 si ninguna tarifa cubre la fecha). La fórmula vive en `weighing.calculator.ts` y la usan services, verificación y seeders.
+- Cada pesaje guarda la tarifa aplicada (`rateId`) y su precio (`pricePerKg`); los totales de la recolección se derivan de sus pesajes activos. Cambiar la fecha re-tarifica los pesajes.
+- Liquidar confirma la tarifa vigente de cada pesaje, congela totales y número de líneas y bloquea la recolección (409 a cualquier cambio) hasta anular la liquidación (`/void`). `GET /api/settlements/:id/verify` recalcula todo y lo compara con lo guardado.
+- Escrituras relacionadas en una transacción, con bloqueos en orden canónico recolección → pesajes → liquidación.
+
+Criterios de aceptación (ISS-08)
+
+- [x] Modelos `Collection`, `Weighing` y `Settlement` con FK RESTRICT (reciclador, ruta, material, tarifa, recolección) y sus asociaciones
+- [x] Recolección con pesajes creada en una transacción: neto, importe y tarifa vigente; entradas inválidas rechazadas y rollback completo ante fallo
+- [x] Pesajes: alta en recolección abierta, cambio de pesos con recálculo de totales, re-tarifado al cambiar la fecha, baja lógica
+- [x] Liquidación verificable: emite y congela, bloquea la recolección, verificación consistente, anulación que reabre y reliquidación
+- [x] Carpetas `http/` de recolecciones, pesajes y liquidaciones
+- [x] Cableado en routes, config, swagger y seeders; `handleError` responde 409 ante violaciones de FK/unicidad
+- [x] Seeders de recolecciones con pesajes y de liquidaciones, con totales consistentes
+- [x] Swagger de recolecciones, pesajes y liquidaciones registrado
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+mkdir -p src/features/business/{weighing,settlements}/{dto,http}
+
+# src/shared/database/decimal.ts: columna DECIMAL expuesta como number
+# src/shared/http/validation.ts: nonNegativeAmount (tara); handleError: FK/unique -> 409
+# weighing/weighing.calculator.ts: round2, calculateLine, sumLines (fórmula única)
+# weighing/collection.model.ts, weighing.model.ts, weighing.associations.ts
+# settlements/settlement.model.ts, settlements.associations.ts
+# dto/: weighing.dto.ts + validation (fecha no futura, bruto > tara, 1..50 pesajes), settlement.dto.ts + validation
+# repositories con variantes transaction/lock (FOR UPDATE)
+# weighing-pricing.service.ts: material activo + tarifa aplicable (MaterialRatesService.findApplicableOrFail)
+# collections.service.ts: create transaccional, PUT/PATCH con re-tarifado, lockOpenCollection, recalculateTotals
+# weighings.service.ts: lockLine (recolección -> pesaje), cambios de peso, baja física y lógica
+# settlements.service.ts: create (confirma tarifas, congela totales), notas, void, delete (solo anuladas), verify
+# controllers + weighing.routes.ts (/api/collections, /api/weighings) y settlements.routes.ts (/api/settlements)
+# weighing.seeder.ts y settlements.seeder.ts; counts.ts: collections, weighings, settlements
+# weighing.swagger.ts y settlements.swagger.ts + registro en src/swagger/index.ts
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -X POST localhost:4000/api/collections -H "Content-Type: application/json" \
+  -d '{"recyclerId":1,"routeId":1,"collectedOn":"2026-10-10","weighings":[{"materialId":1,"grossKg":50.5,"tareKg":2}]}'
+curl -s -X POST localhost:4000/api/settlements -H "Content-Type: application/json" -d '{"collectionId":1}'
+curl -s localhost:4000/api/settlements/1/verify
+npm run db:seed
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Modelos y relaciones:** `grep` muestra las FK con `onDelete: "RESTRICT"`, `collectedOn` DATEONLY, columnas decimales (bruto, tara, neto, precio, importe, totales), el enum `issued`/`voided` y las asociaciones; `information_schema` lista las 7 FK RESTRICT de `collections`, `weighings` y `settlements`.
+
+![Ev1 ISS-08](images/Ev1-ISS-08.png)
+
+**Ev2 — Recolección transaccional:** con 0 recolecciones, el alta con PET (50,5 − 2 = 48,5 kg × 1200 = 58.200) y Cartón da 201 con total 71.310; el alta del 2026-08-15 falla en el segundo pesaje (404, sin tarifa) y el conteo sigue en 1 recolección y 2 pesajes (rollback); bruto <= tara, reciclador inactivo, fecha futura y lista vacía dan 400.
+
+![Ev2 ISS-08](images/Ev2-ISS-08.png)
+
+**Ev3 — Pesajes y re-tarifado:** pesaje de Chatarra agregado (201); PATCH de tara recalcula neto e importe (200); tara mayor que el bruto (400); cambiar la fecha al 2026-09-20 re-tarifa los 3 pesajes con tarifas de septiembre (PET 1200 → 1150) y el total pasa a 124.890; la baja lógica de un pesaje deja 76,5 kg / 68.310.
+
+![Ev3 ISS-08](images/Ev3-ISS-08.png)
+
+**Ev4 — Liquidación verificable:** se emite la liquidación 1 (201) con totales y pesajes; liquidar otra vez (409) y modificar un pesaje (409) se rechazan; `verify` responde `consistent: true` con la tarifa 2026-09-01 a 2026-09-30 en cada línea; borrar una emitida (409); `void` la anula (200), el pesaje ya se puede corregir (200) y se reliquida (liquidación 2: 77 kg / 68.885); la anulada se borra (200) y borrar un reciclador con recolecciones da 409.
+
+![Ev4 ISS-08](images/Ev4-ISS-08.png)
+
+**Ev5 — Carpetas http:** `collections.http` (9 casos), `weighings.http` (7) y `settlements.http` (10).
+
+![Ev5 ISS-08](images/Ev5-ISS-08.png)
+
+**Ev6 — Cableado:** `routes/index.ts` con `weighingRoutes` y `settlementsRoutes`; config, swagger y seeders importan asociaciones, docs y seeders; `counts.ts` con `collections: 8`, `weighings: 3`, `settlements: 4`; `handleError` atiende `ForeignKeyConstraintError` y `UniqueConstraintError`.
+
+![Ev6 ISS-08](images/Ev6-ISS-08.png)
+
+**Ev7 — Seeders consistentes:** `npm run db:seed` inserta 7 recolecciones con 21 pesajes y emite 3 liquidaciones (total 4); MySQL muestra que en las 8 recolecciones `total_net_kg` y `total_amount` son iguales a la suma de sus pesajes y al valor liquidado.
+
+![Ev7 ISS-08](images/Ev7-ISS-08.png)
+
+**Ev8 — Swagger:** `/api/docs` muestra los tags Recolecciones, Pesajes y Liquidaciones (SIN AUTH) junto a los de ISS-03 a ISS-07, con sus schemas.
+
+![Ev8 ISS-08](images/Ev8-ISS-08.png)
+
+**Ev9 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev9 ISS-08](images/Ev9-ISS-08.png)
+
+### Commit
+
+```bash
+git add src/shared src/features/business/weighing src/features/business/settlements \
+  src/features/business/materials/material-rates.repository.ts \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts \
+  src/database/seeders/counts.ts src/database/seeders/index.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-08.png docs/images/Ev2-ISS-08.png \
+  docs/images/Ev3-ISS-08.png docs/images/Ev4-ISS-08.png docs/images/Ev5-ISS-08.png \
+  docs/images/Ev6-ISS-08.png docs/images/Ev7-ISS-08.png docs/images/Ev8-ISS-08.png \
+  docs/images/Ev9-ISS-08.png
+git commit -m "ISS-08: Features weighing / settlements (recolección, pesaje y liquidación)"
+git push origin main
+```
 
 ### Compuerta `CIERRE-BUSINESS`
 

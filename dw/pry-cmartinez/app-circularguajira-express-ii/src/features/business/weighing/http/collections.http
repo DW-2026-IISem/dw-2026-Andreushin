@@ -1,0 +1,69 @@
+@baseUrl = http://localhost:4000/api
+
+### create: recolección + pesajes en una transacción -> 201
+POST {{baseUrl}}/collections
+Content-Type: application/json
+
+{
+  "recyclerId": 1,
+  "routeId": 1,
+  "collectedOn": "2026-10-10",
+  "weighings": [
+    { "materialId": 1, "grossKg": 50.5, "tareKg": 2 },
+    { "materialId": 3, "grossKg": 30, "tareKg": 1.5 }
+  ]
+}
+
+### create: un material sin tarifa en la fecha -> 404 y no se guarda nada (rollback)
+POST {{baseUrl}}/collections
+Content-Type: application/json
+
+{
+  "recyclerId": 1,
+  "routeId": 1,
+  "collectedOn": "2026-08-15",
+  "weighings": [
+    { "materialId": 3, "grossKg": 20, "tareKg": 1 },
+    { "materialId": 1, "grossKg": 10, "tareKg": 1 }
+  ]
+}
+
+### create: bruto menor o igual que la tara -> 400
+POST {{baseUrl}}/collections
+Content-Type: application/json
+
+{
+  "recyclerId": 1,
+  "routeId": 1,
+  "weighings": [{ "materialId": 1, "grossKg": 1, "tareKg": 2 }]
+}
+
+### getAll: recolecciones activas con sus pesajes
+GET {{baseUrl}}/collections
+
+### getOne
+GET {{baseUrl}}/collections/1
+
+### PATCH: cambiar la fecha re-tarifica los pesajes -> 200
+PATCH {{baseUrl}}/collections/1
+Content-Type: application/json
+
+{
+  "collectedOn": "2026-09-20"
+}
+
+### PUT: reemplazo de la cabecera -> 200
+PUT {{baseUrl}}/collections/1
+Content-Type: application/json
+
+{
+  "recyclerId": 1,
+  "routeId": 1,
+  "collectedOn": "2026-09-20"
+}
+
+### deactivate (lógico): recolección y pesajes inactivos -> 200
+PATCH {{baseUrl}}/collections/2/deactivate
+
+### delete (físico) sin liquidaciones -> 200
+DELETE {{baseUrl}}/collections/2

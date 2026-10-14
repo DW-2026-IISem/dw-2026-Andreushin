@@ -5,6 +5,10 @@ import "../../features/business/materials/materials.associations";
 import { seedMaterialRates, seedMaterials } from "../../features/business/materials/materials.seeder";
 import "../../features/business/routes/routes.associations";
 import { seedCollectionPoints, seedRoutes } from "../../features/business/routes/routes.seeder";
+import "../../features/business/weighing/weighing.associations";
+import "../../features/business/settlements/settlements.associations";
+import { seedCollections } from "../../features/business/weighing/weighing.seeder";
+import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -21,6 +25,7 @@ dotenv.config();
  *   SEED_RECYCLERS=5 npm run db:seed
  *   npm run db:seed -- --materials=6 --materialRates=4
  *   npm run db:seed -- --routes=8 --collectionPoints=5
+ *   npm run db:seed -- --collections=12 --weighings=4 --settlements=6
  */
 export async function runAllSeeders(): Promise<void> {
   const counts = resolveSeedCounts();
@@ -41,6 +46,8 @@ export async function runAllSeeders(): Promise<void> {
   await seedMaterialRates(counts.materialRates);
   await seedRoutes(counts.routes);
   await seedCollectionPoints(counts.collectionPoints);
+  await seedCollections(counts.collections, counts.weighings);
+  await seedSettlements(counts.settlements);
 
   console.log("🌱 SeedersRunner finished");
 }

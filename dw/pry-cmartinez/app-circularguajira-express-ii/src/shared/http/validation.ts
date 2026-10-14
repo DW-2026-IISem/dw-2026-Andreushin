@@ -81,3 +81,9 @@ export const positiveInt = (value: unknown, field: string, max: number): number 
   }
   return value;
 };
+
+// Amount that may be zero (e.g. tare), at most two decimals.
+export const nonNegativeAmount = (value: unknown, field: string, max: number): number => {
+  if (value === 0) return 0;
+  return positiveAmount(value, field, max);
+};

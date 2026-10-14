@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:4000/api
+
+### create: agrega un pesaje a una recolección abierta -> 201
+POST {{baseUrl}}/weighings
+Content-Type: application/json
+
+{
+  "collectionId": 1,
+  "materialId": 7,
+  "grossKg": 12,
+  "tareKg": 0.5
+}
+
+### getAll / getOne
+GET {{baseUrl}}/weighings
+
+###
+GET {{baseUrl}}/weighings/1
+
+### PATCH: nueva tara recalcula neto, importe y totales -> 200
+PATCH {{baseUrl}}/weighings/1
+Content-Type: application/json
+
+{
+  "tareKg": 2.5
+}
+
+### PUT: ambos pesos -> 200
+PUT {{baseUrl}}/weighings/1
+Content-Type: application/json
+
+{
+  "grossKg": 51,
+  "tareKg": 2.5
+}
+
+### deactivate (lógico) -> 200
+PATCH {{baseUrl}}/weighings/3/deactivate
+
+### delete (físico) -> 200
+DELETE {{baseUrl}}/weighings/3

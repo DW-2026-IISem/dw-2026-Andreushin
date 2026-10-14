@@ -3,6 +3,8 @@ import swaggerUi from "swagger-ui-express";
 import { recyclersSwagger } from "../features/business/collectors/recyclers.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
 import { routesSwagger } from "../features/business/routes/routes.swagger";
+import { weighingSwagger } from "../features/business/weighing/weighing.swagger";
+import { settlementsSwagger } from "../features/business/settlements/settlements.swagger";
 
 export type FeatureSwaggerModule = {
   tags: unknown[];
@@ -18,6 +20,8 @@ const featureSwaggerModules: FeatureSwaggerModule[] = [
   recyclersSwagger,
   materialsSwagger,
   routesSwagger,
+  weighingSwagger,
+  settlementsSwagger,
 ];
 
 // Shared by every feature: shape produced by src/shared/http/handleError.ts.
