@@ -2,7 +2,7 @@ import { RecyclersRepository } from "./recyclers.repository";
 import { Recycler } from "./recycler.model";
 import { ConflictError, NotFoundError } from "../../../shared/errors/httpError";
 import { parseId } from "../../../shared/http/parseId";
-import { parseRecyclerInput } from "./dto/recycler.validation";
+import { parseRecyclerInput, parseRecyclerPatch } from "./dto/recycler.validation";
 
 export class RecyclersService {
   constructor(private readonly recyclersRepository = new RecyclersRepository()) {}
@@ -31,9 +31,35 @@ export class RecyclersService {
 
   // ================== UPDATE ==================
 
+  // PUT: full replacement; omitted optional fields are cleared.
+  async update(rawId: string, body: unknown): Promise<Recycler> {
+    const recycler = await this.findExisting(rawId);
+    const input = parseRecyclerInput(body);
+    await this.ensureDocumentIsFree(input.documentNumber, recycler.id);
+    return this.recyclersRepository.update(recycler, input);
+  }
+
+  // PATCH: only the fields sent change.
+  async patch(rawId: string, body: unknown): Promise<Recycler> {
+    const recycler = await this.findExisting(rawId);
+    const changes = parseRecyclerPatch(body);
+    if (changes.documentNumber !== undefined) {
+      await this.ensureDocumentIsFree(changes.documentNumber, recycler.id);
+    }
+    return this.recyclersRepository.update(recycler, changes);
+  }
+
   // ================== DELETE ==================
 
   // ================== HELPERS ==================
+
+  private async findExisting(rawId: string): Promise<Recycler> {
+    const recycler = await this.recyclersRepository.findById(parseId(rawId));
+    if (!recycler) {
+      throw new NotFoundError("Reciclador no encontrado");
+    }
+    return recycler;
+  }
 
   private async ensureDocumentIsFree(documentNumber: string, ownId?: number): Promise<void> {
     const existing = await this.recyclersRepository.findByDocumentNumber(documentNumber);

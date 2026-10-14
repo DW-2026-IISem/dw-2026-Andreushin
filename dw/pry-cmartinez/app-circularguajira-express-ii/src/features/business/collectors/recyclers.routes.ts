@@ -21,5 +21,11 @@ export class RecyclersRoutes {
     app
       .route("/api/recyclers")
       .post(this.recyclersController.create.bind(this.recyclersController));
+
+    // update (PUT / PATCH)
+    app
+      .route("/api/recyclers/:id")
+      .put(this.recyclersController.update.bind(this.recyclersController))
+      .patch(this.recyclersController.patch.bind(this.recyclersController));
   }
 }

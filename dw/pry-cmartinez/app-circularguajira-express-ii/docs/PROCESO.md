@@ -558,6 +558,78 @@ git commit -m "ISS-03-C: Feature collectors: create"
 git push origin main
 ```
 
+Commit: [`b7f3fc6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/b7f3fc66d778ecf1c61167419d8c34789e108842)
+
+### ISS-03-D — Feature collectors: update PUT y PATCH
+
+Actualizar recicladores de forma completa (PUT) y parcial (PATCH), manteniendo la unicidad del documento.
+
+Criterios de aceptación (ISS-03-D)
+
+- [x] Validación `parseRecyclerPatch`, repository `findById`/`update`, service y controller con `update` y `patch`
+- [x] Rutas `PUT` y `PATCH /api/recyclers/:id` registradas
+- [x] Archivo `http/recyclers.update.http` con casos válidos e inválidos
+- [x] PUT/PATCH responden 200; 400 por campos faltantes o cuerpo vacío, 409 por documento ajeno y 404 si no existe
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+# dto/recycler.validation.ts: parseRecyclerPatch (valida solo los campos enviados, exige al menos uno)
+# recyclers.repository.ts: findById (cualquier estado, permite reactivar) y update
+# recyclers.service.ts: update (PUT, payload completo) y patch (PATCH), findExisting -> 404,
+#   ensureDocumentIsFree excluyendo el propio id -> 409
+# recyclers.controller.ts: update y patch bajo UPDATE, responden 200
+# recyclers.routes.ts: PUT y PATCH /api/recyclers/:id
+# http/recyclers.update.http: peticiones de prueba
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -X PATCH localhost:4000/api/recyclers/3 -H "Content-Type: application/json" \
+  -d '{"status":"active","email":"luis.pushaina@correo.co"}'
+```
+
+**Verificación:** PUT exige el payload completo, PATCH cambia solo lo enviado y ningún cambio duplica un documento.
+
+#### Evidencias
+
+**Ev1 — Capas update:** `grep` muestra `parseRecyclerPatch`, `findById`, `findExisting` y los métodos `update`/`patch` en repository, service y controller.
+
+![Ev1 ISS-03-D](images/Ev1-ISS-03-D.png)
+
+**Ev2 — Rutas PUT/PATCH:** `recyclers.routes.ts` registra `/api/recyclers/:id` con `.put` y `.patch`.
+
+![Ev2 ISS-03-D](images/Ev2-ISS-03-D.png)
+
+**Ev3 — Archivo HTTP:** `recyclers.update.http` con los seis casos de PUT y PATCH.
+
+![Ev3 ISS-03-D](images/Ev3-ISS-03-D.png)
+
+**Ev4 — Verificación curl:** PUT id 2 → 200 (email/address en null), PUT incompleto → 400, PATCH id 3 reactiva y agrega email → 200, documento ajeno → 409, cuerpo vacío → 400, id 9999 → 404.
+
+![Ev4 ISS-03-D](images/Ev4-ISS-03-D.png)
+
+**Ev5 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev5 ISS-03-D](images/Ev5-ISS-03-D.png)
+
+### Commit
+
+```bash
+git add src/features/business/collectors/dto/recycler.validation.ts \
+  src/features/business/collectors/recyclers.repository.ts \
+  src/features/business/collectors/recyclers.service.ts \
+  src/features/business/collectors/recyclers.controller.ts \
+  src/features/business/collectors/recyclers.routes.ts \
+  src/features/business/collectors/http/recyclers.update.http \
+  docs/PROCESO.md docs/images/Ev1-ISS-03-D.png docs/images/Ev2-ISS-03-D.png \
+  docs/images/Ev3-ISS-03-D.png docs/images/Ev4-ISS-03-D.png docs/images/Ev5-ISS-03-D.png
+git commit -m "ISS-03-D: Feature collectors: update PUT y PATCH"
+git push origin main
+```
+
 ### ISS-04 — Seeders con Faker
 
 Crear seeders repetibles con datos de desarrollo para materiales, rutas, tarifas vigentes y recicladores. Mantener las relaciones válidas y evitar duplicados al volver a ejecutarlos.

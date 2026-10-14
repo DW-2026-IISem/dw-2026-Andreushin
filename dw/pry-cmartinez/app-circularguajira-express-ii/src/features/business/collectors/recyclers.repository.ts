@@ -1,5 +1,5 @@
 import { Recycler } from "./recycler.model";
-import { RecyclerInputDto } from "./dto/recycler.dto";
+import { RecyclerInputDto, RecyclerPatchDto } from "./dto/recycler.dto";
 
 export class RecyclersRepository {
   // ================== READ ==================
@@ -10,6 +10,11 @@ export class RecyclersRepository {
 
   findActiveById(id: number): Promise<Recycler | null> {
     return Recycler.findOne({ where: { id, status: "active" } });
+  }
+
+  // Any status: updates may also reactivate an inactive recycler.
+  findById(id: number): Promise<Recycler | null> {
+    return Recycler.findByPk(id);
   }
 
   // Any status: document numbers stay unique even for inactive recyclers.
@@ -24,6 +29,10 @@ export class RecyclersRepository {
   }
 
   // ================== UPDATE ==================
+
+  update(recycler: Recycler, data: RecyclerPatchDto): Promise<Recycler> {
+    return recycler.update(data);
+  }
 
   // ================== DELETE ==================
 }

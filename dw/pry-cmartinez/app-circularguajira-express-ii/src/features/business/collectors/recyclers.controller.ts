@@ -38,5 +38,23 @@ export class RecyclersController {
 
   // ================== UPDATE ==================
 
+  public async update(req: Request<{ id: string }>, res: Response): Promise<Response> {
+    try {
+      const recycler = await this.recyclersService.update(req.params.id, req.body);
+      return res.status(200).json(recycler);
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
+  public async patch(req: Request<{ id: string }>, res: Response): Promise<Response> {
+    try {
+      const recycler = await this.recyclersService.patch(req.params.id, req.body);
+      return res.status(200).json(recycler);
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
   // ================== DELETE ==================
 }
