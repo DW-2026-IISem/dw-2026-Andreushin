@@ -5,4 +5,8 @@ async function main() {
     await app.listen();
 }
 
-main();
+// Startup errors (no database, pending migrations) end the process with a clear message.
+main().catch((error: unknown) => {
+    console.error(`❌ Startup failed: ${error instanceof Error ? error.message : String(error)}`);
+    process.exit(1);
+});

@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { sequelize, testConnection } from "../db";
+import { assertNoPendingMigrations } from "../migrator";
 import { seedRecyclers } from "../../features/business/collectors/recyclers.seeder";
 import "../../features/business/materials/materials.associations";
 import { seedMaterialRates, seedMaterials } from "../../features/business/materials/materials.seeder";
@@ -37,8 +38,8 @@ export async function runAllSeeders(): Promise<void> {
     throw new Error("Database connection failed");
   }
 
-  // Same sync as the App (no alter): the seeders never change the schema.
-  await sequelize.sync();
+  // The seeders never change the schema: it must be migrated first.
+  await assertNoPendingMigrations();
 
   // Order: business parents -> children.
   await seedRecyclers(counts.recyclers);

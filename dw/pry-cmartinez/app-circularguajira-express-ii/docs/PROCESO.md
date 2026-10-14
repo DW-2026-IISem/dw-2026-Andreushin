@@ -1209,7 +1209,7 @@ Regla: routes -> controller -> service -> repository -> model; ninguna capa se s
 
 ### Pendientes para la Fase II
 
-- Migraciones: el esquema se crea con `sequelize.sync()` (sin `alter`); no hay migraciones versionadas, así que un cambio de columna en una tabla existente no se aplica solo. Evaluar `sequelize-cli` antes de ISS-09.
+- ~~Migraciones: el esquema se crea con `sequelize.sync()`~~ Resuelto en CIERRE-BUSINESS-B: migraciones versionadas con Umzug.
 - Datos de prueba: `npm run test:flow` usa la base de desarrollo (las credenciales son fijas) y deja sus filas `TEST-*` desactivadas.
 - Protección: todas las rutas siguen SIN AUTH; ISS-13 las protege con authenticate + authorize por rol (`LOGISTICA`, `BASCULA`, `FINANZAS`...).
 - Al cerrar se corrigió el seeder de tarifas, que también tomaba materiales inactivos.
@@ -1274,6 +1274,88 @@ git add package.json src/config/index.ts src/tests/flow.test.ts \
   docs/images/Ev5-CIERRE-BUSINESS.png docs/images/Ev6-CIERRE-BUSINESS.png \
   docs/images/Ev7-CIERRE-BUSINESS.png
 git commit -m "CIERRE-BUSINESS: Compuerta de la Fase I"
+git push origin main
+```
+
+Commit: [`da0c6c6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/da0c6c694c7120a9d1e3a6712656d7992a9b9b1f)
+
+### CIERRE-BUSINESS-B — Migraciones versionadas
+
+Resuelve el pendiente de migraciones antes de la Fase II: el esquema deja de crearse con `sequelize.sync()` y sale de migraciones TypeScript versionadas (una por ISS) ejecutadas con Umzug; `SequelizeMeta` registra las aplicadas. Regla desde aquí: **todo ISS que crea o cambia un modelo agrega su migración**.
+
+Criterios de aceptación (CIERRE-BUSINESS-B)
+
+- [x] `src/database/migrator.ts` (Umzug + SequelizeStorage), CLI `migrate.ts` y scripts `db:migrate`, `db:migrate:undo`, `db:migrate:status`
+- [x] Cuatro migraciones (ISS-03, 06, 07, 08) aplicadas desde una base vacía y registradas en `SequelizeMeta`
+- [x] El esquema migrado es idéntico al que creaba `sync()` (columnas, índices, FK)
+- [x] `db:migrate:undo` revierte la última; la App no arranca con migraciones pendientes y vuelve a arrancar al reaplicarla
+- [x] Seeders y prueba del flujo funcionan sobre la base migrada; ningún `sync()` en el código
+- [x] npx tsc --noEmit sin errores
+
+### Pasos
+
+```bash
+npm install umzug@^3.8.2
+
+# src/database/migrator.ts: Umzug (glob migrations/*.{ts,js}, nombre sin extensión), SequelizeStorage,
+#   assertNoPendingMigrations()
+# src/database/migrate.ts: runAsCLI (up, down, pending, executed)
+# src/database/migrations/20261014-01-iss-03-recyclers.ts ... 20261014-04-iss-08-weighing-settlements.ts
+# config/index.ts, database/seeders/index.ts, tests/flow.test.ts: sync() -> assertNoPendingMigrations()
+# server.ts: un error de arranque termina el proceso con un mensaje claro
+# package.json -> db:migrate, db:migrate:undo, db:migrate:status
+
+# Una sola vez en desarrollo (datos de prueba): se guardó SHOW CREATE TABLE de las 8 tablas,
+# se borraron y se recrearon con las migraciones
+npm run db:migrate
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run db:migrate && npm run db:migrate:status
+npm run db:migrate:undo && npx ts-node src/server.ts   # falla: migración pendiente
+npm run db:migrate && npm run db:seed && npm run test:flow
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Migrator y migraciones:** `src/database` con `migrator.ts`, `migrate.ts` y las cuatro migraciones por ISS; el migrator usa `SequelizeStorage` y `assertNoPendingMigrations`; `package.json` tiene los tres scripts; la App, los seeders y la prueba llaman al guard y no queda ningún `sync()`.
+
+![Ev1 CIERRE-BUSINESS-B](images/Ev1-CIERRE-BUSINESS-B.png)
+
+**Ev2 — Migración desde cero:** `npm run db:migrate` aplica las 4 migraciones; `db:migrate:status` no lista pendientes; `SequelizeMeta` registra las 4 y existen las 8 tablas.
+
+![Ev2 CIERRE-BUSINESS-B](images/Ev2-CIERRE-BUSINESS-B.png)
+
+**Ev3 — Mismo esquema:** `diff` entre el `SHOW CREATE TABLE` del esquema de `sync()` y el de las migraciones: mismas 123 líneas y 9 FK, sin diferencias.
+
+![Ev3 CIERRE-BUSINESS-B](images/Ev3-CIERRE-BUSINESS-B.png)
+
+**Ev4 — Rollback y guard:** `db:migrate:undo` revierte la migración del ISS-08 y queda pendiente; la App termina con "Pending migrations: 20261014-04-iss-08-weighing-settlements. Run npm run db:migrate"; `db:migrate` la reaplica y la App arranca con "Database schema up to date".
+
+![Ev4 CIERRE-BUSINESS-B](images/Ev4-CIERRE-BUSINESS-B.png)
+
+**Ev5 — Seeders y flujo sobre la base migrada:** `npm run db:seed` puebla las 8 tablas desde cero y `npm run test:flow` pasa 8 de 8.
+
+![Ev5 CIERRE-BUSINESS-B](images/Ev5-CIERRE-BUSINESS-B.png)
+
+**Ev6 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev6 CIERRE-BUSINESS-B](images/Ev6-CIERRE-BUSINESS-B.png)
+
+### Commit
+
+```bash
+git add package.json package-lock.json src/server.ts src/config/index.ts \
+  src/database/migrator.ts src/database/migrate.ts src/database/migrations \
+  src/database/seeders/index.ts src/tests/flow.test.ts \
+  docs/PROCESO.md docs/images/Ev1-CIERRE-BUSINESS-B.png docs/images/Ev2-CIERRE-BUSINESS-B.png \
+  docs/images/Ev3-CIERRE-BUSINESS-B.png docs/images/Ev4-CIERRE-BUSINESS-B.png \
+  docs/images/Ev5-CIERRE-BUSINESS-B.png docs/images/Ev6-CIERRE-BUSINESS-B.png
+git commit -m "CIERRE-BUSINESS-B: Migraciones versionadas"
 git push origin main
 ```
 

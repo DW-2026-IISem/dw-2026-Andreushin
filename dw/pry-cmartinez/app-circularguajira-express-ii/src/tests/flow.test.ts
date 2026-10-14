@@ -13,6 +13,7 @@ import { Server } from "node:http";
 import { AddressInfo } from "node:net";
 import { App } from "../config/index";
 import { sequelize } from "../database/db";
+import { assertNoPendingMigrations } from "../database/migrator";
 import { todayInColombia } from "../features/business/materials/material-rates.service";
 
 type Json = Record<string, unknown>;
@@ -47,7 +48,7 @@ const ids = { recycler: 0, material: 0, materialNoRate: 0, route: 0, collection:
 
 describe("Phase I business flow: collection -> weighing -> settlement", () => {
   before(async () => {
-    await sequelize.sync();
+    await assertNoPendingMigrations();
     server = new App().app.listen(0);
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;

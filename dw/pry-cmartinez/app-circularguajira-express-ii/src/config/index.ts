@@ -4,8 +4,9 @@ import morgan from "morgan";
 import cors from "cors";
 import { Routes } from "../routes/index";
 import { setupSwagger } from "../swagger/index";
-import { sequelize, testConnection } from "../database/db";
-// Models must be loaded before sequelize.sync().
+import { testConnection } from "../database/db";
+import { assertNoPendingMigrations } from "../database/migrator";
+// Models and associations are registered for the ORM; the schema comes from migrations.
 import "../features/business/collectors/recycler.model";
 import "../features/business/materials/materials.associations";
 import "../features/business/routes/routes.associations";
@@ -74,8 +75,8 @@ export class App {
     if (!connected) {
       throw new Error("Database connection failed");
     }
-    await sequelize.sync();
-    console.log("✅ Database synchronized");
+    await assertNoPendingMigrations();
+    console.log("✅ Database schema up to date (migrations)");
   }
 
   async listen() {
