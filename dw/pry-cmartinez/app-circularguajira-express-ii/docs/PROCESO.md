@@ -327,11 +327,92 @@ git commit -m "ISS-02: Infraestructura de base de datos"
 git push origin main
 ```
 
+Commit: [`831539d`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/831539d2daa1a13bf9152ed97ed9dfcb42b23da1)
+
 ### ISS-03 — Feature `collectors` (recicladores)
 
 Implementar la gestión de recicladores y organizaciones mediante las capas Controller → Service → Repository → Model. Definir relaciones y validaciones del dominio, además de las operaciones API necesarias.
 
 **Verificación:** persistencia, validaciones y respuestas de error probadas.
+
+Se divide en cinco partes: A (fundación), B (getAll y getOne), C (create), D (update PUT/PATCH) y E (delete físico y lógico).
+
+### ISS-03-A — Feature collectors: fundación
+
+Dejar el feature listo para el CRUD: modelo `Recycler`, esqueleto de capas, carpeta `http/`, agregador de rutas y sync con la base.
+
+Criterios de aceptación (ISS-03-A)
+
+- [x] `recycler.model.ts` con enum `active`/`inactive` (default `inactive`) y `timestamps: true`
+- [x] Esqueleto de controller, routes, service, repository y DTO; carpeta `http/` creada
+- [x] `src/routes/index.ts` con `recyclersRoutes` y cableado en `src/config/index.ts` (rutas, conexión y sync)
+- [x] `npm run dev` conecta, sincroniza y responde en `/health`
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+mkdir -p src/features/business/collectors/{dto,http} src/shared/{errors,http} src/routes
+touch src/features/business/collectors/http/.gitkeep
+
+# recycler.model.ts: name, documentNumber (único), recyclerType, phone, email, address, status
+# dto/recycler.dto.ts: RecyclerInputDto (POST/PUT) y RecyclerPatchDto (PATCH)
+# recyclers.{repository,service,controller,routes}.ts: esqueleto con bloques READ/CREATE/UPDATE/DELETE
+# src/shared/errors/httpError.ts y src/shared/http/handleError.ts: errores HTTP y su respuesta JSON
+# src/routes/index.ts: agregador Routes con recyclersRoutes
+# src/config/index.ts: routePrv, registro de rutas, testConnection y sequelize.sync()
+```
+
+### Verificación del ISS
+
+```bash
+test -d src/features/business/collectors/http && echo HTTP_FOLDER_OK
+npx tsc --noEmit
+npm run dev
+curl -s localhost:4000/health
+```
+
+**Verificación:** el servidor arranca, crea la tabla `recyclers` y deja el feature registrado sin endpoints todavía.
+
+#### Evidencias
+
+**Ev1 — Modelo Recycler:** `grep` del modelo muestra los enums, `defaultValue: "inactive"` y `timestamps: true`; `DESCRIBE recyclers` muestra las columnas snake_case con `document_number` único.
+
+![Ev1 ISS-03-A](images/Ev1-ISS-03-A.png)
+
+**Ev2 — Esqueleto y carpeta http:** `find` lista dto, model, controller, repository, routes, service y los errores compartidos; imprime `HTTP_FOLDER_OK`.
+
+![Ev2 ISS-03-A](images/Ev2-ISS-03-A.png)
+
+**Ev3 — Agregador y cableado:** `src/routes/index.ts` exporta `recyclersRoutes`; `config/index.ts` usa `routePrv`, `testConnection` y `sequelize.sync()`.
+
+![Ev3 ISS-03-A](images/Ev3-ISS-03-A.png)
+
+**Ev4 — npm run dev:** conecta a MySQL, sincroniza la base y `/health` responde `{"status":"ok"}`.
+
+![Ev4 ISS-03-A](images/Ev4-ISS-03-A.png)
+
+**Ev5 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev5 ISS-03-A](images/Ev5-ISS-03-A.png)
+
+### Commit
+
+```bash
+git add src/config/index.ts src/routes/index.ts \
+  src/shared/errors/httpError.ts src/shared/http/handleError.ts \
+  src/features/business/collectors/recycler.model.ts \
+  src/features/business/collectors/dto/recycler.dto.ts \
+  src/features/business/collectors/http/.gitkeep \
+  src/features/business/collectors/recyclers.repository.ts \
+  src/features/business/collectors/recyclers.service.ts \
+  src/features/business/collectors/recyclers.controller.ts \
+  src/features/business/collectors/recyclers.routes.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-03-A.png docs/images/Ev2-ISS-03-A.png \
+  docs/images/Ev3-ISS-03-A.png docs/images/Ev4-ISS-03-A.png docs/images/Ev5-ISS-03-A.png
+git commit -m "ISS-03-A: Feature collectors: fundación"
+git push origin main
+```
 
 ### ISS-04 — Seeders con Faker
 

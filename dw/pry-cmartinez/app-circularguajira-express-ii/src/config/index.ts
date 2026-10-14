@@ -2,11 +2,16 @@ import dotenv from "dotenv";
 import express, { Application } from "express";
 import morgan from "morgan";
 import cors from "cors";
+import { Routes } from "../routes/index";
+import { sequelize, testConnection } from "../database/db";
+// Models must be loaded before sequelize.sync().
+import "../features/business/collectors/recycler.model";
 
 dotenv.config();
 
 export class App {
   public app: Application;
+  public routePrv: Routes = new Routes();
 
   constructor(private port?: number | string) {
     this.app = express();
@@ -27,14 +32,19 @@ export class App {
   }
 
   private routes(): void {
-    // Placeholder: las rutas de cada feature se registran desde src/routes/index.ts (ISS-03 en adelante).
     this.app.get("/health", (_req, res) => {
       res.json({ status: "ok" });
     });
+    this.routePrv.recyclersRoutes.routes(this.app);
   }
 
   private async dbConnection(): Promise<void> {
-    // Placeholder: la conexión con Sequelize y el sync se agregan en ISS-02.
+    const connected = await testConnection();
+    if (!connected) {
+      throw new Error("Database connection failed");
+    }
+    await sequelize.sync();
+    console.log("✅ Database synchronized");
   }
 
   async listen() {
