@@ -1,0 +1,33 @@
+### Concesiones rol-recurso: el permiso (modalidad JWT). Pega un access token válido.
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+
+### getAll: 169 concesiones (ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13, FINANZAS 18)
+GET {{baseUrl}}/resource-roles
+Authorization: Bearer {{token}}
+
+### permisos de un rol (BASCULA = 3)
+GET {{baseUrl}}/resource-roles?roleId=3
+Authorization: Bearer {{token}}
+
+### roles que conceden un recurso
+GET {{baseUrl}}/resource-roles?resourceId=1
+Authorization: Bearer {{token}}
+
+### grant: conceder un recurso a PLANTA (4) -> 201 (200 si se reactiva; 409 si ya está activo)
+POST {{baseUrl}}/resource-roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roleId": 4,
+  "resourceId": 1
+}
+
+### deactivate: retira solo ese permiso
+PATCH {{baseUrl}}/resource-roles/170/deactivate
+Authorization: Bearer {{token}}
+
+### reactivate
+PATCH {{baseUrl}}/resource-roles/170/reactivate
+Authorization: Bearer {{token}}

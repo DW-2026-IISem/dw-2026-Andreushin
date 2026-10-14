@@ -62,9 +62,8 @@ describe("ISS-11 roles and resources", () => {
     const catalog = new Set(RESOURCE_CATALOG.map((r) => `${r.method} ${r.path}`));
     assert.equal(catalog.size, RESOURCE_CATALOG.length, "duplicated (method, path) in the catalog");
     assert.deepEqual(documented.filter((op) => !catalog.has(op)), [], "documented operations missing from the catalog");
-    // Only the ISS-12 endpoints may be catalogued before they exist.
-    const undocumented = [...catalog].filter((op) => !documented.includes(op));
-    assert.ok(undocumented.every((op) => /\/api\/(role-users|resource-roles)/.test(op)), undocumented.join(", "));
+    // And every catalogued resource is a real, documented operation.
+    assert.deepEqual([...catalog].filter((op) => !documented.includes(op)), [], "catalogued resources missing from the API");
   });
 
   it("requires a valid token (401)", async () => {

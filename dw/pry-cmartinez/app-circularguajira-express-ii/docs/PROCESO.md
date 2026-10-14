@@ -1648,11 +1648,99 @@ git commit -m "ISS-11: Features roles y resources"
 git push origin main
 ```
 
+Commit: [`28dc1b7`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/28dc1b7ec1b8b56c66cae5545a769480e2d68feb)
+
 ### ISS-12 — Features `roleUsers` y `resourceRoles`
 
 Implementar la asignación de roles a usuarios y de recursos/acciones a roles, respetando integridad y mínimo privilegio.
 
 **Verificación:** asignaciones persistidas y permisos efectivos derivados correctamente.
+
+Las dos tablas pivote que convierten el modelo en autorización real: **asignaciones** (usuario → rol, `role_users`) y **concesiones** (rol → recurso, `resource_roles`; la fila es el permiso). Ambas son idempotentes y sin borrado físico: asignar o conceder crea el par o reactiva el inactivo (409 si ya está activo), y retirar es lógico y reversible para conservar la auditoría. El efecto es inmediato porque la cadena se consulta en cada petición. Las rutas siguen en modalidad JWT hasta ISS-13.
+
+Criterios de aceptación (ISS-12)
+
+- [x] DTO y validación de ambos features (`userId`/`roleId`, `roleId`/`resourceId` y filtros de listado)
+- [x] RoleUsers: repository, service, controller y rutas `/api/role-users` (listar, ver, asignar, retirar, reactivar); usuario y rol deben estar activos
+- [x] ResourceRoles: repository, service, controller y rutas `/api/resource-roles` con filtros `?roleId=` y `?resourceId=`
+- [x] `reconcileRole(roleId, resourceIds)` en una transacción: concede lo que falta, reactiva lo inactivo y retira lo que sobra; repetirlo no cambia nada
+- [x] Seeders: cada usuario canónico con su rol y la matriz desde `resource-catalog.ts` (ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13, FINANZAS 18 = 169 concesiones)
+- [x] Swagger de ambos features
+- [x] Archivos `http/` de ambos features
+- [x] npx tsc --noEmit sin errores; `test:rbac` ahora exige que todo el catálogo exista en la API
+
+### Pasos
+
+```bash
+mkdir -p src/features/auth/{role-users,resource-roles}/{dto,http}
+
+# role-users/: dto (role-user.dto + validation), repository (resumen de usuario sin password y de rol),
+#   service (assign create-or-reactivate, deactivate, reactivate), controller (201 nuevo / 200 reactivado), routes
+# resource-roles/: dto (+ filtros), repository (findAllByRole con lock), service (grant, deactivate,
+#   reactivate, reconcileRole con withTransaction), controller, routes
+# role-users.seeder.ts y resource-roles.seeder.ts (matriz por reconcileRole) en el SeedersRunner
+# swagger de ambos + registro; routes/index.ts y config
+# src/tests/rbac-catalog.test.ts: sin excepción para estas rutas
+# src/tests/permissions.test.ts + "test:permissions" en package.json
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:permissions
+npm run db:seed   # dos veces: la segunda reconcilia sin cambios
+npx tsc --noEmit
+```
+
+**Decisiones respecto a la guía:** rutas `/api/role-users` y `/api/resource-roles` con cuerpos camelCase; la consulta de permisos efectivos no se duplica en `resource-roles` (ya vive en `access/` desde ISS-10); reactivar por POST responde 200 y crear 201; la matriz de los cinco roles sale del catálogo propio (169 concesiones en lugar de 65).
+
+#### Evidencias
+
+**Ev1 — DTO:** `role-users/dto` y `resource-roles/dto` exportan `RoleUserCreateDto`, `ResourceRoleCreateDto`, `ResourceRoleFilters` y sus parsers.
+
+![Ev1 ISS-12](images/Ev1-ISS-12.png)
+
+**Ev2 — Asignaciones:** las 5 rutas de `/api/role-users` con `authenticate` (401 sin token); el service responde 409 si el par ya está activo y reactiva el inactivo.
+
+![Ev2 ISS-12](images/Ev2-ISS-12.png)
+
+**Ev3 — Concesiones:** las 5 rutas de `/api/resource-roles` con `authenticate` (401 sin token) y los filtros `roleId`/`resourceId` validados.
+
+![Ev3 ISS-12](images/Ev3-ISS-12.png)
+
+**Ev4 — Reglas y reconciliación:** `test:permissions` pasa 4 de 4: asignación idempotente (201, 409, retirar, reasignar = reactivar con 200, 409 al reactivar una activa); 404 por usuario o rol inactivo y 400 por ids inválidos; concesión con filtros y efecto inmediato en los permisos efectivos al retirarla y reactivarla; `reconcileRole` deja exactamente el conjunto pedido (+2/−1, luego 0/0, luego +1/0). `reconcileRole` corre en `withTransaction`.
+
+![Ev4 ISS-12](images/Ev4-ISS-12.png)
+
+**Ev5 — Matriz sembrada:** el primer `db:seed` crea 5 asignaciones y 169 concesiones; el segundo reconcilia sin cambios (+0/−0); MySQL muestra cada usuario canónico con su rol y ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13 y FINANZAS 18 concesiones activas.
+
+![Ev5 ISS-12](images/Ev5-ISS-12.png)
+
+**Ev6 — Swagger:** `/api/docs.json` documenta las 10 operaciones con `bearerAuth` y sus respuestas (201 nuevo, 200 reactivado, 404, 409).
+
+![Ev6 ISS-12](images/Ev6-ISS-12.png)
+
+**Ev7 — Archivos http:** `role-users.http` y `resource-roles.http` con asignar, conceder, filtros, retirar y reactivar.
+
+![Ev7 ISS-12](images/Ev7-ISS-12.png)
+
+**Ev8 — Type-check y cobertura:** `tsc` sin errores; `test:rbac` 4 de 4 con la cobertura del catálogo ya sin excepciones; `test:users` 7 de 7.
+
+![Ev8 ISS-12](images/Ev8-ISS-12.png)
+
+### Commit
+
+```bash
+git add package.json src/features/auth/role-users src/features/auth/resource-roles \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts src/database/seeders/index.ts \
+  src/tests/rbac-catalog.test.ts src/tests/permissions.test.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-12.png docs/images/Ev2-ISS-12.png \
+  docs/images/Ev3-ISS-12.png docs/images/Ev4-ISS-12.png docs/images/Ev5-ISS-12.png \
+  docs/images/Ev6-ISS-12.png docs/images/Ev7-ISS-12.png docs/images/Ev8-ISS-12.png
+git commit -m "ISS-12: Features roleUsers y resourceRoles"
+git push origin main
+```
 
 ### ISS-13 — Middlewares de acceso
 

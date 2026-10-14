@@ -12,6 +12,8 @@ import "../../features/auth/rbac.associations";
 import { seedUsers } from "../../features/auth/users/users.seeder";
 import { seedRoles } from "../../features/auth/roles/roles.seeder";
 import { seedResources } from "../../features/auth/resources/resources.seeder";
+import { seedRoleUsers } from "../../features/auth/role-users/role-users.seeder";
+import { seedResourceRoles } from "../../features/auth/resource-roles/resource-roles.seeder";
 import { seedCollections } from "../../features/business/weighing/weighing.seeder";
 import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";
@@ -58,6 +60,9 @@ export async function runAllSeeders(): Promise<void> {
   // Deterministic catalogs (no counts): roles and protected resources.
   await seedRoles();
   await seedResources();
+  // The permission matrix: assignments (user -> role) and grants (role -> resource).
+  await seedRoleUsers();
+  await seedResourceRoles();
 
   console.log("🌱 SeedersRunner finished");
 }
