@@ -1,5 +1,5 @@
 ### Sesiones propias (modalidad JWT, sin RBAC): cualquier usuario activo ve y revoca SOLO las suyas.
-### Hasta que exista el login (ISS-15), pega un access token válido.
+### Obtén el access token con POST /api/session/login (session/http/session.login.http) y pégalo aquí.
 @baseUrl = http://localhost:4000/api
 @token = <access_token>
 

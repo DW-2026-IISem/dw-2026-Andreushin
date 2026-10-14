@@ -1,0 +1,63 @@
+### Sesión: LOGIN (modalidad OPEN). OPEN no es "sin base de datos": lee el hash en users y escribe refresh_tokens.
+@baseUrl = http://localhost:4000/api
+
+# Usuarios canónicos del seeder (contraseñas solo de laboratorio):
+#   admin / Admin2026!          ADMIN      (87 permisos)
+#   logistica / Logistica2026!  LOGISTICA  (30)
+#   bascula / Bascula2026!      BASCULA    (21)
+#   planta / Planta2026!        PLANTA     (13)
+#   finanzas / Finanzas2026!    FINANZAS   (18)
+
+### login por username -> 200 con accessToken y refreshToken
+# @name login
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "bascula",
+  "password": "Bascula2026!"
+}
+
+### login por email (mismo endpoint)
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "bascula@circularguajira.co",
+  "password": "Bascula2026!"
+}
+
+### contraseña incorrecta -> 401 (mismo mensaje que un usuario inexistente)
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "bascula",
+  "password": "incorrecta"
+}
+
+### usuario inexistente -> 401 idéntico
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "fantasma",
+  "password": "Bascula2026!"
+}
+
+### sin password -> 400
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "bascula"
+}
+
+### JWT + RBAC con el token del login: BASCULA registra pesajes, no liquida
+POST {{baseUrl}}/settlements
+Authorization: Bearer {{login.response.body.$.accessToken}}
+Content-Type: application/json
+
+{
+  "collectionId": 1
+}

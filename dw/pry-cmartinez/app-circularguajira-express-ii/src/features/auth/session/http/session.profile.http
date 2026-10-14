@@ -1,0 +1,22 @@
+### Sesión: PERFIL y PERMISOS (modalidad JWT, sin RBAC)
+@baseUrl = http://localhost:4000/api
+
+# @name login
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "planta",
+  "password": "Planta2026!"
+}
+
+### perfil: identidad pública y roles activos (nunca password) -> 200
+GET {{baseUrl}}/session/profile
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### permisos efectivos: la misma consulta que authorize (PLANTA -> 13)
+GET {{baseUrl}}/session/permissions
+Authorization: Bearer {{login.response.body.$.accessToken}}
+
+### sin token -> 401
+GET {{baseUrl}}/session/profile

@@ -19,6 +19,17 @@ export class RoleUsersRepository {
     return RoleUser.findByPk(id, { include: SUMMARIES });
   }
 
+  // Names of the active roles of a user through active assignments (session profile).
+  async findActiveRoleNamesByUser(userId: number): Promise<string[]> {
+    const roles = await Role.findAll({
+      attributes: ["name"],
+      where: { status: "active" },
+      include: [{ model: RoleUser, as: "roleUsers", attributes: [], required: true, where: { userId, status: "active" } }],
+      order: [["name", "ASC"]],
+    });
+    return roles.map((role) => role.name);
+  }
+
   // Any status: enables create-or-reactivate on the unique (user_id, role_id) pair.
   findByUserAndRole(userId: number, roleId: number): Promise<RoleUser | null> {
     return RoleUser.findOne({ where: { userId, roleId } });

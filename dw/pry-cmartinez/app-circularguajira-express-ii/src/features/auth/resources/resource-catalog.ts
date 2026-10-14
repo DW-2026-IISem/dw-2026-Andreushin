@@ -86,9 +86,15 @@ export const RESOURCE_CATALOG: readonly CatalogResource[] = [
 
 /**
  * Operations that are deliberately NOT resources: OPEN or JWT-only, so no grant applies.
- * Acting on your own sessions comes from being authenticated (ISS-14).
+ * Login, refresh and logout come before any identity (OPEN); profile, own permissions and
+ * own sessions come from being authenticated (JWT).
  */
 export const NON_RESOURCE_OPERATIONS: readonly string[] = [
+  "POST /api/session/login",
+  "POST /api/session/refresh",
+  "POST /api/session/logout",
+  "GET /api/session/profile",
+  "GET /api/session/permissions",
   "GET /api/sessions",
   "DELETE /api/sessions",
   "PATCH /api/sessions/deactivate-all",

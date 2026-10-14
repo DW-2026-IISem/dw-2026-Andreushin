@@ -57,6 +57,7 @@ export class App {
     this.routePrv.roleUsersRoutes.routes(this.app);
     this.routePrv.resourceRolesRoutes.routes(this.app);
     this.routePrv.refreshTokensRoutes.routes(this.app);
+    this.routePrv.sessionRoutes.routes(this.app);
   }
 
   private docs(): void {

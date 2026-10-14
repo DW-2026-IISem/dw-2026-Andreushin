@@ -1916,12 +1916,99 @@ git commit -m "ISS-14: Feature refreshTokens (sesiones)"
 git push origin main
 ```
 
+Commit: [`d20ba5f`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/d20ba5f69a75fa2affea488ced567d55f096a10c)
+
 
 ### ISS-15 — Feature `session` (login y perfil)
 
 Implementar inicio de sesión, renovación de sesión y consulta del perfil autenticado con roles y permisos efectivos. Excluir credenciales e información sensible de las respuestas.
 
+Punto de entrada del sistema y prueba de que las tres modalidades conviven: login, refresh y logout son OPEN (no hay identidad previa; la credencial va en el cuerpo), perfil y permisos propios son JWT, y el resto de la API es JWT + RBAC. El feature orquesta piezas existentes sin duplicarlas: `findByIdentifierWithPassword` y `verifyPassword` (ISS-10), `issue`/`rotate`/`revokeByToken` (ISS-14) y la consulta de permisos efectivos que usa `authorize` (ISS-13). El login responde el mismo 401 para usuario inexistente, contraseña incorrecta o usuario inactivo, y compara contra un hash ficticio cuando el usuario no existe para que el tiempo de respuesta tampoco lo delate.
+
+Criterios de aceptación (ISS-15)
+
+- [x] DTO (`LoginDto`, `RefreshTokenDto`, `SessionTokensDto`, `ProfileDto`) y validación de los cuerpos
+- [x] Service: login (credenciales + nueva familia), refresh (rotación; reuso → 401 con la familia revocada; usuario inactivo → 401), logout idempotente, perfil con roles activos y permisos propios
+- [x] Controller con `handleError` y `deviceInfo` desde `User-Agent`
+- [x] Rutas `/api/session/*`: login, refresh y logout OPEN; profile y permissions JWT; ninguna con `authorize`
+- [x] Swagger con `security: []` en las OPEN y `bearerAuth` en las JWT
+- [x] Archivos `http/` de login, refresh/logout y perfil/permisos
+- [x] Recorrido E2E OPEN → JWT → JWT + RBAC con el token del login y la matriz real por rol
+- [x] npx tsc --noEmit sin errores; las suites anteriores siguen pasando
+
+### Pasos
+
+```bash
+mkdir -p src/features/auth/session/{dto,http}
+
+# session/: dto (session.dto + session.validation), service, controller, routes, swagger, http (login, refresh, profile)
+# role-users.repository.ts: findActiveRoleNamesByUser (roles del perfil)
+# routes/index.ts, config y swagger/index.ts: registro; resource-catalog.ts: rutas de sesión en NON_RESOURCE_OPERATIONS
+# src/tests/session.test.ts + "test:session" en package.json
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:session
+npm run test:sessions && npm run test:rbac && npm run test:access && npm run test:users && npm run test:permissions && npm run test:flow
+npx tsc --noEmit
+npm run dev   # curl: login -> perfil -> negocio permitido y denegado -> permisos por rol; refresh y reuso
+```
+
 **Verificación:** pruebas de login válido e inválido, perfil protegido y permisos devueltos.
+
+**Decisiones respecto a la guía:** rutas `/api/session/login|refresh|logout|profile|permissions` y cuerpos camelCase (`identifier`, `refreshToken`, `accessToken`, `expiresIn`); el perfil incluye los roles activos (lo pide el ISS); los permisos propios salen de `EffectivePermissionsRepository`, la misma consulta que `authorize`; errores con `UnauthorizedError`/`handleError` en lugar de `AppError`/`BaseController`; la validación del login solo comprueba forma, sin revelar reglas de contraseña; usuarios canónicos del dominio (admin, logistica, bascula, planta, finanzas) en lugar de admin/seller.
+
+#### Evidencias
+
+**Ev1 — DTO:** `session/dto` con `LoginDto`, `RefreshTokenDto`, `SessionTokensDto` (sin credenciales salvo el refresh recién emitido) y `ProfileDto` con `roles`; parsers `parseLogin` y `parseRefreshToken`.
+
+![Ev1 ISS-15](images/Ev1-ISS-15.png)
+
+**Ev2 — Service:** login con `verifyPassword` contra el hash real o el ficticio, `issue`, `rotate` y `revokeByToken`; con `npm run dev`, refresh → 200, reusar el mismo refresh → 401 "Refresh token reutilizado", y contraseña incorrecta o usuario inexistente → el mismo 401 "Credenciales inválidas".
+
+![Ev2 ISS-15](images/Ev2-ISS-15.png)
+
+**Ev3 — Controller:** las 5 acciones delegan en el service; `profile` y `permissions` toman la identidad con `requireAuthUser`; `deviceInfo` desde `User-Agent`.
+
+![Ev3 ISS-15](images/Ev3-ISS-15.png)
+
+**Ev4 — Rutas:** login, refresh y logout sin middleware (OPEN); profile y permissions con `authenticate` (JWT).
+
+![Ev4 ISS-15](images/Ev4-ISS-15.png)
+
+**Ev5 — Swagger:** `/api/docs.json`: las 3 OPEN con `security=[]` y las 2 JWT con `bearerAuth` y 401, sin 403.
+
+![Ev5 ISS-15](images/Ev5-ISS-15.png)
+
+**Ev6 — Archivos http:** `session.login.http`, `session.refresh.http` y `session.profile.http` con casos válidos, 400 y 401.
+
+![Ev6 ISS-15](images/Ev6-ISS-15.png)
+
+**Ev7 — Tres modalidades E2E:** login de `bascula` (OPEN) devuelve el par de tokens; perfil sin token → 401 y con token → 200 con `roles: ["BASCULA"]` (JWT); `GET /api/weighings` → 200 y `POST /api/settlements` → 403 (JWT + RBAC); permisos por login: admin 87, logistica 30, bascula 21, planta 13, finanzas 18.
+
+![Ev7 ISS-15](images/Ev7-ISS-15.png)
+
+**Ev8 — Type-check y regresión:** `tsc` sin errores; `test:session` 6, `test:sessions` 7, `test:rbac` 4, `test:access` 6, `test:users` 7, `test:permissions` 4 y `test:flow` 8 pasan.
+
+![Ev8 ISS-15](images/Ev8-ISS-15.png)
+
+### Commit
+
+```bash
+git add package.json docs/PROCESO.md src/features/auth/session \
+  src/features/auth/role-users/role-users.repository.ts src/features/auth/resources/resource-catalog.ts \
+  src/features/auth/refresh-tokens/http/sessions.http src/routes/index.ts src/config/index.ts \
+  src/swagger/index.ts src/tests/session.test.ts \
+  docs/images/Ev1-ISS-15.png docs/images/Ev2-ISS-15.png docs/images/Ev3-ISS-15.png \
+  docs/images/Ev4-ISS-15.png docs/images/Ev5-ISS-15.png docs/images/Ev6-ISS-15.png \
+  docs/images/Ev7-ISS-15.png docs/images/Ev8-ISS-15.png
+git commit -m "ISS-15: Feature session (login y perfil)"
+git push origin main
+```
+
 
 ### Compuerta `CIERRE-AUTH`
 

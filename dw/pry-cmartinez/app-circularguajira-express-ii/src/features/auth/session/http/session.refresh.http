@@ -1,0 +1,67 @@
+### Sesión: REFRESH con rotación y LOGOUT (modalidad OPEN, el refresh token va en el cuerpo)
+@baseUrl = http://localhost:4000/api
+
+### 1) login: par inicial
+# @name login
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "finanzas",
+  "password": "Finanzas2026!"
+}
+
+### 2) refresh -> 200, accessToken nuevo y refreshToken ROTADO (misma familia)
+# @name refresh
+POST {{baseUrl}}/session/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### 3) el access token nuevo sirve en una ruta JWT
+GET {{baseUrl}}/session/profile
+Authorization: Bearer {{refresh.response.body.$.accessToken}}
+
+### 4) REUSO del token del paso 1 -> 401 y la familia queda revocada
+POST {{baseUrl}}/session/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login.response.body.$.refreshToken}}"
+}
+
+### 5) consecuencia: el token rotado del paso 2 tampoco sirve -> 401
+POST {{baseUrl}}/session/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{refresh.response.body.$.refreshToken}}"
+}
+
+### 6) logout (nuevo login) -> 200, idempotente
+# @name login2
+POST {{baseUrl}}/session/login
+Content-Type: application/json
+
+{
+  "identifier": "finanzas",
+  "password": "Finanzas2026!"
+}
+
+###
+POST {{baseUrl}}/session/logout
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login2.response.body.$.refreshToken}}"
+}
+
+### 7) tras el logout ya no se renueva -> 401
+POST {{baseUrl}}/session/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "{{login2.response.body.$.refreshToken}}"
+}
