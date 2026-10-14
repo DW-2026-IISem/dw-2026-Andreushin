@@ -57,4 +57,22 @@ export class RecyclersController {
   }
 
   // ================== DELETE ==================
+
+  public async delete(req: Request<{ id: string }>, res: Response): Promise<Response> {
+    try {
+      await this.recyclersService.delete(req.params.id);
+      return res.status(200).json({ message: "Reciclador eliminado" });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
+  public async deactivate(req: Request<{ id: string }>, res: Response): Promise<Response> {
+    try {
+      const recycler = await this.recyclersService.deactivate(req.params.id);
+      return res.status(200).json(recycler);
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
 }

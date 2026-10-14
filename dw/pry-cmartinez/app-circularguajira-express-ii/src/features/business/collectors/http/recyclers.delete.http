@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:4000/api/recyclers
+
+### deactivate: baja lógica (status = inactive) -> 200
+PATCH {{baseUrl}}/6/deactivate
+
+### getAll: el reciclador desactivado ya no aparece
+GET {{baseUrl}}
+
+### delete: borrado físico -> 200
+DELETE {{baseUrl}}/7
+
+### delete: id ya eliminado o inexistente -> 404
+DELETE {{baseUrl}}/7

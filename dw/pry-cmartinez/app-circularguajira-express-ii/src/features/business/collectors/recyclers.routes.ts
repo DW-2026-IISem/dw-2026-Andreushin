@@ -27,5 +27,15 @@ export class RecyclersRoutes {
       .route("/api/recyclers/:id")
       .put(this.recyclersController.update.bind(this.recyclersController))
       .patch(this.recyclersController.patch.bind(this.recyclersController));
+
+    // delete (físico)
+    app
+      .route("/api/recyclers/:id")
+      .delete(this.recyclersController.delete.bind(this.recyclersController));
+
+    // deactivate (lógico)
+    app
+      .route("/api/recyclers/:id/deactivate")
+      .patch(this.recyclersController.deactivate.bind(this.recyclersController));
   }
 }

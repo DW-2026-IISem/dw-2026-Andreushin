@@ -630,6 +630,76 @@ git commit -m "ISS-03-D: Feature collectors: update PUT y PATCH"
 git push origin main
 ```
 
+Commit: [`f2cea67`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/f2cea6791629cea2689bd363061fd46a62a1b589)
+
+### ISS-03-E — Feature collectors: delete físico y lógico
+
+Eliminar recicladores de forma física (`DELETE`) o lógica (`status = inactive`), cerrando el CRUD del feature.
+
+Criterios de aceptación (ISS-03-E)
+
+- [x] Repository `delete`, service y controller con `delete` (físico) y `deactivate` (lógico)
+- [x] Rutas `DELETE /api/recyclers/:id` y `PATCH /api/recyclers/:id/deactivate` registradas
+- [x] Archivo `http/recyclers.delete.http` con baja lógica, listado y borrado físico
+- [x] deactivate → 200 y el reciclador sale del listado; delete → 200 y luego 404; id inválido → 400
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+# recyclers.repository.ts: delete (destroy)
+# recyclers.service.ts: delete (físico) y deactivate (update status = inactive), ambos con findExisting -> 404
+# recyclers.controller.ts: delete y deactivate bajo DELETE, responden 200
+# recyclers.routes.ts: DELETE /api/recyclers/:id y PATCH /api/recyclers/:id/deactivate
+# http/recyclers.delete.http: peticiones de prueba
+```
+
+### Verificación del ISS
+
+```bash
+curl -i -X PATCH http://localhost:4000/api/recyclers/6/deactivate
+curl -i http://localhost:4000/api/recyclers
+curl -i -X DELETE http://localhost:4000/api/recyclers/7
+```
+
+**Verificación:** la baja lógica conserva el registro fuera de los listados y el borrado físico lo elimina.
+
+#### Evidencias
+
+**Ev1 — Capas delete:** `grep` muestra `delete` con `destroy()` en el repository y `delete`/`deactivate` (status `"inactive"`) en service y controller.
+
+![Ev1 ISS-03-E](images/Ev1-ISS-03-E.png)
+
+**Ev2 — Rutas DELETE/deactivate:** `recyclers.routes.ts` registra `.delete` en `/api/recyclers/:id` y `.patch` en `/api/recyclers/:id/deactivate`.
+
+![Ev2 ISS-03-E](images/Ev2-ISS-03-E.png)
+
+**Ev3 — Archivo HTTP:** `recyclers.delete.http` con deactivate, getAll y dos DELETE.
+
+![Ev3 ISS-03-E](images/Ev3-ISS-03-E.png)
+
+**Ev4 — Verificación curl:** deactivate del id 6 → 200 con `status: inactive`; getAll ya no lo lista; DELETE id 7 → 200, repetido → 404; `/abc/deactivate` → 400.
+
+![Ev4 ISS-03-E](images/Ev4-ISS-03-E.png)
+
+**Ev5 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev5 ISS-03-E](images/Ev5-ISS-03-E.png)
+
+### Commit
+
+```bash
+git add src/features/business/collectors/recyclers.repository.ts \
+  src/features/business/collectors/recyclers.service.ts \
+  src/features/business/collectors/recyclers.controller.ts \
+  src/features/business/collectors/recyclers.routes.ts \
+  src/features/business/collectors/http/recyclers.delete.http \
+  docs/PROCESO.md docs/images/Ev1-ISS-03-E.png docs/images/Ev2-ISS-03-E.png \
+  docs/images/Ev3-ISS-03-E.png docs/images/Ev4-ISS-03-E.png docs/images/Ev5-ISS-03-E.png
+git commit -m "ISS-03-E: Feature collectors: delete físico y lógico"
+git push origin main
+```
+
 ### ISS-04 — Seeders con Faker
 
 Crear seeders repetibles con datos de desarrollo para materiales, rutas, tarifas vigentes y recicladores. Mantener las relaciones válidas y evitar duplicados al volver a ejecutarlos.

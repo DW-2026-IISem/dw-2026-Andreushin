@@ -35,4 +35,8 @@ export class RecyclersRepository {
   }
 
   // ================== DELETE ==================
+
+  delete(recycler: Recycler): Promise<void> {
+    return recycler.destroy();
+  }
 }

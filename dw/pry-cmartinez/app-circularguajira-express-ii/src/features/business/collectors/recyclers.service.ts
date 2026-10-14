@@ -51,6 +51,18 @@ export class RecyclersService {
 
   // ================== DELETE ==================
 
+  // Physical delete: the row is removed.
+  async delete(rawId: string): Promise<void> {
+    const recycler = await this.findExisting(rawId);
+    await this.recyclersRepository.delete(recycler);
+  }
+
+  // Logical delete: the row stays but leaves the active listings.
+  async deactivate(rawId: string): Promise<Recycler> {
+    const recycler = await this.findExisting(rawId);
+    return this.recyclersRepository.update(recycler, { status: "inactive" });
+  }
+
   // ================== HELPERS ==================
 
   private async findExisting(rawId: string): Promise<Recycler> {
