@@ -1,5 +1,6 @@
 import { Application } from "express";
 import swaggerUi from "swagger-ui-express";
+import { bearerSecurityScheme } from "../shared/http/swagger-security";
 import { recyclersSwagger } from "../features/business/collectors/recyclers.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
 import { routesSwagger } from "../features/business/routes/routes.swagger";
@@ -57,7 +58,8 @@ export function buildOpenApiDocument() {
     servers: [{ url: `http://localhost:${process.env.PORT || 4000}`, description: "Local" }],
     tags,
     paths,
-    components: { schemas },
+    // bearerAuth is declared now; operations start requiring it when they are protected (ISS-13).
+    components: { schemas, securitySchemes: bearerSecurityScheme },
   };
 }
 

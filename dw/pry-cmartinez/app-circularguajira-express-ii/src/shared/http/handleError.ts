@@ -1,8 +1,10 @@
 import { Response } from "express";
-import { ForeignKeyConstraintError, UniqueConstraintError } from "sequelize";
+import { ForeignKeyConstraintError, UniqueConstraintError, ValidationError } from "sequelize";
 import { HttpError } from "../errors/httpError";
 
-// Maps domain errors to their HTTP status; anything unexpected is a 500 without internals.
+// Single error -> HTTP mapping of the project, shared by controllers and (from ISS-13) the
+// access middlewares: HttpError -> its status (400/401/403/404/409); anything unexpected is
+// a 500 without internals.
 export const handleError = (res: Response, error: unknown): Response => {
   if (error instanceof HttpError) {
     return res.status(error.status).json({ message: error.message });
@@ -15,6 +17,10 @@ export const handleError = (res: Response, error: unknown): Response => {
   }
   if (error instanceof UniqueConstraintError) {
     return res.status(409).json({ message: "Ya existe un registro con esos datos únicos" });
+  }
+  // Model-level validations (e.g. auth model rules) are client errors.
+  if (error instanceof ValidationError) {
+    return res.status(400).json({ message: error.errors.map((e) => e.message).join("; ") || error.message });
   }
   console.error(error);
   return res.status(500).json({ message: "Error interno del servidor" });

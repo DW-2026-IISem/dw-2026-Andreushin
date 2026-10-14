@@ -8,6 +8,7 @@ import "../../features/business/routes/routes.associations";
 import { seedCollectionPoints, seedRoutes } from "../../features/business/routes/routes.seeder";
 import "../../features/business/weighing/weighing.associations";
 import "../../features/business/settlements/settlements.associations";
+import "../../features/auth/rbac.associations";
 import { seedCollections } from "../../features/business/weighing/weighing.seeder";
 import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";

@@ -12,6 +12,8 @@ import "../features/business/materials/materials.associations";
 import "../features/business/routes/routes.associations";
 import "../features/business/weighing/weighing.associations";
 import "../features/business/settlements/settlements.associations";
+// Phase II: the RBAC associations file imports the six auth models first.
+import "../features/auth/rbac.associations";
 
 dotenv.config();
 

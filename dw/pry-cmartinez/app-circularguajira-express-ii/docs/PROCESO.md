@@ -1359,6 +1359,8 @@ git commit -m "CIERRE-BUSINESS-B: Migraciones versionadas"
 git push origin main
 ```
 
+Commit: [`b248ab5`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/b248ab51a50af0420a226b60913a8a8a655ada06)
+
 ## Fase II · Auth con RBAC (planta y logística)
 
 **Objetivo:** proteger la API y aplicar permisos por rol y recurso. Roles iniciales: `ADMIN`, `LOGISTICA`, `BASCULA`, `PLANTA` y `FINANZAS`.
@@ -1368,6 +1370,94 @@ git push origin main
 Definir la configuración de seguridad, el hashing de contraseñas y los modelos base de autenticación y autorización. Establecer validación de credenciales y respuestas seguras ante errores.
 
 **Verificación:** secretos configurables por ambiente y contraseñas persistidas únicamente como hashes.
+
+Base de seguridad compartida y modelos RBAC; todavía no expone endpoints (la API de la Fase I sigue SIN AUTH hasta ISS-13). Principios: no existe la entidad Permission (el permiso es la concesión Rol ↔ Recurso en `resource_roles`); tres modalidades por ruta (OPEN, JWT, JWT + RBAC); `status` active/inactive en las seis tablas; deny by default.
+
+Criterios de aceptación (ISS-09)
+
+- [x] `bcryptjs`, `jsonwebtoken` y `@types/jsonwebtoken` instalados; `.env` define `JWT_SECRET`, `JWT_ACCESS_TTL` y `JWT_REFRESH_TTL_DAYS`
+- [x] Primitivas probadas: `password.ts` (bcrypt 12, `sha256Hex`, token opaco), `jwt.ts` (HS256 con iss, aud, exp, jti; rechaza tokens alterados, ajenos, sin firma, expirados o incompletos) y `resource-match.ts` (patrones `:param`, deny by default)
+- [x] `auth-user.ts` (`Request.auth` + `requireAuthUser`), errores 401/403 en `httpError.ts` y en el mapeo único `handleError`; `swagger-security.ts` con `bearerAuth` registrado en OpenAPI
+- [x] Seis modelos y su migración con claves únicas, índices y FK (`users`, `roles`, `resources`, `role_users`, `resource_roles`, `refresh_tokens`)
+- [x] `rbac.associations.ts` con el grafo completo (User ↔ Role, Role ↔ Resource, User → RefreshToken)
+- [x] Cableado en config y seeders; el servidor arranca y la API de la Fase I sigue funcionando SIN AUTH
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+npm install bcryptjs@^3.0.3 jsonwebtoken@^9.0.3
+npm install -D @types/jsonwebtoken@^9.0.10
+# .env (no versionado): JWT_SECRET aleatorio de 48 bytes, JWT_ACCESS_TTL=900, JWT_REFRESH_TTL_DAYS=7
+
+# src/shared/auth/password.ts: hashPassword/verifyPassword (bcrypt 12), sha256Hex, generateOpaqueToken
+# src/shared/auth/jwt.ts: signAccessToken/verifyAccessToken (HS256 fijo, iss, aud, exp, jti), extractBearerToken
+# src/shared/auth/resource-match.ts: normalizePath, pathMatches, isOperationGranted
+# src/shared/auth/auth-user.ts: AuthUser, Request.auth, requireAuthUser
+# src/shared/errors/httpError.ts: UnauthorizedError (401), ForbiddenError (403)
+# src/shared/http/handleError.ts: mapeo único también para ValidationError (400)
+# src/shared/http/swagger-security.ts + securitySchemes en src/swagger/index.ts
+# src/features/auth/{users,roles,resources,role-users,resource-roles,refresh-tokens}/*.model.ts
+#   (password hasheado en hooks y nunca serializado; role en mayúsculas; resource normalizado)
+# src/features/auth/rbac.associations.ts; import en config/index.ts y database/seeders/index.ts
+# src/database/migrations/20261014-05-iss-09-auth.ts
+# src/tests/auth.test.ts + "test:auth" en package.json
+npm run db:migrate
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:auth
+npm run db:migrate:status
+npm run test:flow
+npx tsc --noEmit
+```
+
+**Decisiones respecto a la guía:** el mapeo error → HTTP ya era único (`handleError`), así que no se crea `sendError`/`BaseController`; los modelos usan atributos camelCase con `underscored` (columnas `user_id`, `token_hash`…); las tablas salen de una migración, no de `sync({ alter })`; `refresh_tokens.user_id` usa CASCADE (las sesiones mueren con el usuario) y la matriz de permisos usa RESTRICT (se desactiva, no se borra).
+
+#### Evidencias
+
+**Ev1 — Dependencias y entorno:** `npm ls` muestra bcryptjs 3.0.3, jsonwebtoken 9.0.3 y @types/jsonwebtoken 9.0.10; `.env` tiene las tres variables JWT (solo nombres) y git lo ignora.
+
+![Ev1 ISS-09](images/Ev1-ISS-09.png)
+
+**Ev2 — Primitivas probadas:** `npm run test:auth` pasa 10 de 10: bcrypt de coste 12, SHA-256 y token opaco; JWT HS256 con sus claims y rechazo con 401 de tokens alterados, de otro secreto, `alg: none`, otra audiencia, expirados, sin `jti` o con `sub` no numérico; patrones de recurso y deny by default; hooks de User, Role y Resource contra la base migrada.
+
+![Ev2 ISS-09](images/Ev2-ISS-09.png)
+
+**Ev3 — Piezas compartidas:** `src/shared/auth` exporta `requireAuthUser`, las funciones de JWT, password y resource-match; `swagger-security.ts` exporta `bearerSecurityScheme`, `unauthorizedResponse` y `forbiddenResponse`; existen `UnauthorizedError` (401) y `ForbiddenError` (403) y OpenAPI registra `securitySchemes`.
+
+![Ev3 ISS-09](images/Ev3-ISS-09.png)
+
+**Ev4 — Tablas, índices y FK:** `db:migrate` aplica `20261014-05-iss-09-auth`; `information_schema` lista `uq_users_username`, `uq_users_email`, `uq_roles_name`, `uq_resources_method_path`, `uq_role_users_user_role`, `uq_resource_roles_role_resource`, `uq_refresh_tokens_token_hash` y los índices `ix_*`; FK RESTRICT en la matriz y CASCADE en `refresh_tokens`.
+
+![Ev4 ISS-09](images/Ev4-ISS-09.png)
+
+**Ev5 — Modelos y grafo:** los seis modelos en `src/features/auth` y `rbac.associations.ts` con los `belongsTo`/`hasMany` de User ↔ Role (RoleUser), Role ↔ Resource (ResourceRole) y User → RefreshToken.
+
+![Ev5 ISS-09](images/Ev5-ISS-09.png)
+
+**Ev6 — Cableado y Fase I intacta:** config y seeders importan las asociaciones RBAC; el servidor arranca (puerto 4100, `/health` 200) con el esquema al día; los 7 seeders se omiten (idempotentes); `GET /api/collections` sin token sigue en 200 y `test:flow` pasa 8 de 8.
+
+![Ev6 ISS-09](images/Ev6-ISS-09.png)
+
+**Ev7 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev7 ISS-09](images/Ev7-ISS-09.png)
+
+### Commit
+
+```bash
+git add package.json package-lock.json src/shared src/features/auth \
+  src/database/migrations/20261014-05-iss-09-auth.ts src/database/seeders/index.ts \
+  src/config/index.ts src/swagger/index.ts src/tests/auth.test.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-09.png docs/images/Ev2-ISS-09.png \
+  docs/images/Ev3-ISS-09.png docs/images/Ev4-ISS-09.png docs/images/Ev5-ISS-09.png \
+  docs/images/Ev6-ISS-09.png docs/images/Ev7-ISS-09.png
+git commit -m "ISS-09: Auth base (seguridad y modelos)"
+git push origin main
+```
 
 ### ISS-10 — Feature `users` (identidad y contraseña)
 
