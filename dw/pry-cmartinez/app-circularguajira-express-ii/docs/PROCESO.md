@@ -2109,6 +2109,8 @@ git commit -m "CIERRE-AUTH: Compuerta de la Fase II"
 git push origin main
 ```
 
+Commit: [`37eada6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/37eada656d9d90f4ca2b5b1c51342d1cc557a26e)
+
 
 ## Secuencia y entregables
 
