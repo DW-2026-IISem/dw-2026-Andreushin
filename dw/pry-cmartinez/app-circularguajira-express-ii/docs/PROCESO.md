@@ -861,11 +861,105 @@ git commit -m "ISS-05: Swagger / OpenAPI"
 git push origin main
 ```
 
+Commit: [`4b8776e`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/4b8776e4f17288849f04732be07d31f78b098af3)
+
 ### ISS-06 — Feature `materials` (materiales y `TarifaMaterial`)
 
 Implementar el catálogo de materiales reciclables y sus tarifas, incluidas las fechas de vigencia. Definir cómo se determina la tarifa aplicable a una operación.
 
 **Verificación:** relaciones y vigencia validadas; no se aplica una tarifa fuera del período establecido.
+
+Material es el catálogo (CRUD como recicladores). MaterialRate es el precio por kg con periodo `validFrom`–`validTo` (`validTo` null = vigente sin cierre). Regla de tarifa aplicable: la del periodo que contiene la fecha de la operación; si ninguno la contiene, no hay tarifa (404). El historial es solo de inserción para que las liquidaciones (ISS-08) sean verificables: una corrección es una tarifa nueva.
+
+Criterios de aceptación (ISS-06)
+
+- [x] Modelos `Material` (nombre único, status, timestamps) y `MaterialRate` (FK RESTRICT a materials, DECIMAL, fechas DATEONLY) con su asociación 1:N
+- [x] CRUD de materiales por capas: getAll, getOne, create, PUT/PATCH (sin status), delete físico y lógico
+- [x] Tarifas: al registrar una nueva se cierra la abierta anterior en una transacción, se rechazan cruces (409) y la tarifa aplicable depende de la fecha (404 fuera de periodo)
+- [x] Carpeta `http/` con lectura, alta, actualización, borrado y tarifas
+- [x] Cableado en `src/routes/index.ts` y `src/config/index.ts` (asociaciones + rutas)
+- [x] Seeders de materiales y tarifas registrados en el SeedersRunner y `counts.ts`
+- [x] Swagger de materiales y tarifas registrado en `src/swagger`
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+mkdir -p src/features/business/materials/{dto,http} src/shared/database
+
+# src/shared/http/validation.ts: validadores comunes (asBody, requiredText, oneOf, requiredDate,
+#   positiveAmount); recycler.validation.ts pasa a usarlos
+# src/shared/database/transaction.ts: withTransaction (commit o rollback de escrituras relacionadas)
+# materials/material.model.ts y material-rate.model.ts; materials.associations.ts (hasMany/belongsTo, RESTRICT)
+# materials/dto/: material.dto.ts y material.validation.ts
+# materials.repository.ts y material-rates.repository.ts (findApplicable, close con transacción)
+# materials.service.ts: CRUD, nombre único (409), sin borrado físico si hay tarifas (409)
+# material-rates.service.ts: historial, tarifa aplicable (fecha por defecto: hoy en Colombia) y alta
+#   con cierre automático + control de cruces dentro de withTransaction
+# materials.controller.ts, material-rates.controller.ts y materials.routes.ts (/api/materials...)
+# materials.seeder.ts: catálogo real (PET, Cartón, Aluminio...) y 3 periodos mensuales por material
+# counts.ts: materials y materialRates (SEED_MATERIAL_RATES); index.ts: llamadas en orden
+# materials.swagger.ts + registro en src/swagger/index.ts
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -X POST localhost:4000/api/materials/1/rates -H "Content-Type: application/json" \
+  -d '{"pricePerKg":1200,"validFrom":"2026-10-01"}'
+curl -s "localhost:4000/api/materials/1/rates/current?date=2026-09-15"
+npm run db:seed
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Modelos y relación:** `grep` muestra nombre único, default `inactive`, FK con `onDelete: "RESTRICT"`, `DECIMAL(12, 2)`, `DATEONLY`, índice único (material, validFrom) y `hasMany`/`belongsTo`; `information_schema` confirma la FK `material_rates → materials` con RESTRICT / CASCADE.
+
+![Ev1 ISS-06](images/Ev1-ISS-06.png)
+
+**Ev2 — CRUD de materiales:** alta de PET y Cartón (201), nombre repetido (409), sin nombre (400), getAll, PUT y PATCH (200), PATCH vacío (400), deactivate de Cartón (200), getOne de Cartón inactivo (404) y borrado físico (200).
+
+![Ev2 ISS-06](images/Ev2-ISS-06.png)
+
+**Ev3 — Tarifas y vigencia:** tarifa desde 2026-09-01 (201); la del 2026-10-01 (201) cierra la anterior en 2026-09-30; periodo cruzado (409); historial; aplicable hoy = 1200, el 2026-09-15 = 1150 y el 2026-08-31 sin tarifa (404); borrar PET con tarifas (409).
+
+![Ev3 ISS-06](images/Ev3-ISS-06.png)
+
+**Ev4 — Carpeta http:** cinco archivos `.http` con los casos de lectura, alta, actualización, borrado y tarifas.
+
+![Ev4 ISS-06](images/Ev4-ISS-06.png)
+
+**Ev5 — Cableado:** `routes/index.ts` con `materialsRoutes`; config, swagger y seeders importan las asociaciones, rutas, docs y seeders de materials.
+
+![Ev5 ISS-06](images/Ev5-ISS-06.png)
+
+**Ev6 — Seeders:** `npm run db:seed` inserta 9 materiales (total 10, PET ya existía) y 27 tarifas (3 periodos mensuales por material, PET se omite por tener historial); MySQL muestra cada material con sus tarifas de 2026-08-01 a 2026-10-01.
+
+![Ev6 ISS-06](images/Ev6-ISS-06.png)
+
+**Ev7 — Swagger:** `/api/docs` muestra los tags Materiales y Tarifas de material (SIN AUTH) con sus 10 endpoints y los schemas `Material*` y `MaterialRate*`.
+
+![Ev7 ISS-06](images/Ev7-ISS-06.png)
+
+**Ev8 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev8 ISS-06](images/Ev8-ISS-06.png)
+
+### Commit
+
+```bash
+git add src/shared/http/validation.ts src/shared/database/transaction.ts \
+  src/features/business/collectors/dto/recycler.validation.ts \
+  src/features/business/materials \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts \
+  src/database/seeders/counts.ts src/database/seeders/index.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-06.png docs/images/Ev2-ISS-06.png \
+  docs/images/Ev3-ISS-06.png docs/images/Ev4-ISS-06.png docs/images/Ev5-ISS-06.png \
+  docs/images/Ev6-ISS-06.png docs/images/Ev7-ISS-06.png docs/images/Ev8-ISS-06.png
+git commit -m "ISS-06: Feature materials (materiales y TarifaMaterial)"
+git push origin main
+```
 
 ### ISS-07 — Feature `routes` (rutas y puntos de recolección)
 

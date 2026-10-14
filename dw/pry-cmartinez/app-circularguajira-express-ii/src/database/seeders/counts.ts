@@ -1,17 +1,22 @@
 /**
  * Rows per feature/entity.
  * Priority: CLI (--recyclers=N) > env (SEED_RECYCLERS) > default in this file.
+ * camelCase keys map to SNAKE_CASE env vars (materialRates -> SEED_MATERIAL_RATES).
  *
  * When a feature gets a seeder, add its key here and call it from the runner.
  */
 export type SeedCounts = {
   recyclers: number;
-  // materials?: number;
+  materials: number;
+  // Monthly rate periods per material.
+  materialRates: number;
   // routes?: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
   recyclers: 10,
+  materials: 10,
+  materialRates: 3,
 };
 
 const toCount = (raw: string, source: string): number => {
@@ -28,7 +33,7 @@ export function resolveSeedCounts(argv: string[] = process.argv.slice(2)): SeedC
   const counts: SeedCounts = { ...DEFAULT_SEED_COUNTS };
 
   for (const key of Object.keys(counts)) {
-    const envName = `SEED_${key.toUpperCase()}`;
+    const envName = `SEED_${key.replace(/([A-Z])/g, "_$1").toUpperCase()}`;
     const envValue = process.env[envName];
     if (isSeedKey(key) && envValue !== undefined && envValue !== "") {
       counts[key] = toCount(envValue, envName);

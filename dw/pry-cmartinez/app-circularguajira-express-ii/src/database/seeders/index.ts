@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 import { sequelize, testConnection } from "../db";
 import { seedRecyclers } from "../../features/business/collectors/recyclers.seeder";
+import "../../features/business/materials/materials.associations";
+import { seedMaterialRates, seedMaterials } from "../../features/business/materials/materials.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -15,6 +17,7 @@ dotenv.config();
  *   npm run db:seed
  *   npm run db:seed -- --recyclers=20
  *   SEED_RECYCLERS=5 npm run db:seed
+ *   npm run db:seed -- --materials=6 --materialRates=4
  */
 export async function runAllSeeders(): Promise<void> {
   const counts = resolveSeedCounts();
@@ -31,6 +34,8 @@ export async function runAllSeeders(): Promise<void> {
 
   // Order: business parents -> children.
   await seedRecyclers(counts.recyclers);
+  await seedMaterials(counts.materials);
+  await seedMaterialRates(counts.materialRates);
 
   console.log("🌱 SeedersRunner finished");
 }

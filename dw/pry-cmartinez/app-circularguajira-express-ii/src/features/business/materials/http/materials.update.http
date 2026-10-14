@@ -1,0 +1,24 @@
+@baseUrl = http://localhost:4000/api/materials
+
+### PUT: reemplazo completo (status no se envía: solo cambia con deactivate) -> 200
+PUT {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "name": "PET",
+  "description": "Envases PET transparentes, limpios y sin tapa"
+}
+
+### PATCH: cambio parcial -> 200
+PATCH {{baseUrl}}/1
+Content-Type: application/json
+
+{
+  "description": "Envases PET compactados"
+}
+
+### PATCH: cuerpo vacío -> 400
+PATCH {{baseUrl}}/1
+Content-Type: application/json
+
+{}

@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:4000/api/materials
+
+### getAll: solo materiales activos
+GET {{baseUrl}}
+
+### getOne: material activo por id
+GET {{baseUrl}}/1
+
+### getOne: inexistente o inactivo -> 404
+GET {{baseUrl}}/9999

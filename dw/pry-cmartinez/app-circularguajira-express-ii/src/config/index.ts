@@ -7,6 +7,7 @@ import { setupSwagger } from "../swagger/index";
 import { sequelize, testConnection } from "../database/db";
 // Models must be loaded before sequelize.sync().
 import "../features/business/collectors/recycler.model";
+import "../features/business/materials/materials.associations";
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ export class App {
       res.json({ status: "ok" });
     });
     this.routePrv.recyclersRoutes.routes(this.app);
+    this.routePrv.materialsRoutes.routes(this.app);
   }
 
   private docs(): void {

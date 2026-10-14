@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:4000/api/materials
+
+### create: primera tarifa, abierta (sin validTo) -> 201
+POST {{baseUrl}}/1/rates
+Content-Type: application/json
+
+{
+  "pricePerKg": 1150,
+  "validFrom": "2026-09-01"
+}
+
+### create: nueva tarifa; la abierta anterior se cierra el día antes -> 201
+POST {{baseUrl}}/1/rates
+Content-Type: application/json
+
+{
+  "pricePerKg": 1200,
+  "validFrom": "2026-10-01"
+}
+
+### create: periodo que se cruza con otra tarifa -> 409
+POST {{baseUrl}}/1/rates
+Content-Type: application/json
+
+{
+  "pricePerKg": 1000,
+  "validFrom": "2026-09-10",
+  "validTo": "2026-09-20"
+}
+
+### history: tarifas del material, la más reciente primero
+GET {{baseUrl}}/1/rates
+
+### current: tarifa aplicable hoy
+GET {{baseUrl}}/1/rates/current
+
+### current: tarifa aplicable en una fecha
+GET {{baseUrl}}/1/rates/current?date=2026-09-15
+
+### current: fecha fuera de todo periodo -> 404
+GET {{baseUrl}}/1/rates/current?date=2026-08-31

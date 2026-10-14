@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:4000/api/materials
+
+### deactivate: baja lógica (status = inactive) -> 200
+PATCH {{baseUrl}}/2/deactivate
+
+### delete: borrado físico de un material sin tarifas -> 200
+DELETE {{baseUrl}}/2
+
+### delete: material con tarifas -> 409 (se desactiva en lugar de borrar)
+DELETE {{baseUrl}}/1
