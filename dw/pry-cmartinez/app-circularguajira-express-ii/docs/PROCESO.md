@@ -376,11 +376,11 @@ curl -s localhost:4000/health
 
 #### Evidencias
 
-**Ev1 — Modelo Recycler:** `grep` del modelo muestra los enums, `defaultValue: "inactive"` y `timestamps: true`; `DESCRIBE recyclers` muestra las columnas snake_case con `document_number` único.
+**Ev1 — Modelo Recycler:** `grep` del modelo muestra los enums, `defaultValue: "inactive"` y `timestamps: true`; `DESCRIBE recyclers` en el contenedor MySQL muestra las columnas snake_case con `document_number` único.
 
 ![Ev1 ISS-03-A](images/Ev1-ISS-03-A.png)
 
-**Ev2 — Esqueleto y carpeta http:** `find` lista dto, model, controller, repository, routes, service y los errores compartidos; imprime `HTTP_FOLDER_OK`.
+**Ev2 — Esqueleto y carpeta http:** `git ls-tree` del commit del ISS-03-A lista dto, model, controller, repository, routes, service y los errores compartidos; imprime `HTTP_FOLDER_OK`.
 
 ![Ev2 ISS-03-A](images/Ev2-ISS-03-A.png)
 
@@ -485,6 +485,8 @@ git add src/shared/http/parseId.ts \
 git commit -m "ISS-03-B: Feature collectors: getAll y getOne"
 git push origin main
 ```
+
+Commit: [`edaef70`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/edaef701472e36e90b9315601e05abe5b625dfd9)
 
 ### ISS-04 — Seeders con Faker
 
