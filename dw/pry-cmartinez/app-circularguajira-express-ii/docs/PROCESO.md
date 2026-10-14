@@ -1459,11 +1459,99 @@ git commit -m "ISS-09: Auth base (seguridad y modelos)"
 git push origin main
 ```
 
+Commit: [`199fd55`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/199fd55b2b7532fe9690c811bf068024a5807b6b)
+
 ### ISS-10 — Feature `users` (identidad y contraseña)
 
 Gestionar las identidades del personal de báscula, planta, logística y finanzas. Definir validaciones, unicidad y estados de usuario; no devolver ni registrar contraseñas en texto plano.
 
 **Verificación:** altas y consultas cumplen las reglas de identidad y protegen credenciales.
+
+CRUD de identidades con las mismas capas de la Fase I y dos diferencias: la contraseña nunca entra ni sale en claro, y el service expone los permisos efectivos recorriendo la cadena RBAC. Como el `authorize` (RBAC) llega en ISS-13, las 9 rutas quedan en modalidad **JWT** (`authenticate`): token válido de un usuario activo o 401. ISS-13 encadena `authorize` sin tocar el feature.
+
+Criterios de aceptación (ISS-10)
+
+- [x] `dto/user.dto.ts` (create, PUT, PATCH, cambio de contraseña) y `dto/user.validation.ts` (username, email, avatar, contraseña de 8 a 72 con letra y número; PATCH no admite password ni status)
+- [x] `users.repository.ts`: lecturas sin el hash; solo `findByIdWithPassword` y `findByIdentifierWithPassword` (para el login) lo leen
+- [x] Service y controller: unicidad de username/email (409), hash por los hooks del modelo, cambio de contraseña con la actual, permisos efectivos y ninguna respuesta con `password`
+- [x] `users.routes.ts`: las 9 operaciones protegidas con `authenticate` (`features/auth/access`), que revalida en cada petición que el usuario siga activo
+- [x] `users.seeder.ts`: un usuario canónico por rol (admin, logistica, bascula, planta, finanzas), idempotente
+- [x] `users.swagger.ts`: 9 endpoints con `security: bearerAuth` y respuesta 401
+- [x] Archivos `http/` de lectura y escritura
+- [x] npx tsc --noEmit sin errores; las pruebas anteriores siguen en verde
+
+### Pasos
+
+```bash
+mkdir -p src/features/auth/access src/features/auth/users/{dto,http}
+
+# features/auth/access/effective-permissions.repository.ts: consulta de permisos por la cadena activa
+#   role_users -> roles -> resource_roles -> resources (la reutiliza authorize en ISS-13)
+# features/auth/access/access.service.ts + authenticate.ts: Bearer JWT + usuario activo -> req.auth, o 401
+# users/dto/user.dto.ts + user.validation.ts
+# users/users.repository.ts, users.service.ts, users.controller.ts, users.routes.ts (/api/users...)
+# users/users.seeder.ts + counts.ts (users: 8) + SeedersRunner
+# users/users.swagger.ts + registro en src/swagger; routes/index.ts y config (usersRoutes)
+# src/tests/users.test.ts + "test:users" en package.json
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:users
+curl -s -o /dev/null -w '%{http_code}' localhost:4000/api/users   # 401 sin token
+npx tsc --noEmit
+```
+
+**Decisiones respecto a la guía:** rutas en inglés (`/api/users`, `/:id/permissions`) y cuerpos camelCase (`currentPassword`, `newPassword`); la consulta de permisos vive en `access/` (no en `resource-roles`, que llega en ISS-12) para que el endpoint y `authorize` usen la misma; usuarios canónicos por rol del dominio en lugar de admin/seller. Las contraseñas del seeder son solo de laboratorio.
+
+#### Evidencias
+
+**Ev1 — DTO y validación:** `users/dto` exporta `UserCreateDto`, `UserUpdateDto`, `UserPatchDto`, `ChangePasswordDto` y los parsers `parseUserCreate`, `parseUserUpdate`, `parseUserPatch`, `parseChangePassword`.
+
+![Ev1 ISS-10](images/Ev1-ISS-10.png)
+
+**Ev2 — Repository sin hash:** las lecturas usan `WITHOUT_PASSWORD`; solo `findByIdWithPassword` y `findByIdentifierWithPassword` (usuario o correo con `Op.or`) leen la credencial.
+
+![Ev2 ISS-10](images/Ev2-ISS-10.png)
+
+**Ev3 — Reglas por la API:** `npm run test:users` pasa 7 de 7: 401 sin token, con token inválido o de un usuario inexistente; alta con hash bcrypt y sin `password` en ninguna respuesta; 409 por username o email repetidos y 400 por contraseña débil o password en PATCH; PUT y PATCH; cambio de contraseña solo con la actual; permisos efectivos que desaparecen al desactivar la concesión o la asignación; desactivación con efecto inmediato (el token del usuario pasa a 401) y borrado físico.
+
+![Ev3 ISS-10](images/Ev3-ISS-10.png)
+
+**Ev4 — Rutas protegidas:** `features/auth/access` con `authenticate`; las 9 rutas lo usan y todas responden 401 sin token.
+
+![Ev4 ISS-10](images/Ev4-ISS-10.png)
+
+**Ev5 — Seeder idempotente:** el primer `db:seed` inserta 8 usuarios (5 canónicos y 3 aleatorios) y el segundo los omite; MySQL guarda solo hashes `$2b$12$` de 60 caracteres.
+
+![Ev5 ISS-10](images/Ev5-ISS-10.png)
+
+**Ev6 — Swagger:** `/api/docs.json` documenta los 9 endpoints de `/api/users` con `security: bearerAuth` y sus respuestas (200/201, 400, 401, 404, 409); `securitySchemes` incluye `bearerAuth`.
+
+![Ev6 ISS-10](images/Ev6-ISS-10.png)
+
+**Ev7 — Archivos http:** `users.read.http` y `users.write.http` con los casos de lectura, alta, cambios, contraseña y bajas.
+
+![Ev7 ISS-10](images/Ev7-ISS-10.png)
+
+**Ev8 — Type-check y regresión:** `npx tsc --noEmit` sin errores; `test:auth` 10 de 10 y `test:flow` 8 de 8.
+
+![Ev8 ISS-10](images/Ev8-ISS-10.png)
+
+### Commit
+
+```bash
+git add package.json src/features/auth/access src/features/auth/users \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts \
+  src/database/seeders/counts.ts src/database/seeders/index.ts src/tests/users.test.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-10.png docs/images/Ev2-ISS-10.png \
+  docs/images/Ev3-ISS-10.png docs/images/Ev4-ISS-10.png docs/images/Ev5-ISS-10.png \
+  docs/images/Ev6-ISS-10.png docs/images/Ev7-ISS-10.png docs/images/Ev8-ISS-10.png
+git commit -m "ISS-10: Feature users (identidad y contraseña)"
+git push origin main
+```
 
 ### ISS-11 — Features `roles` y `resources`
 

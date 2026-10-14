@@ -1,0 +1,64 @@
+### Usuarios: alta, cambios, contraseña y bajas (modalidad JWT)
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+@id = 6
+
+### create -> 201 (password guardada como hash)
+POST {{baseUrl}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "operario.bascula",
+  "email": "operario.bascula@circularguajira.co",
+  "password": "Bascula2026!"
+}
+
+### create: username repetido -> 409
+POST {{baseUrl}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "email": "otro@circularguajira.co",
+  "password": "Clave2026!"
+}
+
+### PUT: identidad completa (sin password ni status) -> 200
+PUT {{baseUrl}}/users/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "username": "operario.bascula",
+  "email": "operario.bascula@circularguajira.co",
+  "avatar": "https://circularguajira.co/avatars/bascula.png"
+}
+
+### PATCH: parcial -> 200; password/status aquí -> 400
+PATCH {{baseUrl}}/users/{{id}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "avatar": null
+}
+
+### cambio de contraseña: exige la actual -> 200 (400 si la actual no coincide)
+PATCH {{baseUrl}}/users/{{id}}/password
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "currentPassword": "Bascula2026!",
+  "newPassword": "Bascula2027!"
+}
+
+### deactivate (lógico): sus tokens dejan de valer de inmediato
+PATCH {{baseUrl}}/users/{{id}}/deactivate
+Authorization: Bearer {{token}}
+
+### delete (físico)
+DELETE {{baseUrl}}/users/{{id}}
+Authorization: Bearer {{token}}

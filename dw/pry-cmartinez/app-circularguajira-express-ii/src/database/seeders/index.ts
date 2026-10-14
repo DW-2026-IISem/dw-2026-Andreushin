@@ -9,6 +9,7 @@ import { seedCollectionPoints, seedRoutes } from "../../features/business/routes
 import "../../features/business/weighing/weighing.associations";
 import "../../features/business/settlements/settlements.associations";
 import "../../features/auth/rbac.associations";
+import { seedUsers } from "../../features/auth/users/users.seeder";
 import { seedCollections } from "../../features/business/weighing/weighing.seeder";
 import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";
@@ -50,6 +51,8 @@ export async function runAllSeeders(): Promise<void> {
   await seedCollectionPoints(counts.collectionPoints);
   await seedCollections(counts.collections, counts.weighings);
   await seedSettlements(counts.settlements);
+  // Phase II: auth
+  await seedUsers(counts.users);
 
   console.log("🌱 SeedersRunner finished");
 }

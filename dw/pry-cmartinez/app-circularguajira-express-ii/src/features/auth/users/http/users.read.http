@@ -1,0 +1,22 @@
+### Usuarios: modalidad JWT. Hasta que exista el login, pega un access token válido.
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+
+### getAll: nunca devuelve password
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### getOne
+GET {{baseUrl}}/users/1
+Authorization: Bearer {{token}}
+
+### permisos efectivos (cadena RBAC activa)
+GET {{baseUrl}}/users/1/permissions
+Authorization: Bearer {{token}}
+
+### 401: sin token
+GET {{baseUrl}}/users
+
+### 400: id inválido
+GET {{baseUrl}}/users/abc
+Authorization: Bearer {{token}}

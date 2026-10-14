@@ -18,6 +18,8 @@ export type SeedCounts = {
   weighings: number;
   // Target of issued settlements.
   settlements: number;
+  // Phase II: target total of users (the canonical accounts are always created).
+  users: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
@@ -29,6 +31,7 @@ export const DEFAULT_SEED_COUNTS: SeedCounts = {
   collections: 8,
   weighings: 3,
   settlements: 4,
+  users: 8,
 };
 
 const toCount = (raw: string, source: string): number => {

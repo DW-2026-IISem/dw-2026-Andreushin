@@ -50,6 +50,8 @@ export class App {
     this.routePrv.routesRoutes.routes(this.app);
     this.routePrv.weighingRoutes.routes(this.app);
     this.routePrv.settlementsRoutes.routes(this.app);
+    // Phase II: auth
+    this.routePrv.usersRoutes.routes(this.app);
   }
 
   private docs(): void {
