@@ -14,7 +14,7 @@ import { assertNoPendingMigrations } from "../database/migrator";
 import { createTestIdentity } from "./support/identity";
 import { RoleUser } from "../features/auth/role-users/role-user.model";
 import { ResourceRole } from "../features/auth/resource-roles/resource-role.model";
-import { RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
+import { NON_RESOURCE_OPERATIONS, RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
 
 type Json = Record<string, unknown>;
 
@@ -55,9 +55,11 @@ describe("ISS-11 roles and resources", () => {
 
   it("covers every documented operation with a catalog resource", async () => {
     const docs = (await api("GET", "/api/docs.json", undefined, null)).body as { paths: Record<string, Record<string, unknown>> };
-    const documented = Object.entries(docs.paths).flatMap(([path, operations]) =>
-      Object.keys(operations).map((method) => `${method.toUpperCase()} ${path.replace(/\{(\w+)\}/g, ":$1")}`)
-    );
+    const documented = Object.entries(docs.paths)
+      .flatMap(([path, operations]) =>
+        Object.keys(operations).map((method) => `${method.toUpperCase()} ${path.replace(/\{(\w+)\}/g, ":$1")}`)
+      )
+      .filter((op) => !NON_RESOURCE_OPERATIONS.includes(op));
     const catalog = new Set(RESOURCE_CATALOG.map((r) => `${r.method} ${r.path}`));
     assert.equal(catalog.size, RESOURCE_CATALOG.length, "duplicated (method, path) in the catalog");
     assert.deepEqual(documented.filter((op) => !catalog.has(op)), [], "documented operations missing from the catalog");

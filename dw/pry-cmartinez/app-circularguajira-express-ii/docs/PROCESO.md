@@ -1829,12 +1829,93 @@ git commit -m "ISS-13: Middlewares de acceso"
 git push origin main
 ```
 
+Commit: [`2551eab`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/2551eab0345d0c9c7442036016c4c0f083eff88a)
+
 
 ### ISS-14 — Feature `refreshTokens` (sesiones)
 
 Gestionar sesiones y tokens de renovación, con expiración, rotación y revocación. Proteger su almacenamiento y evitar renovar sesiones invalidadas.
 
+La sesión persistida es un refresh token opaco (86 caracteres aleatorios) del que solo se guarda el SHA-256; el access token sigue siendo un JWT corto que no se almacena. Cada login abre una familia (`familyId`); cada refresh consume el token y emite el siguiente de la misma familia. Si reaparece un token ya consumido se asume robo y se revoca la familia entera. La rotación corre en una transacción con la fila bloqueada (`FOR UPDATE`), así que de dos refresh simultáneos solo uno gana. La API expone las sesiones propias en modalidad JWT, sin `authorize`: ver y revocar las propias sesiones deriva de estar autenticado, no de una concesión.
+
+Criterios de aceptación (ISS-14)
+
+- [x] DTO `RefreshTokenResponseDto` y su mapper: nunca incluye `tokenHash` y añade `isExpired`
+- [x] Repository: búsqueda por hash con bloqueo opcional, sesiones activas por usuario, revocación por familia y por usuario, purga de revocadas o expiradas
+- [x] Service: `issue`, `rotate` (transacción, bloqueo, detección de reuso, expiración) y `revokeByToken`; gestión de sesiones propias con 404 para una sesión ajena
+- [x] Controller y rutas `/api/sessions` (listar, consultar, revocar una, revocar todas, purgar) en modalidad JWT, fuera del catálogo de recursos
+- [x] Swagger del feature
+- [x] Archivo `http/sessions.http`
+- [x] npx tsc --noEmit sin errores; `test:rbac` admite las operaciones de sesión como no-recursos y las suites anteriores siguen pasando
+
+### Pasos
+
+```bash
+mkdir -p src/features/auth/refresh-tokens/{dto,http}
+
+# refresh-tokens/: dto (refresh-token.dto + mapper), repository, service (issue, rotate, revoke*),
+#   controller, routes (/api/sessions, literal deactivate-all antes de /:id), swagger, http
+# routes/index.ts, config y swagger/index.ts: registro del feature
+# resource-catalog.ts: NON_RESOURCE_OPERATIONS (sesiones propias, modalidad JWT)
+# src/tests/sessions.test.ts + "test:sessions" en package.json
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:sessions
+npm run test:rbac && npm run test:access && npm run test:users && npm run test:permissions && npm run test:flow
+npx tsc --noEmit
+npm run dev   # curl a /api/sessions sin token y con token de un usuario sin la concesión
+```
+
 **Verificación:** renovación, expiración y revocación probadas.
+
+**Decisiones respecto a la guía:** rutas `/api/sessions` en inglés y cuerpos camelCase; el modelo y la migración ya existían desde ISS-09, y su `status` es `active`/`inactive` (un token rotado, revocado o expirado queda `inactive`, y presentarlo cuenta como reuso); el mapper construye el DTO campo a campo en lugar de quitar `tokenHash`, para que una columna nueva no se filtre; la revocación de una sesión propia es idempotente. Login, refresh y logout por HTTP llegan en ISS-15 sobre `issue`, `rotate` y `revokeByToken`.
+
+#### Evidencias
+
+**Ev1 — DTO:** estructura del feature; `RefreshTokenResponseDto` y `toRefreshTokenResponse` sin `tokenHash` y con `isExpired`.
+
+![Ev1 ISS-14](images/Ev1-ISS-14.png)
+
+**Ev2 — Repository:** `findByHash` con `LOCK.UPDATE`, `findActiveByUser`, `revokeFamily`, `revokeAllByUser` y `purgeUnusableByUser` (inactivas o expiradas).
+
+![Ev2 ISS-14](images/Ev2-ISS-14.png)
+
+**Ev3 — Service:** `rotate` en `withTransaction` con la fila bloqueada y los resultados `invalid`/`reuse`/`expired`; `test:sessions` 7 de 7: solo se guarda el hash, rotación en la misma familia, reuso que revoca la familia, un solo ganador entre dos refresh concurrentes, expiración y revocación idempotente.
+
+![Ev3 ISS-14](images/Ev3-ISS-14.png)
+
+**Ev4 — Rutas JWT:** las 5 rutas solo con `authenticate`; con `npm run dev`, sin token → 401; con el token de PLANTA (sin concesión sobre sesiones) → 200 `{"sessions":[]}`; id `abc` → 400; `deactivate-all` → 200.
+
+![Ev4 ISS-14](images/Ev4-ISS-14.png)
+
+**Ev5 — Swagger:** `/api/docs.json` documenta las 5 operaciones con `bearerAuth`, 401 y sin 403; 400 y 404 en las de `{id}`.
+
+![Ev5 ISS-14](images/Ev5-ISS-14.png)
+
+**Ev6 — Archivo http:** `sessions.http` con listar, consultar, id inválido, revocar una, revocar todas, purgar y el caso 401.
+
+![Ev6 ISS-14](images/Ev6-ISS-14.png)
+
+**Ev7 — Type-check y regresión:** `tsc` sin errores; `test:rbac` 4, `test:access` 6, `test:users` 7, `test:permissions` 4 y `test:flow` 8 pasan.
+
+![Ev7 ISS-14](images/Ev7-ISS-14.png)
+
+### Commit
+
+```bash
+git add package.json docs/PROCESO.md src/features/auth/refresh-tokens \
+  src/features/auth/resources/resource-catalog.ts src/routes/index.ts src/config/index.ts \
+  src/swagger/index.ts src/tests/sessions.test.ts src/tests/rbac-catalog.test.ts \
+  docs/images/Ev1-ISS-14.png docs/images/Ev2-ISS-14.png docs/images/Ev3-ISS-14.png \
+  docs/images/Ev4-ISS-14.png docs/images/Ev5-ISS-14.png docs/images/Ev6-ISS-14.png \
+  docs/images/Ev7-ISS-14.png
+git commit -m "ISS-14: Feature refreshTokens (sesiones)"
+git push origin main
+```
+
 
 ### ISS-15 — Feature `session` (login y perfil)
 

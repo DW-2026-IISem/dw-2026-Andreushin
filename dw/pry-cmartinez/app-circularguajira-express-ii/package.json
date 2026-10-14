@@ -18,7 +18,8 @@
     "test:users": "node --require ts-node/register --test src/tests/users.test.ts",
     "test:rbac": "node --require ts-node/register --test src/tests/rbac-catalog.test.ts",
     "test:permissions": "node --require ts-node/register --test src/tests/permissions.test.ts",
-    "test:access": "node --require ts-node/register --test src/tests/access.test.ts"
+    "test:access": "node --require ts-node/register --test src/tests/access.test.ts",
+    "test:sessions": "node --require ts-node/register --test src/tests/sessions.test.ts"
   },
   "keywords": [],
   "author": "",

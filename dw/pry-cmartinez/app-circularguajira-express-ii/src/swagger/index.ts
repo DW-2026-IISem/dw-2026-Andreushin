@@ -17,6 +17,7 @@ import { rolesSwagger } from "../features/auth/roles/roles.swagger";
 import { resourcesSwagger } from "../features/auth/resources/resources.swagger";
 import { roleUsersSwagger } from "../features/auth/role-users/role-users.swagger";
 import { resourceRolesSwagger } from "../features/auth/resource-roles/resource-roles.swagger";
+import { refreshTokensSwagger } from "../features/auth/refresh-tokens/refresh-tokens.swagger";
 
 export type FeatureSwaggerModule = {
   tags: unknown[];
@@ -39,6 +40,7 @@ const featureSwaggerModules: FeatureSwaggerModule[] = [
   resourcesSwagger,
   roleUsersSwagger,
   resourceRolesSwagger,
+  refreshTokensSwagger,
 ];
 
 // Shared by every feature: shape produced by src/shared/http/handleError.ts.
@@ -92,7 +94,7 @@ export function buildOpenApiDocument() {
         "API de la cadena de reciclaje CircularGuajira (Express + Sequelize). " +
         "Modalidades de acceso: **OPEN** (sin credencial), **JWT** (`Authorization: Bearer`, 401) y " +
         "**JWT + RBAC** (401 sin identidad válida, 403 sin concesión activa del par método + ruta). " +
-        "Todas las rutas de negocio y de administración son JWT + RBAC.",
+        "Todas las rutas de negocio y de administración son JWT + RBAC; las sesiones propias, JWT.",
     },
     servers: [{ url: `http://localhost:${process.env.PORT || 4000}`, description: "Local" }],
     tags,

@@ -1,0 +1,31 @@
+### Sesiones propias (modalidad JWT, sin RBAC): cualquier usuario activo ve y revoca SOLO las suyas.
+### Hasta que exista el login (ISS-15), pega un access token válido.
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+
+### getAll: mis sesiones activas (nunca expone el hash del token)
+GET {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+
+### getOne: una sesión propia (también revocada); ajena o inexistente -> 404
+GET {{baseUrl}}/sessions/1
+Authorization: Bearer {{token}}
+
+### getOne: id inválido -> 400
+GET {{baseUrl}}/sessions/abc
+Authorization: Bearer {{token}}
+
+### deactivate: revoca una sesión propia (idempotente)
+PATCH {{baseUrl}}/sessions/1/deactivate
+Authorization: Bearer {{token}}
+
+### deactivate-all: revoca todas mis sesiones (ruta literal, registrada antes de /:id)
+PATCH {{baseUrl}}/sessions/deactivate-all
+Authorization: Bearer {{token}}
+
+### purge: borra mis sesiones revocadas o expiradas
+DELETE {{baseUrl}}/sessions
+Authorization: Bearer {{token}}
+
+### sin Authorization -> 401
+GET {{baseUrl}}/sessions

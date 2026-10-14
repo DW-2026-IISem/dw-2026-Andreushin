@@ -84,6 +84,18 @@ export const RESOURCE_CATALOG: readonly CatalogResource[] = [
   { method: "PATCH", path: "/api/resource-roles/:id/reactivate", description: "Reactivar recurso a rol", roles: [] },
 ];
 
+/**
+ * Operations that are deliberately NOT resources: OPEN or JWT-only, so no grant applies.
+ * Acting on your own sessions comes from being authenticated (ISS-14).
+ */
+export const NON_RESOURCE_OPERATIONS: readonly string[] = [
+  "GET /api/sessions",
+  "DELETE /api/sessions",
+  "PATCH /api/sessions/deactivate-all",
+  "GET /api/sessions/:id",
+  "PATCH /api/sessions/:id/deactivate",
+];
+
 // Resources a role receives (ADMIN: all of them). Derived from the catalog, never duplicated.
 export const resourcesForRole = (role: RoleName): readonly CatalogResource[] =>
   role === "ADMIN" ? RESOURCE_CATALOG : RESOURCE_CATALOG.filter((resource) => resource.roles.includes(role));
