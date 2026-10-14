@@ -414,6 +414,78 @@ git commit -m "ISS-03-A: Feature collectors: fundación"
 git push origin main
 ```
 
+Commit: [`bb9656a`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/bb9656a42914b4373116ab5081c4f67cafdea638)
+
+### ISS-03-B — Feature collectors: getAll y getOne
+
+Listar los recicladores activos y obtener uno por id, pasando por controller → service → repository.
+
+Criterios de aceptación (ISS-03-B)
+
+- [x] Repository (`findAllActive`, `findActiveById`), service y controller con `getAll` y `getOne`
+- [x] Rutas `GET /api/recyclers` y `GET /api/recyclers/:id` registradas
+- [x] Archivo `http/recyclers.read.http` con las peticiones de lectura
+- [x] getAll devuelve solo activos; getOne responde 200, 404 (inexistente o inactivo) y 400 (id inválido)
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+# src/shared/http/parseId.ts: valida que el id sea entero positivo (400 si no)
+# recyclers.repository.ts: findAllActive y findActiveById (status = active)
+# recyclers.service.ts: getAll y getOne (NotFoundError si no existe o está inactivo)
+# recyclers.controller.ts: getAll y getOne bajo READ, errores vía handleError
+# recyclers.routes.ts: GET /api/recyclers y GET /api/recyclers/:id
+# http/recyclers.read.http: peticiones de prueba
+```
+
+### Verificación del ISS
+
+```bash
+npm run dev
+curl -s http://localhost:4000/api/recyclers
+curl -s http://localhost:4000/api/recyclers/1
+```
+
+**Verificación:** la lista excluye los inactivos y los errores de id llegan como JSON con su código HTTP.
+
+#### Evidencias
+
+**Ev1 — Capas:** `grep` muestra `findAllActive`/`findActiveById` en el repository, `getAll`/`getOne` en service y controller.
+
+![Ev1 ISS-03-B](images/Ev1-ISS-03-B.png)
+
+**Ev2 — Rutas GET:** `recyclers.routes.ts` registra `/api/recyclers` y `/api/recyclers/:id` con `.get`.
+
+![Ev2 ISS-03-B](images/Ev2-ISS-03-B.png)
+
+**Ev3 — Archivo HTTP:** `recyclers.read.http` con getAll, getOne, id inexistente e id inválido.
+
+![Ev3 ISS-03-B](images/Ev3-ISS-03-B.png)
+
+**Ev4 — Verificación curl:** getAll lista los ids 1 y 2 (activos); `/1` → 200, `/3` (inactivo) → 404 y `/abc` → 400 con su mensaje.
+
+![Ev4 ISS-03-B](images/Ev4-ISS-03-B.png)
+
+**Ev5 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev5 ISS-03-B](images/Ev5-ISS-03-B.png)
+
+### Commit
+
+```bash
+git add src/shared/http/parseId.ts \
+  src/features/business/collectors/recyclers.repository.ts \
+  src/features/business/collectors/recyclers.service.ts \
+  src/features/business/collectors/recyclers.controller.ts \
+  src/features/business/collectors/recyclers.routes.ts \
+  src/features/business/collectors/http/recyclers.read.http \
+  docs/PROCESO.md docs/images/Ev1-ISS-03-B.png docs/images/Ev2-ISS-03-B.png \
+  docs/images/Ev3-ISS-03-B.png docs/images/Ev4-ISS-03-B.png docs/images/Ev5-ISS-03-B.png
+git commit -m "ISS-03-B: Feature collectors: getAll y getOne"
+git push origin main
+```
+
 ### ISS-04 — Seeders con Faker
 
 Crear seeders repetibles con datos de desarrollo para materiales, rutas, tarifas vigentes y recicladores. Mantener las relaciones válidas y evitar duplicados al volver a ejecutarlos.

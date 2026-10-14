@@ -7,6 +7,24 @@ export class RecyclersController {
 
   // ================== READ ==================
 
+  public async getAll(_req: Request, res: Response): Promise<Response> {
+    try {
+      const recyclers = await this.recyclersService.getAll();
+      return res.status(200).json({ recyclers });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
+  public async getOne(req: Request<{ id: string }>, res: Response): Promise<Response> {
+    try {
+      const recycler = await this.recyclersService.getOne(req.params.id);
+      return res.status(200).json(recycler);
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
   // ================== CREATE ==================
 
   // ================== UPDATE ==================
