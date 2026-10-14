@@ -49,13 +49,14 @@ export async function seedMaterials(count: number): Promise<number> {
   return missing.length;
 }
 
-// `periods` monthly rates per material; materials that already have rates are skipped.
+// `periods` monthly rates per active material; materials that already have rates are skipped.
 export async function seedMaterialRates(periods: number): Promise<number> {
   if (periods <= 0) {
     console.log("⏭️  materialRates: periods=0, skipped");
     return 0;
   }
   const materials = await Material.findAll({
+    where: { status: "active" },
     include: [{ model: MaterialRate, as: "rates", attributes: ["id"] }],
   });
   const rows: MaterialRateCreationAttributes[] = [];
@@ -75,7 +76,7 @@ export async function seedMaterialRates(periods: number): Promise<number> {
     }
   }
   if (rows.length === 0) {
-    console.log("⏭️  materialRates: every material already has rates, skipped");
+    console.log("⏭️  materialRates: every active material already has rates, skipped");
     return 0;
   }
   await MaterialRate.bulkCreate(rows);

@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import express, { Application } from "express";
+import express, { Application, ErrorRequestHandler } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import { Routes } from "../routes/index";
@@ -24,6 +24,7 @@ export class App {
     this.middlewares();
     this.routes();
     this.docs();
+    this.errorHandling();
   }
 
   private settings(): void {
@@ -50,6 +51,22 @@ export class App {
 
   private docs(): void {
     setupSwagger(this.app);
+  }
+
+  /**
+   * Errors raised before reaching a controller. A malformed JSON body makes
+   * express.json() throw; without this handler Express answers with an HTML page that
+   * includes the stack trace and server paths. Registered after the routes (4 arguments).
+   */
+  private errorHandling(): void {
+    const bodyErrorHandler: ErrorRequestHandler = (err, _req, res, next) => {
+      if (err instanceof SyntaxError && "body" in err) {
+        res.status(400).json({ message: "El cuerpo de la petición no es un JSON válido" });
+        return;
+      }
+      next(err);
+    };
+    this.app.use(bodyErrorHandler);
   }
 
   private async dbConnection(): Promise<void> {

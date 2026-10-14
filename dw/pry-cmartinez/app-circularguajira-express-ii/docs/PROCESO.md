@@ -1169,9 +1169,113 @@ git commit -m "ISS-08: Features weighing / settlements (recolección, pesaje y l
 git push origin main
 ```
 
+Commit: [`5887600`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/58876003fb8b4808748907a669f6b2685a9d0c92)
+
 ### Compuerta `CIERRE-BUSINESS`
 
 La Fase I se cierra cuando las features están integradas, las migraciones y seeders funcionan, OpenAPI documenta la API y las pruebas cubren el flujo desde la recolección hasta la liquidación. El dominio debe poder probarse sin autenticación en desarrollo. Registrar pendientes antes de iniciar la Fase II.
+
+Definition of Done de la Fase I (business SIN AUTH), equivalente al cierre del laboratorio StoreLab: 5 features, 8 tablas, API documentada, seeders, prueba automatizada del flujo y pendientes registrados.
+
+Criterios de aceptación (CIERRE-BUSINESS)
+
+- [x] 5 features en `src/features/business` (`collectors`, `materials`, `routes`, `weighing`, `settlements`), cada una con model, repository, service, controller, routes, `dto/`, seeder y swagger
+- [x] 8 tablas snake_case con FK `<singular>_id` y RESTRICT: `recyclers`, `materials`, `material_rates`, `routes`, `collection_points`, `collections`, `weighings`, `settlements`
+- [x] APIs `/api/recyclers`, `/api/materials` (+ `/rates`), `/api/routes`, `/api/collection-points`, `/api/collections`, `/api/weighings`, `/api/settlements` documentadas en `/api/docs`
+- [x] SeedersRunner completo e idempotente (`npm run db:seed`)
+- [x] Prueba automatizada del flujo recolección → liquidación (`npm run test:flow`)
+- [x] Todas las rutas SIN AUTH; un JSON malformado responde 400 en JSON (sin stack trace)
+- [x] npx tsc --noEmit sin errores al cerrar la fase
+
+### Norma de nombres
+
+- Carpeta de feature: kebab-case plural (`collectors`, `materials`); archivos de capa en plural (`recyclers.service.ts`); modelo en singular (`recycler.model.ts` → `Recycler`).
+- Código en inglés y camelCase (`collectedOn`, `pricePerKg`); columnas snake_case vía `underscored: true` (`collected_on`, `price_per_kg`).
+- Tablas snake_case plural (`material_rates`, `collection_points`); FK = singular de la tabla referenciada + `_id` (`recycler_id`, `rate_id`).
+- DTO: `dto/<singular>.dto.ts` con los tipos de cada operación y `dto/<singular>.validation.ts` que valida el cuerpo en tiempo de ejecución (StoreLab usa un archivo por operación sin validación).
+- Claves de `SeedCounts` en camelCase; variables de entorno en SNAKE_CASE (`materialRates` → `SEED_MATERIAL_RATES`).
+
+### Cómo repetir el patrón (otra entidad)
+
+```text
+A  modelo + dto/ + esqueletos repository/service/controller/routes + cableado (routes/index, config)
+B…E CRUD en orden: getAll, getOne, create, update PUT/PATCH, delete físico y lógico
+    (cada paso toca repository -> service -> controller) + http/
+F  seeder + counts.ts + SeedersRunner
+G  swagger + registro en src/swagger
+R  si hay FK: <feature>.associations.ts + import en config y seeders
+Regla: routes -> controller -> service -> repository -> model; ninguna capa se salta.
+```
+
+### Pendientes para la Fase II
+
+- Migraciones: el esquema se crea con `sequelize.sync()` (sin `alter`); no hay migraciones versionadas, así que un cambio de columna en una tabla existente no se aplica solo. Evaluar `sequelize-cli` antes de ISS-09.
+- Datos de prueba: `npm run test:flow` usa la base de desarrollo (las credenciales son fijas) y deja sus filas `TEST-*` desactivadas.
+- Protección: todas las rutas siguen SIN AUTH; ISS-13 las protege con authenticate + authorize por rol (`LOGISTICA`, `BASCULA`, `FINANZAS`...).
+- Al cerrar se corrigió el seeder de tarifas, que también tomaba materiales inactivos.
+
+### Pasos
+
+```bash
+# src/config/index.ts: errorHandling() -> JSON malformado = 400 en JSON
+# src/tests/flow.test.ts: flujo completo con node:test + fetch contra la App en un puerto libre
+# package.json -> "test:flow": "node --require ts-node/register --test src/tests/flow.test.ts"
+# materials.seeder.ts: seedMaterialRates solo para materiales activos
+git rm src/features/business/collectors/http/.gitkeep
+npm run test:flow
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:flow
+npm run db:seed
+curl -s localhost:4000/api/docs.json
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Features y capas:** cada carpeta de `src/features/business` lista model, repository, service, controller, routes, seeder, swagger (y associations donde hay FK) y su `dto/` con tipos y validación.
+
+![Ev1 CIERRE-BUSINESS](images/Ev1-CIERRE-BUSINESS.png)
+
+**Ev2 — Tablas y FK:** `information_schema` muestra las 9 FK snake_case (`route_id`, `recycler_id`, `material_id`, `collection_id`, `rate_id`) todas RESTRICT; `SHOW TABLES` lista las 8 tablas.
+
+![Ev2 CIERRE-BUSINESS](images/Ev2-CIERRE-BUSINESS.png)
+
+**Ev3 — API documentada:** `/api/docs.json` enumera todos los paths con sus métodos y cada listado responde 200.
+
+![Ev3 CIERRE-BUSINESS](images/Ev3-CIERRE-BUSINESS.png)
+
+**Ev4 — Seeders idempotentes:** `npm run db:seed` sobre la base poblada omite todas las entidades; conteo por tabla.
+
+![Ev4 CIERRE-BUSINESS](images/Ev4-CIERRE-BUSINESS.png)
+
+**Ev5 — Prueba del flujo:** `npm run test:flow` pasa 8 de 8: vigencia de tarifas, neto e importe, rollback, entradas inválidas, re-tarifado, liquidación con verificación, anulación y reliquidación, integridad.
+
+![Ev5 CIERRE-BUSINESS](images/Ev5-CIERRE-BUSINESS.png)
+
+**Ev6 — SIN AUTH y errores:** la App solo usa morgan, cors, json, urlencoded y el manejador de cuerpo; ninguna ruta de negocio usa authenticate/authorize; un JSON malformado responde 400 en JSON.
+
+![Ev6 CIERRE-BUSINESS](images/Ev6-CIERRE-BUSINESS.png)
+
+**Ev7 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev7 CIERRE-BUSINESS](images/Ev7-CIERRE-BUSINESS.png)
+
+### Commit
+
+```bash
+git add package.json src/config/index.ts src/tests/flow.test.ts \
+  src/features/business/materials/materials.seeder.ts \
+  docs/PROCESO.md docs/images/Ev1-CIERRE-BUSINESS.png docs/images/Ev2-CIERRE-BUSINESS.png \
+  docs/images/Ev3-CIERRE-BUSINESS.png docs/images/Ev4-CIERRE-BUSINESS.png \
+  docs/images/Ev5-CIERRE-BUSINESS.png docs/images/Ev6-CIERRE-BUSINESS.png \
+  docs/images/Ev7-CIERRE-BUSINESS.png
+git commit -m "CIERRE-BUSINESS: Compuerta de la Fase I"
+git push origin main
+```
 
 ## Fase II · Auth con RBAC (planta y logística)
 
