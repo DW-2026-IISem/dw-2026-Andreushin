@@ -16,5 +16,10 @@ export class RecyclersRoutes {
     app
       .route("/api/recyclers/:id")
       .get(this.recyclersController.getOne.bind(this.recyclersController));
+
+    // create
+    app
+      .route("/api/recyclers")
+      .post(this.recyclersController.create.bind(this.recyclersController));
   }
 }

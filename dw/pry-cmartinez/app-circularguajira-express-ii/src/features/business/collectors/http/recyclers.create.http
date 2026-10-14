@@ -1,0 +1,46 @@
+@baseUrl = http://localhost:4000/api/recyclers
+
+### create: organización activa -> 201
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Cooperativa Reciclar Wayuu",
+  "documentNumber": "901234567-8",
+  "recyclerType": "organization",
+  "phone": "3204567812",
+  "email": "info@reciclarwayuu.co",
+  "address": "Carrera 7 # 12-40, Maicao",
+  "status": "active"
+}
+
+### create: sin status queda inactive por defecto -> 201
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Rosa Uriana",
+  "documentNumber": "1125678901",
+  "recyclerType": "independent",
+  "phone": "3112345678"
+}
+
+### create: documento duplicado -> 409
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Otro nombre",
+  "documentNumber": "901234567-8",
+  "recyclerType": "organization",
+  "phone": "3000000000"
+}
+
+### create: tipo inválido y campos faltantes -> 400
+POST {{baseUrl}}
+Content-Type: application/json
+
+{
+  "name": "Sin documento",
+  "recyclerType": "company"
+}

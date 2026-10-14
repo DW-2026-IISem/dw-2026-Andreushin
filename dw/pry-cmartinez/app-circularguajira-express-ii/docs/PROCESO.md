@@ -488,6 +488,76 @@ git push origin main
 
 Commit: [`edaef70`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/edaef701472e36e90b9315601e05abe5b625dfd9)
 
+### ISS-03-C — Feature collectors: create
+
+Dar de alta recicladores vía API validando el cuerpo y la unicidad del documento.
+
+Criterios de aceptación (ISS-03-C)
+
+- [x] Validación `parseRecyclerInput`, repository `create`, service con 409 por documento duplicado y controller con 201
+- [x] Ruta `POST /api/recyclers` registrada
+- [x] Archivo `http/recyclers.create.http` con altas válidas e inválidas
+- [x] create responde 201 (sin `status` queda `inactive`), 409 si el documento existe y 400 ante campos faltantes o inválidos
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+# dto/recycler.validation.ts: parseRecyclerInput (obligatorios, longitudes, formato de documento,
+#   teléfono y email, enums recyclerType/status) -> BadRequestError
+# recyclers.repository.ts: findByDocumentNumber y create
+# recyclers.service.ts: create + ensureDocumentIsFree (ConflictError)
+# recyclers.controller.ts: create bajo CREATE, responde 201
+# recyclers.routes.ts: POST /api/recyclers
+# http/recyclers.create.http: peticiones de prueba
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -X POST localhost:4000/api/recyclers -H "Content-Type: application/json" \
+  -d '{"name":"Rosa Uriana","documentNumber":"1125678901","recyclerType":"independent","phone":"3112345678"}'
+```
+
+**Verificación:** el alta persiste solo datos válidos y el documento no se repite.
+
+#### Evidencias
+
+**Ev1 — Capas create:** `grep` muestra `parseRecyclerInput`, `create` en repository/service/controller, `ensureDocumentIsFree` con `ConflictError` y `status(201)`.
+
+![Ev1 ISS-03-C](images/Ev1-ISS-03-C.png)
+
+**Ev2 — Ruta POST:** `recyclers.routes.ts` registra `/api/recyclers` con `.post`.
+
+![Ev2 ISS-03-C](images/Ev2-ISS-03-C.png)
+
+**Ev3 — Archivo HTTP:** `recyclers.create.http` con alta activa, alta sin status, documento duplicado y tipo inválido.
+
+![Ev3 ISS-03-C](images/Ev3-ISS-03-C.png)
+
+**Ev4 — Verificación curl:** dos altas → 201 (la segunda queda `inactive`), documento repetido → 409, sin documento → 400 y `recyclerType` inválido → 400.
+
+![Ev4 ISS-03-C](images/Ev4-ISS-03-C.png)
+
+**Ev5 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev5 ISS-03-C](images/Ev5-ISS-03-C.png)
+
+### Commit
+
+```bash
+git add src/features/business/collectors/dto/recycler.validation.ts \
+  src/features/business/collectors/recyclers.repository.ts \
+  src/features/business/collectors/recyclers.service.ts \
+  src/features/business/collectors/recyclers.controller.ts \
+  src/features/business/collectors/recyclers.routes.ts \
+  src/features/business/collectors/http/recyclers.create.http \
+  docs/PROCESO.md docs/images/Ev1-ISS-03-C.png docs/images/Ev2-ISS-03-C.png \
+  docs/images/Ev3-ISS-03-C.png docs/images/Ev4-ISS-03-C.png docs/images/Ev5-ISS-03-C.png
+git commit -m "ISS-03-C: Feature collectors: create"
+git push origin main
+```
+
 ### ISS-04 — Seeders con Faker
 
 Crear seeders repetibles con datos de desarrollo para materiales, rutas, tarifas vigentes y recicladores. Mantener las relaciones válidas y evitar duplicados al volver a ejecutarlos.

@@ -27,6 +27,15 @@ export class RecyclersController {
 
   // ================== CREATE ==================
 
+  public async create(req: Request, res: Response): Promise<Response> {
+    try {
+      const recycler = await this.recyclersService.create(req.body);
+      return res.status(201).json(recycler);
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
   // ================== UPDATE ==================
 
   // ================== DELETE ==================
