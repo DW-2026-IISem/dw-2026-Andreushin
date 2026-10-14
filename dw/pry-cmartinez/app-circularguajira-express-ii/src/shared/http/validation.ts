@@ -73,3 +73,11 @@ export const positiveAmount = (value: unknown, field: string, max: number): numb
   }
   return value;
 };
+
+// Whole number between 1 and max (ids in the body, sequence numbers).
+export const positiveInt = (value: unknown, field: string, max: number): number => {
+  if (typeof value !== "number" || !Number.isInteger(value) || value < 1 || value > max) {
+    throw new BadRequestError(`El campo ${field} debe ser un entero entre 1 y ${max}`);
+  }
+  return value;
+};

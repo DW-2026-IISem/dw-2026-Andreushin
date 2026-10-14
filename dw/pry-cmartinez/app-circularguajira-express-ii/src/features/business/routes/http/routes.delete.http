@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:4000/api
+
+### deactivate ruta (lógico) -> 200
+PATCH {{baseUrl}}/routes/2/deactivate
+
+### delete ruta con puntos -> 409
+DELETE {{baseUrl}}/routes/1
+
+### deactivate punto (lógico) -> 200
+PATCH {{baseUrl}}/collection-points/1/deactivate
+
+### delete punto (físico) -> 200
+DELETE {{baseUrl}}/collection-points/1
+
+### delete ruta sin puntos (físico, aunque esté inactiva) -> 200
+DELETE {{baseUrl}}/routes/2

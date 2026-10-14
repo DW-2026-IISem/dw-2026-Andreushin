@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:4000/api
+
+### PUT ruta: reemplazo completo (status no se envía) -> 200
+PUT {{baseUrl}}/routes/1
+Content-Type: application/json
+
+{
+  "name": "Riohacha Centro",
+  "municipality": "Riohacha",
+  "description": "Centro histórico, malecón y mercado viejo"
+}
+
+### PATCH ruta: cambio parcial -> 200
+PATCH {{baseUrl}}/routes/1
+Content-Type: application/json
+
+{
+  "description": "Recorrido de martes y viernes"
+}
+
+### PUT punto: reemplazo completo -> 200
+PUT {{baseUrl}}/collection-points/1
+Content-Type: application/json
+
+{
+  "routeId": 1,
+  "name": "Tienda La Esquina",
+  "address": "Calle 2 # 7-15, Riohacha",
+  "visitOrder": 2
+}
+
+### PATCH punto: mover a una ruta inactiva -> 400
+PATCH {{baseUrl}}/collection-points/1
+Content-Type: application/json
+
+{
+  "routeId": 2
+}

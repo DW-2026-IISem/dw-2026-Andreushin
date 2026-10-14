@@ -2,6 +2,7 @@ import { Application } from "express";
 import swaggerUi from "swagger-ui-express";
 import { recyclersSwagger } from "../features/business/collectors/recyclers.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
+import { routesSwagger } from "../features/business/routes/routes.swagger";
 
 export type FeatureSwaggerModule = {
   tags: unknown[];
@@ -16,7 +17,7 @@ export type FeatureSwaggerModule = {
 const featureSwaggerModules: FeatureSwaggerModule[] = [
   recyclersSwagger,
   materialsSwagger,
-  // routesSwagger,
+  routesSwagger,
 ];
 
 // Shared by every feature: shape produced by src/shared/http/handleError.ts.

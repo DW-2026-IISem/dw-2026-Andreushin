@@ -10,13 +10,17 @@ export type SeedCounts = {
   materials: number;
   // Monthly rate periods per material.
   materialRates: number;
-  // routes?: number;
+  routes: number;
+  // Collection points per route.
+  collectionPoints: number;
 };
 
 export const DEFAULT_SEED_COUNTS: SeedCounts = {
   recyclers: 10,
   materials: 10,
   materialRates: 3,
+  routes: 6,
+  collectionPoints: 4,
 };
 
 const toCount = (raw: string, source: string): number => {

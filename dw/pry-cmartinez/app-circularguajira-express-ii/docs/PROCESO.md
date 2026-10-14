@@ -961,11 +961,101 @@ git commit -m "ISS-06: Feature materials (materiales y TarifaMaterial)"
 git push origin main
 ```
 
+Commit: [`c0c4b00`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/c0c4b00feb8dd0bf3caa930b715115f4071e1384)
+
 ### ISS-07 — Feature `routes` (rutas y puntos de recolección)
 
 Implementar la coordinación de rutas y sus puntos asociados, con validaciones de pertenencia y operaciones de consulta y administración.
 
 **Verificación:** se pueden administrar y consultar rutas sin asociaciones inválidas.
+
+Ruta = recorrido de recolección en un municipio; PuntoRecoleccion = parada de la ruta con un orden de visita único dentro de ella. Regla de pertenencia (equivale a la validación del tipo activo de StoreLab): un punto solo se asigna a una ruta existente (404) y activa (400), y su orden de visita no se repite en esa ruta (409). La misma regla (`assertActiveRoute`) la usará la recolección del ISS-08.
+
+Criterios de aceptación (ISS-07)
+
+- [x] Modelos `Route` (nombre único, municipio, status) y `CollectionPoint` (FK RESTRICT `route_id`, índice único ruta + orden de visita) con su asociación 1:N
+- [x] CRUD de rutas por capas: getAll, getOne, create, PUT/PATCH (sin status), delete físico (409 si tiene puntos) y lógico
+- [x] CRUD de puntos con validación de pertenencia a ruta activa y orden de visita único; consulta de puntos por ruta en orden
+- [x] Carpeta `http/` con lectura, alta, actualización y borrado
+- [x] Cableado en `src/routes/index.ts` y `src/config/index.ts` (asociaciones + rutas)
+- [x] Seeders de rutas y puntos registrados en el SeedersRunner y `counts.ts`
+- [x] Swagger de rutas y puntos registrado en `src/swagger`
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+mkdir -p src/features/business/routes/{dto,http}
+
+# src/shared/http/validation.ts: positiveInt (routeId y visitOrder del body)
+# routes/route.model.ts y collection-point.model.ts; routes.associations.ts (hasMany/belongsTo, RESTRICT)
+# routes/dto/: route.dto.ts y route.validation.ts (create/PUT/PATCH de ambas entidades)
+# routes.repository.ts y collection-points.repository.ts
+# routes.service.ts: CRUD, nombre único (409), sin borrado físico con puntos (409), assertActiveRoute
+# collection-points.service.ts: CRUD, pertenencia a ruta activa y orden de visita libre por ruta
+# routes.controller.ts, collection-points.controller.ts y routes.routes.ts
+#   (/api/routes, /api/routes/:id/points, /api/collection-points)
+# routes.seeder.ts: rutas reales de La Guajira y 4 puntos por ruta en orden 1..4
+# counts.ts: routes y collectionPoints; index.ts: llamadas en orden
+# routes.swagger.ts + registro en src/swagger/index.ts
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -X POST localhost:4000/api/collection-points -H "Content-Type: application/json" \
+  -d '{"routeId":1,"name":"Tienda La Esquina","address":"Calle 2 # 7-15, Riohacha","visitOrder":1}'
+curl -s localhost:4000/api/routes/1/points
+npm run db:seed
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Modelos y relación:** `grep` muestra nombre único, FK `references routes` con `onDelete: "RESTRICT"`, índice único (`route_id`, `visit_order`) y `hasMany`/`belongsTo`; `information_schema` confirma la FK `collection_points → routes` con RESTRICT / CASCADE.
+
+![Ev1 ISS-07](images/Ev1-ISS-07.png)
+
+**Ev2 — CRUD de rutas:** alta de Riohacha Centro y Maicao Comercial (201), nombre repetido (409), sin municipio (400), getAll, PUT y PATCH (200), PATCH vacío (400), deactivate de Maicao (200) y getOne de la ruta inactiva (404).
+
+![Ev2 ISS-07](images/Ev2-ISS-07.png)
+
+**Ev3 — Puntos y pertenencia:** dos puntos en la ruta 1 (201), orden repetido (409), ruta inexistente (404), ruta inactiva (400), PATCH del orden (200), puntos de la ruta en orden de visita, deactivate de un punto que sale del recorrido, borrar ruta con puntos (409) y borrar la ruta inactiva sin puntos (200).
+
+![Ev3 ISS-07](images/Ev3-ISS-07.png)
+
+**Ev4 — Carpeta http:** cuatro archivos `.http` con los casos de lectura, alta, actualización y borrado.
+
+![Ev4 ISS-07](images/Ev4-ISS-07.png)
+
+**Ev5 — Cableado:** `routes/index.ts` con `routesRoutes`; config, swagger y seeders importan asociaciones, docs y seeders de `business/routes`; `counts.ts` con `routes: 6` y `collectionPoints: 4`.
+
+![Ev5 ISS-07](images/Ev5-ISS-07.png)
+
+**Ev6 — Seeders:** `npm run db:seed` inserta 5 rutas (total 6) y 20 puntos (4 por ruta; Riohacha Centro se omite por tener puntos); MySQL muestra cada ruta con sus órdenes de visita 1..4.
+
+![Ev6 ISS-07](images/Ev6-ISS-07.png)
+
+**Ev7 — Swagger:** `/api/docs` muestra los tags Rutas y Puntos de recolección (SIN AUTH) con sus endpoints y los schemas `Route*` y `CollectionPoint*`.
+
+![Ev7 ISS-07](images/Ev7-ISS-07.png)
+
+**Ev8 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev8 ISS-07](images/Ev8-ISS-07.png)
+
+### Commit
+
+```bash
+git add src/shared/http/validation.ts src/features/business/routes \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts \
+  src/database/seeders/counts.ts src/database/seeders/index.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-07.png docs/images/Ev2-ISS-07.png \
+  docs/images/Ev3-ISS-07.png docs/images/Ev4-ISS-07.png docs/images/Ev5-ISS-07.png \
+  docs/images/Ev6-ISS-07.png docs/images/Ev7-ISS-07.png docs/images/Ev8-ISS-07.png
+git commit -m "ISS-07: Feature routes (rutas y puntos de recolección)"
+git push origin main
+```
 
 ### ISS-08 — Features `weighing` / `settlements` (recolección, pesaje y liquidación)
 

@@ -1,0 +1,16 @@
+@baseUrl = http://localhost:4000/api
+
+### getAll: rutas activas
+GET {{baseUrl}}/routes
+
+### getOne: ruta activa por id
+GET {{baseUrl}}/routes/1
+
+### points: puntos de la ruta en orden de visita
+GET {{baseUrl}}/routes/1/points
+
+### getAll: puntos de recolección activos
+GET {{baseUrl}}/collection-points
+
+### getOne: punto activo por id
+GET {{baseUrl}}/collection-points/1

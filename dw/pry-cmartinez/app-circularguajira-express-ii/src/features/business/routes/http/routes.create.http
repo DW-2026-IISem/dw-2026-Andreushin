@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:4000/api
+
+### create ruta -> 201 (active por defecto)
+POST {{baseUrl}}/routes
+Content-Type: application/json
+
+{
+  "name": "Riohacha Centro",
+  "municipality": "Riohacha",
+  "description": "Centro histórico y malecón"
+}
+
+### create ruta: nombre repetido -> 409
+POST {{baseUrl}}/routes
+Content-Type: application/json
+
+{
+  "name": "Riohacha Centro",
+  "municipality": "Riohacha"
+}
+
+### create punto en la ruta 1 -> 201
+POST {{baseUrl}}/collection-points
+Content-Type: application/json
+
+{
+  "routeId": 1,
+  "name": "Tienda La Esquina",
+  "address": "Calle 2 # 7-15, Riohacha",
+  "visitOrder": 1
+}
+
+### create punto: orden de visita repetido en la misma ruta -> 409
+POST {{baseUrl}}/collection-points
+Content-Type: application/json
+
+{
+  "routeId": 1,
+  "name": "Colegio Almirante Padilla",
+  "address": "Carrera 7 # 12-40, Riohacha",
+  "visitOrder": 1
+}
+
+### create punto: ruta inexistente -> 404
+POST {{baseUrl}}/collection-points
+Content-Type: application/json
+
+{
+  "routeId": 9999,
+  "name": "Punto huérfano",
+  "address": "Sin dirección",
+  "visitOrder": 1
+}

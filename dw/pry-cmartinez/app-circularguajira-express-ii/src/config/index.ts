@@ -8,6 +8,7 @@ import { sequelize, testConnection } from "../database/db";
 // Models must be loaded before sequelize.sync().
 import "../features/business/collectors/recycler.model";
 import "../features/business/materials/materials.associations";
+import "../features/business/routes/routes.associations";
 
 dotenv.config();
 
@@ -40,6 +41,7 @@ export class App {
     });
     this.routePrv.recyclersRoutes.routes(this.app);
     this.routePrv.materialsRoutes.routes(this.app);
+    this.routePrv.routesRoutes.routes(this.app);
   }
 
   private docs(): void {
