@@ -2,7 +2,7 @@
  * OpenAPI docs for the routes feature (collection routes + collection points).
  * Aggregated by `src/swagger` (external registry); nothing is mounted here.
  *
- * Phase I: every endpoint is **SIN AUTH** (no JWT, no RBAC).
+ * Access mode: JWT + RBAC on every endpoint (bearerAuth, 401 and 403 are applied by src/swagger).
  */
 
 const ROUTES_TAG = "Rutas";
@@ -52,10 +52,10 @@ const POINT = "#/components/schemas/CollectionPoint";
 
 export const routesSwagger = {
   tags: [
-    { name: ROUTES_TAG, description: "Rutas de recolección por municipio — **SIN AUTH** (Fase I)" },
+    { name: ROUTES_TAG, description: "Rutas de recolección por municipio — **JWT + RBAC**" },
     {
       name: POINTS_TAG,
-      description: "Paradas de una ruta con su orden de visita (único por ruta) — **SIN AUTH**",
+      description: "Paradas de una ruta con su orden de visita (único por ruta) — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -63,13 +63,13 @@ export const routesSwagger = {
       get: {
         tags: [ROUTES_TAG],
         summary: "Listar rutas activas",
-        description: "SIN AUTH — solo rutas con status = active, por nombre.",
+        description: "Solo rutas con status = active, por nombre.",
         responses: { "200": listResponse("Rutas activas", "routes", ROUTE) },
       },
       post: {
         tags: [ROUTES_TAG],
         summary: "Crear ruta",
-        description: "SIN AUTH — status por defecto active.",
+        description: "Status por defecto active.",
         requestBody: jsonBody("#/components/schemas/RouteInput"),
         responses: {
           "201": jsonResponse("Ruta creada", ROUTE),
@@ -82,7 +82,7 @@ export const routesSwagger = {
       get: {
         tags: [ROUTES_TAG],
         summary: "Obtener ruta activa por id",
-        description: "SIN AUTH — 404 si no existe o está inactiva.",
+        description: "404 si no existe o está inactiva.",
         parameters: [idParameter("de la ruta")],
         responses: {
           "200": jsonResponse("Ruta encontrada", ROUTE),
@@ -93,7 +93,7 @@ export const routesSwagger = {
       put: {
         tags: [ROUTES_TAG],
         summary: "Actualizar ruta (PUT, reemplazo completo)",
-        description: "SIN AUTH — status no se envía: solo cambia con deactivate.",
+        description: "Status no se envía: solo cambia con deactivate.",
         parameters: [idParameter("de la ruta")],
         requestBody: jsonBody("#/components/schemas/RouteUpdate"),
         responses: {
@@ -106,7 +106,7 @@ export const routesSwagger = {
       patch: {
         tags: [ROUTES_TAG],
         summary: "Actualizar ruta (PATCH, parcial)",
-        description: "SIN AUTH — solo cambian los campos enviados (al menos uno).",
+        description: "Solo cambian los campos enviados (al menos uno).",
         parameters: [idParameter("de la ruta")],
         requestBody: jsonBody("#/components/schemas/RoutePatch"),
         responses: {
@@ -119,7 +119,7 @@ export const routesSwagger = {
       delete: {
         tags: [ROUTES_TAG],
         summary: "Eliminar ruta (físico)",
-        description: "SIN AUTH — también si está inactiva; 409 si aún tiene puntos (FK RESTRICT).",
+        description: "También si está inactiva; 409 si aún tiene puntos (FK RESTRICT).",
         parameters: [idParameter("de la ruta")],
         responses: {
           "200": messageResponse("Ruta eliminada"),
@@ -133,7 +133,7 @@ export const routesSwagger = {
       patch: {
         tags: [ROUTES_TAG],
         summary: "Eliminar ruta (lógico)",
-        description: "SIN AUTH — status = inactive; ya no admite puntos nuevos.",
+        description: "Status = inactive; ya no admite puntos nuevos.",
         parameters: [idParameter("de la ruta")],
         responses: {
           "200": jsonResponse("Desactivada", ROUTE),
@@ -146,7 +146,7 @@ export const routesSwagger = {
       get: {
         tags: [ROUTES_TAG, POINTS_TAG],
         summary: "Puntos de una ruta en orden de visita",
-        description: "SIN AUTH — solo puntos activos de una ruta activa.",
+        description: "Solo puntos activos de una ruta activa.",
         parameters: [idParameter("de la ruta")],
         responses: {
           "200": listResponse("Puntos de la ruta", "points", POINT),
@@ -159,14 +159,14 @@ export const routesSwagger = {
       get: {
         tags: [POINTS_TAG],
         summary: "Listar puntos activos",
-        description: "SIN AUTH — ordenados por ruta y orden de visita.",
+        description: "Ordenados por ruta y orden de visita.",
         responses: { "200": listResponse("Puntos activos", "points", POINT) },
       },
       post: {
         tags: [POINTS_TAG],
         summary: "Crear punto de recolección",
         description:
-          "SIN AUTH — la ruta debe existir (404) y estar activa (400); el orden de visita no se repite en la ruta (409).",
+          "La ruta debe existir (404) y estar activa (400); el orden de visita no se repite en la ruta (409).",
         requestBody: jsonBody("#/components/schemas/CollectionPointInput"),
         responses: {
           "201": jsonResponse("Punto creado", POINT),
@@ -180,7 +180,7 @@ export const routesSwagger = {
       get: {
         tags: [POINTS_TAG],
         summary: "Obtener punto activo por id",
-        description: "SIN AUTH — 404 si no existe o está inactivo.",
+        description: "404 si no existe o está inactivo.",
         parameters: [idParameter("del punto")],
         responses: {
           "200": jsonResponse("Punto encontrado", POINT),
@@ -191,7 +191,7 @@ export const routesSwagger = {
       put: {
         tags: [POINTS_TAG],
         summary: "Actualizar punto (PUT, reemplazo completo)",
-        description: "SIN AUTH — puede mover el punto a otra ruta activa; valida pertenencia y orden.",
+        description: "Puede mover el punto a otra ruta activa; valida pertenencia y orden.",
         parameters: [idParameter("del punto")],
         requestBody: jsonBody("#/components/schemas/CollectionPointUpdate"),
         responses: {
@@ -204,7 +204,7 @@ export const routesSwagger = {
       patch: {
         tags: [POINTS_TAG],
         summary: "Actualizar punto (PATCH, parcial)",
-        description: "SIN AUTH — solo cambian los campos enviados; ruta y orden se validan juntos.",
+        description: "Solo cambian los campos enviados; ruta y orden se validan juntos.",
         parameters: [idParameter("del punto")],
         requestBody: jsonBody("#/components/schemas/CollectionPointPatch"),
         responses: {
@@ -217,7 +217,7 @@ export const routesSwagger = {
       delete: {
         tags: [POINTS_TAG],
         summary: "Eliminar punto (físico)",
-        description: "SIN AUTH — también si está inactivo.",
+        description: "También si está inactivo.",
         parameters: [idParameter("del punto")],
         responses: {
           "200": messageResponse("Punto de recolección eliminado"),
@@ -230,7 +230,7 @@ export const routesSwagger = {
       patch: {
         tags: [POINTS_TAG],
         summary: "Eliminar punto (lógico)",
-        description: "SIN AUTH — status = inactive; sale del recorrido de la ruta.",
+        description: "Status = inactive; sale del recorrido de la ruta.",
         parameters: [idParameter("del punto")],
         responses: {
           "200": jsonResponse("Desactivado", POINT),

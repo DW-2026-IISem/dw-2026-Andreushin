@@ -1,4 +1,4 @@
-### Usuarios: modalidad JWT. Hasta que exista el login, pega un access token válido.
+### Usuarios: modalidad JWT + RBAC (solo ADMIN). Hasta que exista el login, pega un access token válido.
 @baseUrl = http://localhost:4000/api
 @token = <access_token>
 

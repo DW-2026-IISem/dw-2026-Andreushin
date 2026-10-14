@@ -2,7 +2,7 @@ import { Response } from "express";
 import { ForeignKeyConstraintError, UniqueConstraintError, ValidationError } from "sequelize";
 import { HttpError } from "../errors/httpError";
 
-// Single error -> HTTP mapping of the project, shared by controllers and (from ISS-13) the
+// Single error -> HTTP mapping of the project, shared by controllers and the
 // access middlewares: HttpError -> its status (400/401/403/404/409); anything unexpected is
 // a 500 without internals.
 export const handleError = (res: Response, error: unknown): Response => {

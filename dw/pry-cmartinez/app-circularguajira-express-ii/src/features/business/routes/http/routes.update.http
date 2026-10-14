@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### PUT ruta: reemplazo completo (status no se envía) -> 200
 PUT {{baseUrl}}/routes/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -12,6 +15,7 @@ Content-Type: application/json
 
 ### PATCH ruta: cambio parcial -> 200
 PATCH {{baseUrl}}/routes/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -20,6 +24,7 @@ Content-Type: application/json
 
 ### PUT punto: reemplazo completo -> 200
 PUT {{baseUrl}}/collection-points/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -31,6 +36,7 @@ Content-Type: application/json
 
 ### PATCH punto: mover a una ruta inactiva -> 400
 PATCH {{baseUrl}}/collection-points/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {

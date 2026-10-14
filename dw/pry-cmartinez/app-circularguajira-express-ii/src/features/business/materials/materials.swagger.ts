@@ -2,7 +2,7 @@
  * OpenAPI docs for the materials feature (materials + rate history).
  * Aggregated by `src/swagger` (external registry); nothing is mounted here.
  *
- * Phase I: every endpoint is **SIN AUTH** (no JWT, no RBAC).
+ * Access mode: JWT + RBAC on every endpoint (bearerAuth, 401 and 403 are applied by src/swagger).
  */
 
 const MATERIALS_TAG = "Materiales";
@@ -34,11 +34,11 @@ const RATE = "#/components/schemas/MaterialRate";
 
 export const materialsSwagger = {
   tags: [
-    { name: MATERIALS_TAG, description: "Catálogo de materiales reciclables — **SIN AUTH** (Fase I)" },
+    { name: MATERIALS_TAG, description: "Catálogo de materiales reciclables — **JWT + RBAC**" },
     {
       name: RATES_TAG,
       description:
-        "Precio por kg con vigencia. Historial solo de inserción: una corrección es una tarifa nueva — **SIN AUTH**",
+        "Precio por kg con vigencia. Historial solo de inserción: una corrección es una tarifa nueva — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -46,7 +46,7 @@ export const materialsSwagger = {
       get: {
         tags: [MATERIALS_TAG],
         summary: "Listar materiales activos",
-        description: "SIN AUTH — solo materiales con status = active, por nombre.",
+        description: "Solo materiales con status = active, por nombre.",
         responses: {
           "200": {
             description: "Lista de materiales activos",
@@ -61,7 +61,7 @@ export const materialsSwagger = {
       post: {
         tags: [MATERIALS_TAG],
         summary: "Crear material",
-        description: "SIN AUTH — status por defecto active.",
+        description: "Status por defecto active.",
         requestBody: jsonBody("#/components/schemas/MaterialInput"),
         responses: {
           "201": jsonResponse("Material creado", MATERIAL),
@@ -74,7 +74,7 @@ export const materialsSwagger = {
       get: {
         tags: [MATERIALS_TAG],
         summary: "Obtener material activo por id",
-        description: "SIN AUTH — 404 si no existe o está inactivo.",
+        description: "404 si no existe o está inactivo.",
         parameters: [idParameter],
         responses: {
           "200": jsonResponse("Material encontrado", MATERIAL),
@@ -85,7 +85,7 @@ export const materialsSwagger = {
       put: {
         tags: [MATERIALS_TAG],
         summary: "Actualizar material (PUT, reemplazo completo)",
-        description: "SIN AUTH — status no se envía: solo cambia con deactivate.",
+        description: "Status no se envía: solo cambia con deactivate.",
         parameters: [idParameter],
         requestBody: jsonBody("#/components/schemas/MaterialUpdate"),
         responses: {
@@ -98,7 +98,7 @@ export const materialsSwagger = {
       patch: {
         tags: [MATERIALS_TAG],
         summary: "Actualizar material (PATCH, parcial)",
-        description: "SIN AUTH — solo cambian los campos enviados (al menos uno).",
+        description: "Solo cambian los campos enviados (al menos uno).",
         parameters: [idParameter],
         requestBody: jsonBody("#/components/schemas/MaterialPatch"),
         responses: {
@@ -111,7 +111,7 @@ export const materialsSwagger = {
       delete: {
         tags: [MATERIALS_TAG],
         summary: "Eliminar material (físico)",
-        description: "SIN AUTH — también si está inactivo; 409 si tiene tarifas (FK RESTRICT).",
+        description: "También si está inactivo; 409 si tiene tarifas (FK RESTRICT).",
         parameters: [idParameter],
         responses: {
           "200": {
@@ -132,7 +132,7 @@ export const materialsSwagger = {
       patch: {
         tags: [MATERIALS_TAG],
         summary: "Eliminar material (lógico)",
-        description: "SIN AUTH — status = inactive; sus tarifas se conservan.",
+        description: "Status = inactive; sus tarifas se conservan.",
         parameters: [idParameter],
         responses: {
           "200": jsonResponse("Desactivado", MATERIAL),
@@ -145,7 +145,7 @@ export const materialsSwagger = {
       get: {
         tags: [RATES_TAG],
         summary: "Historial de tarifas del material",
-        description: "SIN AUTH — la más reciente primero.",
+        description: "La más reciente primero.",
         parameters: [idParameter],
         responses: {
           "200": {
@@ -164,7 +164,7 @@ export const materialsSwagger = {
         tags: [RATES_TAG],
         summary: "Registrar tarifa (nuevo periodo)",
         description:
-          "SIN AUTH — si hay una tarifa abierta que empezó antes, se cierra el día anterior a validFrom " +
+          "Si hay una tarifa abierta que empezó antes, se cierra el día anterior a validFrom " +
           "(en la misma transacción). Cualquier otro cruce de periodos responde 409.",
         parameters: [idParameter],
         requestBody: jsonBody("#/components/schemas/MaterialRateInput"),
@@ -181,7 +181,7 @@ export const materialsSwagger = {
         tags: [RATES_TAG],
         summary: "Tarifa aplicable en una fecha",
         description:
-          "SIN AUTH — la tarifa cuyo periodo contiene la fecha (validFrom <= date <= validTo, o validTo null). " +
+          "La tarifa cuyo periodo contiene la fecha (validFrom <= date <= validTo, o validTo null). " +
           "Nunca se aplica una tarifa fuera de su periodo.",
         parameters: [
           idParameter,

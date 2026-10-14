@@ -1,4 +1,5 @@
 import { Application } from "express";
+import { authenticate, authorize } from "../../auth/access";
 import { RoutesController } from "./routes.controller";
 import { CollectionPointsController } from "./collection-points.controller";
 
@@ -8,69 +9,69 @@ export class RoutesRoutes {
   public collectionPointsController: CollectionPointsController = new CollectionPointsController();
 
   public routes(app: Application): void {
-    // ================== RUTAS SIN AUTENTICACIÓN / SIN MIDDLEWARE JWT ==================
+    // JWT + RBAC: authenticate (401) -> authorize (403, deny by default) -> controller
 
     // ---------- collection routes ----------
 
     // getAll
-    app.route("/api/routes").get(this.routesController.getAll.bind(this.routesController));
+    app.route("/api/routes").get(authenticate, authorize, this.routesController.getAll.bind(this.routesController));
 
     // getOne
-    app.route("/api/routes/:id").get(this.routesController.getOne.bind(this.routesController));
+    app.route("/api/routes/:id").get(authenticate, authorize, this.routesController.getOne.bind(this.routesController));
 
     // create
-    app.route("/api/routes").post(this.routesController.create.bind(this.routesController));
+    app.route("/api/routes").post(authenticate, authorize, this.routesController.create.bind(this.routesController));
 
     // update (PUT / PATCH)
     app
       .route("/api/routes/:id")
-      .put(this.routesController.update.bind(this.routesController))
-      .patch(this.routesController.patch.bind(this.routesController));
+      .put(authenticate, authorize, this.routesController.update.bind(this.routesController))
+      .patch(authenticate, authorize, this.routesController.patch.bind(this.routesController));
 
     // delete (físico)
-    app.route("/api/routes/:id").delete(this.routesController.delete.bind(this.routesController));
+    app.route("/api/routes/:id").delete(authenticate, authorize, this.routesController.delete.bind(this.routesController));
 
     // deactivate (lógico)
     app
       .route("/api/routes/:id/deactivate")
-      .patch(this.routesController.deactivate.bind(this.routesController));
+      .patch(authenticate, authorize, this.routesController.deactivate.bind(this.routesController));
 
     // points of a route, in visit order
     app
       .route("/api/routes/:id/points")
-      .get(this.collectionPointsController.getByRoute.bind(this.collectionPointsController));
+      .get(authenticate, authorize, this.collectionPointsController.getByRoute.bind(this.collectionPointsController));
 
     // ---------- collection points ----------
 
     // getAll
     app
       .route("/api/collection-points")
-      .get(this.collectionPointsController.getAll.bind(this.collectionPointsController));
+      .get(authenticate, authorize, this.collectionPointsController.getAll.bind(this.collectionPointsController));
 
     // getOne
     app
       .route("/api/collection-points/:id")
-      .get(this.collectionPointsController.getOne.bind(this.collectionPointsController));
+      .get(authenticate, authorize, this.collectionPointsController.getOne.bind(this.collectionPointsController));
 
     // create
     app
       .route("/api/collection-points")
-      .post(this.collectionPointsController.create.bind(this.collectionPointsController));
+      .post(authenticate, authorize, this.collectionPointsController.create.bind(this.collectionPointsController));
 
     // update (PUT / PATCH)
     app
       .route("/api/collection-points/:id")
-      .put(this.collectionPointsController.update.bind(this.collectionPointsController))
-      .patch(this.collectionPointsController.patch.bind(this.collectionPointsController));
+      .put(authenticate, authorize, this.collectionPointsController.update.bind(this.collectionPointsController))
+      .patch(authenticate, authorize, this.collectionPointsController.patch.bind(this.collectionPointsController));
 
     // delete (físico)
     app
       .route("/api/collection-points/:id")
-      .delete(this.collectionPointsController.delete.bind(this.collectionPointsController));
+      .delete(authenticate, authorize, this.collectionPointsController.delete.bind(this.collectionPointsController));
 
     // deactivate (lógico)
     app
       .route("/api/collection-points/:id/deactivate")
-      .patch(this.collectionPointsController.deactivate.bind(this.collectionPointsController));
+      .patch(authenticate, authorize, this.collectionPointsController.deactivate.bind(this.collectionPointsController));
   }
 }

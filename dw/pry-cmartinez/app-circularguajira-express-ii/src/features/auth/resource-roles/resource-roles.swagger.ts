@@ -3,7 +3,7 @@ import { bearerSecurity, unauthorizedResponse } from "../../../shared/http/swagg
 /**
  * OpenAPI docs for grants (role <-> resource): the permission itself. There is no
  * Permission entity; granting is creating or reactivating a resource_roles row.
- * Access mode: JWT; RBAC in ISS-13.
+ * Access mode: JWT + RBAC (403 applied by src/swagger).
  */
 const TAG = "Concesiones rol-recurso";
 const ITEM = "#/components/schemas/ResourceRole";
@@ -25,7 +25,7 @@ export const resourceRolesSwagger = {
   tags: [
     {
       name: TAG,
-      description: "Conceder, retirar y reactivar recursos a un rol: **el permiso**; sin despliegue ni borrado físico — **JWT**",
+      description: "Conceder, retirar y reactivar recursos a un rol: **el permiso**; sin despliegue ni borrado físico — **JWT + RBAC**",
     },
   ],
   paths: {

@@ -1,7 +1,7 @@
 import { bearerSecurity, unauthorizedResponse } from "../../../shared/http/swagger-security";
 
 /**
- * OpenAPI docs for the roles feature. Access mode: JWT; RBAC (403) is added in ISS-13.
+ * OpenAPI docs for the roles feature. Access mode: JWT + RBAC (403 applied by src/swagger).
  */
 const TAG = "Roles";
 
@@ -28,7 +28,7 @@ const errorResponse = (description: string) => jsonResponse(description, "#/comp
 const ITEM = "#/components/schemas/Role";
 
 export const rolesSwagger = {
-  tags: [{ name: TAG, description: "Roles del personal; el nombre no autoriza nada, solo sus concesiones activas — **JWT**" }],
+  tags: [{ name: TAG, description: "Roles del personal; el nombre no autoriza nada, solo sus concesiones activas — **JWT + RBAC**" }],
   paths: {
     "/api/roles": {
       get: {

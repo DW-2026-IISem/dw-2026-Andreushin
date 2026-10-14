@@ -1,10 +1,15 @@
 @baseUrl = http://localhost:4000/api/materials
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### deactivate: baja lógica (status = inactive) -> 200
 PATCH {{baseUrl}}/2/deactivate
+Authorization: Bearer {{token}}
 
 ### delete: borrado físico de un material sin tarifas -> 200
 DELETE {{baseUrl}}/2
+Authorization: Bearer {{token}}
 
 ### delete: material con tarifas -> 409 (se desactiva en lugar de borrar)
 DELETE {{baseUrl}}/1
+Authorization: Bearer {{token}}

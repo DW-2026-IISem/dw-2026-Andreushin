@@ -1,5 +1,5 @@
 /**
- * ISS-11 roles and resources: CRUD through the HTTP API (JWT mode) and coverage of the
+ * ISS-11 roles and resources: CRUD through the HTTP API (JWT + RBAC, ADMIN caller) and coverage of the
  * resource catalog against the documented API, so no endpoint is left outside the matrix.
  *
  *   npm run test:rbac
@@ -11,8 +11,7 @@ import { AddressInfo } from "node:net";
 import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
-import { signAccessToken } from "../shared/auth/jwt";
-import { User } from "../features/auth/users/user.model";
+import { createTestIdentity } from "./support/identity";
 import { RoleUser } from "../features/auth/role-users/role-user.model";
 import { ResourceRole } from "../features/auth/resource-roles/resource-role.model";
 import { RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
@@ -42,10 +41,10 @@ describe("ISS-11 roles and resources", () => {
     server = new App().app.listen(0);
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
-    const caller = await User.create({ username: `test.rbac${tag}`, email: `test.rbac${tag}@circularguajira.co`, password: "Admin2026!", status: "active" });
-    userId = caller.id;
-    cleanup.push(() => caller.destroy());
-    token = signAccessToken(caller).token;
+    const caller = await createTestIdentity(`test.rbac${tag}`, ["ADMIN"]);
+    userId = caller.user.id;
+    cleanup.push(() => caller.remove());
+    token = caller.token;
   });
 
   after(async () => {

@@ -2,7 +2,7 @@
  * OpenAPI docs for the settlements feature.
  * Aggregated by `src/swagger` (external registry); nothing is mounted here.
  *
- * Phase I: every endpoint is **SIN AUTH** (no JWT, no RBAC).
+ * Access mode: JWT + RBAC on every endpoint (bearerAuth, 401 and 403 are applied by src/swagger).
  */
 
 const TAG = "Liquidaciones";
@@ -30,7 +30,7 @@ export const settlementsSwagger = {
     {
       name: TAG,
       description:
-        "Liquidación verificable de una recolección: congela totales y referencias de tarifa; anular reabre la recolección — **SIN AUTH**",
+        "Liquidación verificable de una recolección: congela totales y referencias de tarifa; anular reabre la recolección — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -56,7 +56,7 @@ export const settlementsSwagger = {
         tags: [TAG],
         summary: "Liquidar una recolección (transaccional)",
         description:
-          "SIN AUTH — confirma la tarifa vigente de cada pesaje en la fecha de la recolección (re-tarifica si cambió), " +
+          "Confirma la tarifa vigente de cada pesaje en la fecha de la recolección (re-tarifica si cambió), " +
           "calcula totales y bloquea la recolección.",
         requestBody: {
           required: true,
@@ -84,7 +84,7 @@ export const settlementsSwagger = {
       put: {
         tags: [TAG],
         summary: "Actualizar notas (PUT)",
-        description: "SIN AUTH — los valores liquidados nunca cambian.",
+        description: "Los valores liquidados nunca cambian.",
         parameters: [idParameter],
         requestBody: {
           required: true,
@@ -113,7 +113,7 @@ export const settlementsSwagger = {
       delete: {
         tags: [TAG],
         summary: "Eliminar liquidación (físico)",
-        description: "SIN AUTH — solo anuladas; una emitida es un registro de pago (409).",
+        description: "Solo anuladas; una emitida es un registro de pago (409).",
         parameters: [idParameter],
         responses: {
           "200": {
@@ -133,7 +133,7 @@ export const settlementsSwagger = {
       patch: {
         tags: [TAG],
         summary: "Anular liquidación (lógico)",
-        description: "SIN AUTH — status = voided; la recolección queda abierta para corregir y volver a liquidar.",
+        description: "Status = voided; la recolección queda abierta para corregir y volver a liquidar.",
         parameters: [idParameter],
         responses: {
           "200": jsonResponse("Anulada", "#/components/schemas/Settlement"),
@@ -146,7 +146,7 @@ export const settlementsSwagger = {
         tags: [TAG],
         summary: "Verificar liquidación",
         description:
-          "SIN AUTH — recalcula neto e importe de cada pesaje, comprueba que la tarifa referenciada corresponda al " +
+          "Recalcula neto e importe de cada pesaje, comprueba que la tarifa referenciada corresponda al " +
           "material, al precio y a la fecha de la recolección, y compara los totales con los guardados.",
         parameters: [idParameter],
         responses: {

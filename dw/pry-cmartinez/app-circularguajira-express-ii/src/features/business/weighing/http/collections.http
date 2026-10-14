@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### create: recolección + pesajes en una transacción -> 201
 POST {{baseUrl}}/collections
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -16,6 +19,7 @@ Content-Type: application/json
 
 ### create: un material sin tarifa en la fecha -> 404 y no se guarda nada (rollback)
 POST {{baseUrl}}/collections
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -30,6 +34,7 @@ Content-Type: application/json
 
 ### create: bruto menor o igual que la tara -> 400
 POST {{baseUrl}}/collections
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -40,12 +45,15 @@ Content-Type: application/json
 
 ### getAll: recolecciones activas con sus pesajes
 GET {{baseUrl}}/collections
+Authorization: Bearer {{token}}
 
 ### getOne
 GET {{baseUrl}}/collections/1
+Authorization: Bearer {{token}}
 
 ### PATCH: cambiar la fecha re-tarifica los pesajes -> 200
 PATCH {{baseUrl}}/collections/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -54,6 +62,7 @@ Content-Type: application/json
 
 ### PUT: reemplazo de la cabecera -> 200
 PUT {{baseUrl}}/collections/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -64,6 +73,8 @@ Content-Type: application/json
 
 ### deactivate (lógico): recolección y pesajes inactivos -> 200
 PATCH {{baseUrl}}/collections/2/deactivate
+Authorization: Bearer {{token}}
 
 ### delete (físico) sin liquidaciones -> 200
 DELETE {{baseUrl}}/collections/2
+Authorization: Bearer {{token}}

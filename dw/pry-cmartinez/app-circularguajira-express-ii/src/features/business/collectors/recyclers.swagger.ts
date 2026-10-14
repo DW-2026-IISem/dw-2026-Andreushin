@@ -2,7 +2,7 @@
  * OpenAPI docs for the collectors feature (recyclers).
  * Aggregated by `src/swagger` (external registry); nothing is mounted here.
  *
- * Phase I: every endpoint is **SIN AUTH** (no JWT, no RBAC).
+ * Access mode: JWT + RBAC on every endpoint (bearerAuth, 401 and 403 are applied by src/swagger).
  */
 
 const TAG = "Recicladores";
@@ -50,7 +50,7 @@ export const recyclersSwagger = {
   tags: [
     {
       name: TAG,
-      description: "CRUD de recicladores y organizaciones — **SIN AUTH** (Fase I)",
+      description: "CRUD de recicladores y organizaciones — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -58,7 +58,7 @@ export const recyclersSwagger = {
       get: {
         tags: [TAG],
         summary: "Listar recicladores activos",
-        description: "SIN AUTH — solo recicladores con status = active.",
+        description: "Solo recicladores con status = active.",
         responses: {
           "200": {
             description: "Lista de recicladores activos",
@@ -78,7 +78,7 @@ export const recyclersSwagger = {
       post: {
         tags: [TAG],
         summary: "Crear reciclador",
-        description: "SIN AUTH — sin status queda inactive.",
+        description: "Sin status queda inactive.",
         requestBody: jsonBody("#/components/schemas/RecyclerInput"),
         responses: {
           "201": recyclerResponse("Reciclador creado"),
@@ -91,7 +91,7 @@ export const recyclersSwagger = {
       get: {
         tags: [TAG],
         summary: "Obtener reciclador activo por id",
-        description: "SIN AUTH — 404 si no existe o está inactivo.",
+        description: "404 si no existe o está inactivo.",
         parameters: [idParameter],
         responses: {
           "200": recyclerResponse("Reciclador encontrado"),
@@ -102,7 +102,7 @@ export const recyclersSwagger = {
       put: {
         tags: [TAG],
         summary: "Actualizar reciclador (PUT, reemplazo completo)",
-        description: "SIN AUTH — email y address omitidos quedan en null; permite reactivar.",
+        description: "Email y address omitidos quedan en null; permite reactivar.",
         parameters: [idParameter],
         requestBody: jsonBody("#/components/schemas/RecyclerInput"),
         responses: {
@@ -115,7 +115,7 @@ export const recyclersSwagger = {
       patch: {
         tags: [TAG],
         summary: "Actualizar reciclador (PATCH, parcial)",
-        description: "SIN AUTH — solo cambian los campos enviados (al menos uno).",
+        description: "Solo cambian los campos enviados (al menos uno).",
         parameters: [idParameter],
         requestBody: jsonBody("#/components/schemas/RecyclerPatch"),
         responses: {
@@ -128,7 +128,7 @@ export const recyclersSwagger = {
       delete: {
         tags: [TAG],
         summary: "Eliminar reciclador (físico)",
-        description: "SIN AUTH — borra la fila, también si está inactivo.",
+        description: "Borra la fila, también si está inactivo.",
         parameters: [idParameter],
         responses: {
           "200": {
@@ -151,7 +151,7 @@ export const recyclersSwagger = {
       patch: {
         tags: [TAG],
         summary: "Eliminar reciclador (lógico)",
-        description: "SIN AUTH — status = inactive; deja de aparecer en los listados.",
+        description: "Status = inactive; deja de aparecer en los listados.",
         parameters: [idParameter],
         responses: {
           "200": recyclerResponse("Desactivado"),

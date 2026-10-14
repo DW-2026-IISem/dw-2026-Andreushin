@@ -14,8 +14,8 @@ export interface EffectivePermission {
  *
  *   role_users (user, active) -> roles (active) -> resource_roles (active) -> resources (active)
  *
- * Any inactive link breaks the chain. Used by GET /api/users/:id/permissions now and by
- * `authorize` (ISS-13), so both always agree.
+ * Any inactive link breaks the chain. Used by GET /api/users/:id/permissions and by
+ * `authorize`, so both always agree.
  */
 export class EffectivePermissionsRepository {
   async findForUser(userId: number): Promise<EffectivePermission[]> {

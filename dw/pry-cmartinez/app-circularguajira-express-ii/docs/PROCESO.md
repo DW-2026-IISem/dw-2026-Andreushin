@@ -1742,11 +1742,93 @@ git commit -m "ISS-12: Features roleUsers y resourceRoles"
 git push origin main
 ```
 
+Commit: [`d18fbd6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/d18fbd62a14d256da8d82d11c13966448e2e4fb5)
+
 ### ISS-13 — Middlewares de acceso
 
 Incorporar middlewares de autenticación y autorización en las rutas. Aplicar la matriz de acceso; por ejemplo, limitar el registro de pesajes a `BASCULA` y la aprobación de liquidaciones a `FINANZAS`.
 
+Dos middlewares componibles materializan las tres modalidades: OPEN (sin middleware), JWT (`authenticate`, 401) y JWT + RBAC (`authenticate, authorize`, 401 sin identidad válida y 403 sin concesión). Se insertan entre la ruta y el controller; controllers, services y repositories de negocio no cambian. Los permisos no viajan en el token: la cadena se consulta en cada petición, así que revocar una concesión o desactivar un usuario tiene efecto inmediato.
+
+Criterios de aceptación (ISS-13)
+
+- [x] `authenticate` valida el Bearer token (algoritmo, `iss`, `aud`, `exp`), exige usuario activo en BD y deja la identidad en `req.auth`; cualquier fallo es 401
+- [x] `authorize` resuelve `(method, path)` de la petición contra las concesiones activas del usuario; deny by default → 403
+- [x] `access/index.ts` reexporta ambos middlewares
+- [x] Las 5 features de negocio (recyclers, materials, routes, weighing, settlements) y las 5 de administración aplican `authenticate, authorize` (87 operaciones)
+- [x] Modalidades documentadas: OpenAPI declara `bearerAuth`, 401 y 403 en cada operación del catálogo
+- [x] Sin token → 401; con token sin concesión → 403 y la operación no se ejecuta; con concesión → 200/201
+- [x] npx tsc --noEmit sin errores; las suites anteriores siguen pasando con identidades por rol
+
+### Pasos
+
+```bash
+# access/: access.service.ts (resolveIdentity + assertGranted), authorize.ts, index.ts (barrel)
+# rutas de negocio y de administración: authenticate, authorize desde el barrel
+# src/swagger/index.ts: bearerAuth + 401 + 403 derivados de resource-catalog.ts
+# archivos http/ de negocio con Authorization: Bearer {{token}}
+# src/tests/support/identity.ts: usuario de prueba con roles sembrados y token firmado
+# src/tests/access.test.ts + "test:access" en package.json; flow/users/rbac/permissions con caller ADMIN
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:access
+npm run test:flow && npm run test:users && npm run test:rbac && npm run test:permissions
+npx tsc --noEmit
+npm run dev   # curl sin token, con token manipulado y con tokens por rol
+```
+
 **Verificación:** pruebas de acceso permitido y denegado por endpoint; las solicitudes no autorizadas no ejecutan la operación.
+
+**Decisiones respecto a la guía:** archivos `authenticate.ts`/`authorize.ts` y la decisión en `AccessService` (middleware → service → repository), reutilizando la consulta de permisos efectivos de ISS-10; errores con `UnauthorizedError`/`ForbiddenError` y `handleError`; también se protegen las rutas de administración (users, roles, resources, role-users, resource-roles), que estaban en modalidad JWT; la seguridad de OpenAPI se aplica una sola vez desde el catálogo. Sin login hasta ISS-15, los tokens se firman con `signAccessToken`.
+
+#### Evidencias
+
+**Ev1 — authenticate:** `AccessService.resolveIdentity` extrae y verifica el Bearer y exige `status = active`; `authenticate` deja la identidad en `req.auth`. Curl sin token y con `no.es.un.jwt` → 401.
+
+![Ev1 ISS-13](images/Ev1-ISS-13.png)
+
+**Ev2 — authorize:** `assertGranted` normaliza la ruta y la compara con los permisos efectivos; `POST /api/weighings` con LOGISTICA y `POST /api/settlements` con BASCULA → 403; `GET /api/recyclers` con LOGISTICA → 200.
+
+![Ev2 ISS-13](images/Ev2-ISS-13.png)
+
+**Ev3 — Barrel:** `access/index.ts` reexporta `authenticate` y `authorize`.
+
+![Ev3 ISS-13](images/Ev3-ISS-13.png)
+
+**Ev4 — Rutas protegidas:** 87 handlers con `(authenticate, authorize, ...)` en los 10 `*.routes.ts`, todos importando del barrel.
+
+![Ev4 ISS-13](images/Ev4-ISS-13.png)
+
+**Ev5 — OpenAPI:** `/api/docs.json` con 87 operaciones, las 87 con `bearerAuth`, 401 y 403.
+
+![Ev5 ISS-13](images/Ev5-ISS-13.png)
+
+**Ev6 — Acceso por endpoint:** `test:access` 6 de 6: 401 en las 87 operaciones sin identidad válida, 403 para un usuario sin roles, la matriz de los 5 roles endpoint por endpoint, la operación denegada no cambia los conteos, revocación inmediata y `/health` OPEN.
+
+![Ev6 ISS-13](images/Ev6-ISS-13.png)
+
+**Ev7 — Type-check y regresión:** `tsc` sin errores; `test:flow` 8, `test:users` 7, `test:rbac` 4 y `test:permissions` 4 pasan.
+
+![Ev7 ISS-13](images/Ev7-ISS-13.png)
+
+### Commit
+
+```bash
+git add package.json docs/PROCESO.md src/features/auth src/features/business \
+  src/shared/auth/auth-user.ts src/shared/http/handleError.ts src/swagger/index.ts \
+  src/tests/access.test.ts src/tests/support src/tests/flow.test.ts src/tests/users.test.ts \
+  src/tests/rbac-catalog.test.ts src/tests/permissions.test.ts \
+  docs/images/Ev1-ISS-13.png docs/images/Ev2-ISS-13.png docs/images/Ev3-ISS-13.png \
+  docs/images/Ev4-ISS-13.png docs/images/Ev5-ISS-13.png docs/images/Ev6-ISS-13.png \
+  docs/images/Ev7-ISS-13.png
+git commit -m "ISS-13: Middlewares de acceso"
+git push origin main
+```
+
 
 ### ISS-14 — Feature `refreshTokens` (sesiones)
 

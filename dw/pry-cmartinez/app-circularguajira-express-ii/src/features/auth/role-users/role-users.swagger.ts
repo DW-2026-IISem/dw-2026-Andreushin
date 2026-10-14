@@ -1,7 +1,7 @@
 import { bearerSecurity, unauthorizedResponse } from "../../../shared/http/swagger-security";
 
 /**
- * OpenAPI docs for role assignments (user <-> role). Access mode: JWT; RBAC in ISS-13.
+ * OpenAPI docs for role assignments (user <-> role). Access mode: JWT + RBAC (403 applied by src/swagger).
  */
 const TAG = "Asignaciones usuario-rol";
 const ITEM = "#/components/schemas/RoleUser";
@@ -24,7 +24,7 @@ export const roleUsersSwagger = {
     {
       name: TAG,
       description:
-        "Asignar, retirar y reactivar el rol de un usuario (primer eslabón de la cadena RBAC); sin borrado físico — **JWT**",
+        "Asignar, retirar y reactivar el rol de un usuario (primer eslabón de la cadena RBAC); sin borrado físico — **JWT + RBAC**",
     },
   ],
   paths: {

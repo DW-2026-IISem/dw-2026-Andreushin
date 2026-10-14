@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### create: liquida una recolección -> 201
 POST {{baseUrl}}/settlements
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -11,6 +14,7 @@ Content-Type: application/json
 
 ### create: la recolección ya está liquidada -> 409
 POST {{baseUrl}}/settlements
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -19,15 +23,19 @@ Content-Type: application/json
 
 ### getAll / getOne (con la recolección y sus pesajes)
 GET {{baseUrl}}/settlements
+Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/settlements/1
+Authorization: Bearer {{token}}
 
 ### verify: recalcula y compara con lo guardado
 GET {{baseUrl}}/settlements/1/verify
+Authorization: Bearer {{token}}
 
 ### PATCH: solo notas -> 200
 PATCH {{baseUrl}}/settlements/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -36,6 +44,7 @@ Content-Type: application/json
 
 ### un pesaje de una recolección liquidada no se puede modificar -> 409
 PATCH {{baseUrl}}/weighings/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -44,9 +53,12 @@ Content-Type: application/json
 
 ### delete de una liquidación emitida -> 409
 DELETE {{baseUrl}}/settlements/1
+Authorization: Bearer {{token}}
 
 ### void (lógico): anula y reabre la recolección -> 200
 PATCH {{baseUrl}}/settlements/1/void
+Authorization: Bearer {{token}}
 
 ### delete de una liquidación anulada (físico) -> 200
 DELETE {{baseUrl}}/settlements/1
+Authorization: Bearer {{token}}

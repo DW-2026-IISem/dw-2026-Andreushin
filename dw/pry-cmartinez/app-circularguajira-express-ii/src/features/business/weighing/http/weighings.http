@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### create: agrega un pesaje a una recolección abierta -> 201
 POST {{baseUrl}}/weighings
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -13,12 +16,15 @@ Content-Type: application/json
 
 ### getAll / getOne
 GET {{baseUrl}}/weighings
+Authorization: Bearer {{token}}
 
 ###
 GET {{baseUrl}}/weighings/1
+Authorization: Bearer {{token}}
 
 ### PATCH: nueva tara recalcula neto, importe y totales -> 200
 PATCH {{baseUrl}}/weighings/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -27,6 +33,7 @@ Content-Type: application/json
 
 ### PUT: ambos pesos -> 200
 PUT {{baseUrl}}/weighings/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -36,6 +43,8 @@ Content-Type: application/json
 
 ### deactivate (lógico) -> 200
 PATCH {{baseUrl}}/weighings/3/deactivate
+Authorization: Bearer {{token}}
 
 ### delete (físico) -> 200
 DELETE {{baseUrl}}/weighings/3
+Authorization: Bearer {{token}}

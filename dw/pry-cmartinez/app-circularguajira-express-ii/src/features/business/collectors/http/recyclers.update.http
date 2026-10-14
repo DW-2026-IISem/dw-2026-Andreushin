@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api/recyclers
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### PUT: reemplazo completo -> 200 (email y address omitidos quedan en null)
 PUT {{baseUrl}}/2
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -13,6 +16,7 @@ Content-Type: application/json
 
 ### PUT: faltan campos obligatorios -> 400
 PUT {{baseUrl}}/2
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -21,6 +25,7 @@ Content-Type: application/json
 
 ### PATCH: cambio parcial (reactiva un reciclador inactivo) -> 200
 PATCH {{baseUrl}}/3
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -30,6 +35,7 @@ Content-Type: application/json
 
 ### PATCH: documento de otro reciclador -> 409
 PATCH {{baseUrl}}/3
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -38,12 +44,14 @@ Content-Type: application/json
 
 ### PATCH: cuerpo vacío -> 400
 PATCH {{baseUrl}}/3
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {}
 
 ### PATCH: id inexistente -> 404
 PATCH {{baseUrl}}/9999
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {

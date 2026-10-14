@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api/materials
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### create: primera tarifa, abierta (sin validTo) -> 201
 POST {{baseUrl}}/1/rates
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -11,6 +14,7 @@ Content-Type: application/json
 
 ### create: nueva tarifa; la abierta anterior se cierra el día antes -> 201
 POST {{baseUrl}}/1/rates
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -20,6 +24,7 @@ Content-Type: application/json
 
 ### create: periodo que se cruza con otra tarifa -> 409
 POST {{baseUrl}}/1/rates
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -30,12 +35,16 @@ Content-Type: application/json
 
 ### history: tarifas del material, la más reciente primero
 GET {{baseUrl}}/1/rates
+Authorization: Bearer {{token}}
 
 ### current: tarifa aplicable hoy
 GET {{baseUrl}}/1/rates/current
+Authorization: Bearer {{token}}
 
 ### current: tarifa aplicable en una fecha
 GET {{baseUrl}}/1/rates/current?date=2026-09-15
+Authorization: Bearer {{token}}
 
 ### current: fecha fuera de todo periodo -> 404
 GET {{baseUrl}}/1/rates/current?date=2026-08-31
+Authorization: Bearer {{token}}

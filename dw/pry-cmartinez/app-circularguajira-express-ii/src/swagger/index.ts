@@ -1,6 +1,12 @@
 import { Application } from "express";
 import swaggerUi from "swagger-ui-express";
-import { bearerSecurityScheme } from "../shared/http/swagger-security";
+import {
+  bearerSecurity,
+  bearerSecurityScheme,
+  forbiddenResponse,
+  unauthorizedResponse,
+} from "../shared/http/swagger-security";
+import { RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
 import { recyclersSwagger } from "../features/business/collectors/recyclers.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
 import { routesSwagger } from "../features/business/routes/routes.swagger";
@@ -43,6 +49,26 @@ const sharedSchemas = {
   },
 };
 
+type OpenApiOperation = { security?: unknown[]; responses?: Record<string, unknown> };
+
+/**
+ * JWT + RBAC on every operation that is a catalog resource (the same list `authorize`
+ * enforces through the grants), so the docs cannot drift from the routes: bearerAuth,
+ * 401 and 403 are declared once here instead of in each feature.
+ */
+const protectedOperations = new Set(RESOURCE_CATALOG.map((r) => `${r.method} ${r.path}`));
+
+const applyAccessModes = (paths: Record<string, unknown>): void => {
+  for (const [path, operations] of Object.entries(paths)) {
+    const pattern = path.replace(/\{(\w+)\}/g, ":$1");
+    for (const [method, operation] of Object.entries(operations as Record<string, OpenApiOperation>)) {
+      if (!protectedOperations.has(`${method.toUpperCase()} ${pattern}`)) continue;
+      operation.security = bearerSecurity;
+      operation.responses = { ...operation.responses, "401": unauthorizedResponse, "403": forbiddenResponse };
+    }
+  }
+};
+
 export function buildOpenApiDocument() {
   const tags: unknown[] = [];
   const paths: Record<string, unknown> = {};
@@ -55,6 +81,7 @@ export function buildOpenApiDocument() {
       Object.assign(schemas, featureModule.components.schemas);
     }
   }
+  applyAccessModes(paths);
 
   return {
     openapi: "3.0.3",
@@ -63,12 +90,13 @@ export function buildOpenApiDocument() {
       version: "1.0.0",
       description:
         "API de la cadena de reciclaje CircularGuajira (Express + Sequelize). " +
-        "Fase I: todas las rutas business son **SIN AUTH**.",
+        "Modalidades de acceso: **OPEN** (sin credencial), **JWT** (`Authorization: Bearer`, 401) y " +
+        "**JWT + RBAC** (401 sin identidad válida, 403 sin concesión activa del par método + ruta). " +
+        "Todas las rutas de negocio y de administración son JWT + RBAC.",
     },
     servers: [{ url: `http://localhost:${process.env.PORT || 4000}`, description: "Local" }],
     tags,
     paths,
-    // bearerAuth is declared now; operations start requiring it when they are protected (ISS-13).
     components: { schemas, securitySchemes: bearerSecurityScheme },
   };
 }

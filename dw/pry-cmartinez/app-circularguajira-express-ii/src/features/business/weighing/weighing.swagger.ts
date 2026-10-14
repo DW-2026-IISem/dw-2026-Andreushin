@@ -2,7 +2,7 @@
  * OpenAPI docs for the weighing feature (collections + weighings).
  * Aggregated by `src/swagger` (external registry); nothing is mounted here.
  *
- * Phase I: every endpoint is **SIN AUTH** (no JWT, no RBAC).
+ * Access mode: JWT + RBAC on every endpoint (bearerAuth, 401 and 403 are applied by src/swagger).
  */
 
 const COLLECTIONS_TAG = "Recolecciones";
@@ -56,12 +56,12 @@ export const weighingSwagger = {
     {
       name: COLLECTIONS_TAG,
       description:
-        "Entrega de un reciclador en una ruta, con sus pesajes; totales derivados. Escrituras transaccionales — **SIN AUTH**",
+        "Entrega de un reciclador en una ruta, con sus pesajes; totales derivados. Escrituras transaccionales — **JWT + RBAC**",
     },
     {
       name: WEIGHINGS_TAG,
       description:
-        "Pesaje por material: neto = bruto − tara; importe = neto × tarifa vigente en la fecha de la recolección — **SIN AUTH**",
+        "Pesaje por material: neto = bruto − tara; importe = neto × tarifa vigente en la fecha de la recolección — **JWT + RBAC**",
     },
   ],
   paths: {
@@ -69,14 +69,14 @@ export const weighingSwagger = {
       get: {
         tags: [COLLECTIONS_TAG],
         summary: "Listar recolecciones activas con sus pesajes",
-        description: "SIN AUTH — la más reciente primero.",
+        description: "La más reciente primero.",
         responses: { "200": listResponse("Recolecciones activas", "collections", COLLECTION) },
       },
       post: {
         tags: [COLLECTIONS_TAG],
         summary: "Registrar recolección con sus pesajes (transaccional)",
         description:
-          "SIN AUTH — reciclador y ruta activos; cada pesaje toma la tarifa vigente en collectedOn. " +
+          "Reciclador y ruta activos; cada pesaje toma la tarifa vigente en collectedOn. " +
           "Si un pesaje falla, no se guarda nada.",
         requestBody: jsonBody("#/components/schemas/CollectionInput"),
         responses: {
@@ -100,7 +100,7 @@ export const weighingSwagger = {
       put: {
         tags: [COLLECTIONS_TAG],
         summary: "Actualizar cabecera (PUT)",
-        description: "SIN AUTH — si cambia la fecha, todos los pesajes se re-tarifican en la misma transacción.",
+        description: "Si cambia la fecha, todos los pesajes se re-tarifican en la misma transacción.",
         parameters: [idParameter("de la recolección")],
         requestBody: jsonBody("#/components/schemas/CollectionUpdate"),
         responses: {
@@ -113,7 +113,7 @@ export const weighingSwagger = {
       patch: {
         tags: [COLLECTIONS_TAG],
         summary: "Actualizar cabecera (PATCH)",
-        description: "SIN AUTH — solo lo enviado; un cambio de fecha re-tarifica los pesajes.",
+        description: "Solo lo enviado; un cambio de fecha re-tarifica los pesajes.",
         parameters: [idParameter("de la recolección")],
         requestBody: jsonBody("#/components/schemas/CollectionPatch"),
         responses: {
@@ -126,7 +126,7 @@ export const weighingSwagger = {
       delete: {
         tags: [COLLECTIONS_TAG],
         summary: "Eliminar recolección (físico)",
-        description: "SIN AUTH — borra pesajes y cabecera; 409 si tiene liquidaciones (emitidas o anuladas).",
+        description: "Borra pesajes y cabecera; 409 si tiene liquidaciones (emitidas o anuladas).",
         parameters: [idParameter("de la recolección")],
         responses: {
           "200": messageResponse("Recolección eliminada"),
@@ -140,7 +140,7 @@ export const weighingSwagger = {
       patch: {
         tags: [COLLECTIONS_TAG],
         summary: "Eliminar recolección (lógico)",
-        description: "SIN AUTH — recolección y pesajes inactivos.",
+        description: "Recolección y pesajes inactivos.",
         parameters: [idParameter("de la recolección")],
         responses: {
           "200": jsonResponse("Desactivada", "#/components/schemas/Collection"),
@@ -158,7 +158,7 @@ export const weighingSwagger = {
       post: {
         tags: [WEIGHINGS_TAG],
         summary: "Agregar pesaje a una recolección abierta",
-        description: "SIN AUTH — recalcula los totales de la recolección en la misma transacción.",
+        description: "Recalcula los totales de la recolección en la misma transacción.",
         requestBody: jsonBody("#/components/schemas/WeighingInput"),
         responses: {
           "201": jsonResponse("Pesaje registrado", WEIGHING),
@@ -182,7 +182,7 @@ export const weighingSwagger = {
       put: {
         tags: [WEIGHINGS_TAG],
         summary: "Actualizar pesos (PUT)",
-        description: "SIN AUTH — recolección y material no cambian; recalcula neto, importe y totales.",
+        description: "Recolección y material no cambian; recalcula neto, importe y totales.",
         parameters: [idParameter("del pesaje")],
         requestBody: jsonBody("#/components/schemas/WeighingUpdate"),
         responses: {
@@ -219,7 +219,7 @@ export const weighingSwagger = {
       patch: {
         tags: [WEIGHINGS_TAG],
         summary: "Eliminar pesaje (lógico)",
-        description: "SIN AUTH — deja de contar en los totales de la recolección.",
+        description: "Deja de contar en los totales de la recolección.",
         parameters: [idParameter("del pesaje")],
         responses: {
           "200": jsonResponse("Desactivado", WEIGHING),

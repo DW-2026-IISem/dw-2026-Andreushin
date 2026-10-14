@@ -6,7 +6,7 @@ const accessService = new AccessService();
 
 /**
  * JWT access mode: a valid Bearer token of an active user, or 401. Leaves the identity in
- * `req.auth`. RBAC (`authorize`, 403) is chained after it from ISS-13.
+ * `req.auth`. It never looks at permissions: `authorize` (403) is chained after it for RBAC.
  */
 export const authenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {

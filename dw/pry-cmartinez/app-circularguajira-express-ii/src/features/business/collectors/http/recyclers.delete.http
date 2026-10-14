@@ -1,13 +1,19 @@
 @baseUrl = http://localhost:4000/api/recyclers
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### deactivate: baja lógica (status = inactive) -> 200
 PATCH {{baseUrl}}/6/deactivate
+Authorization: Bearer {{token}}
 
 ### getAll: el reciclador desactivado ya no aparece
 GET {{baseUrl}}
+Authorization: Bearer {{token}}
 
 ### delete: borrado físico -> 200
 DELETE {{baseUrl}}/7
+Authorization: Bearer {{token}}
 
 ### delete: id ya eliminado o inexistente -> 404
 DELETE {{baseUrl}}/7
+Authorization: Bearer {{token}}

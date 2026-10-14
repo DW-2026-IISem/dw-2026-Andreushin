@@ -11,7 +11,7 @@ import { AddressInfo } from "node:net";
 import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
-import { signAccessToken } from "../shared/auth/jwt";
+import { createTestIdentity, TestIdentity } from "./support/identity";
 import { User } from "../features/auth/users/user.model";
 import { Role } from "../features/auth/roles/role.model";
 import { Resource } from "../features/auth/resources/resource.model";
@@ -24,6 +24,7 @@ type Json = Record<string, unknown>;
 let server: Server;
 let baseUrl = "";
 let token = "";
+let admin: TestIdentity;
 const tag = Date.now().toString().slice(-6);
 const letters = tag.replace(/\d/g, (d) => "ABCDEFGHIJ"[Number(d)]);
 
@@ -51,7 +52,8 @@ describe("ISS-12 assignments and grants", () => {
       ids.resources.push((await Resource.create({ method: "POST", path: `/api/test-${tag}/${suffix}`, status: "active" })).id);
     }
     Object.assign(ids, { user: user.id, inactiveUser: inactiveUser.id, role: role.id, inactiveRole: inactiveRole.id });
-    token = signAccessToken(user).token;
+    admin = await createTestIdentity(`test.padm${tag}`, ["ADMIN"]);
+    token = admin.token;
   });
 
   after(async () => {
@@ -60,6 +62,7 @@ describe("ISS-12 assignments and grants", () => {
     await Resource.destroy({ where: { id: ids.resources } });
     await Role.destroy({ where: { id: [ids.role, ids.inactiveRole] } });
     await User.destroy({ where: { id: [ids.user, ids.inactiveUser] } });
+    await admin.remove();
     server.close();
     await sequelize.close();
   });

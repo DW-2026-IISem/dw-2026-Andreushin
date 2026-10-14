@@ -1,13 +1,27 @@
 @baseUrl = http://localhost:4000/api/recyclers
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### getAll: lista solo recicladores activos
 GET {{baseUrl}}
+Authorization: Bearer {{token}}
 
 ### getOne: reciclador activo por id
 GET {{baseUrl}}/1
+Authorization: Bearer {{token}}
 
 ### getOne: id inexistente o inactivo -> 404
 GET {{baseUrl}}/9999
+Authorization: Bearer {{token}}
 
 ### getOne: id inválido -> 400
 GET {{baseUrl}}/abc
+Authorization: Bearer {{token}}
+
+
+### sin Authorization -> 401 (authenticate)
+GET {{baseUrl}}
+
+### token de un rol sin la lectura (p. ej. PLANTA) -> 403 (authorize, deny by default)
+GET {{baseUrl}}
+Authorization: Bearer {{token}}

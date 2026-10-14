@@ -1,4 +1,5 @@
 import { Application } from "express";
+import { authenticate, authorize } from "../../auth/access";
 import { MaterialsController } from "./materials.controller";
 import { MaterialRatesController } from "./material-rates.controller";
 
@@ -7,48 +8,48 @@ export class MaterialsRoutes {
   public materialRatesController: MaterialRatesController = new MaterialRatesController();
 
   public routes(app: Application): void {
-    // ================== RUTAS SIN AUTENTICACIÓN / SIN MIDDLEWARE JWT ==================
+    // JWT + RBAC: authenticate (401) -> authorize (403, deny by default) -> controller
 
     // getAll
     app
       .route("/api/materials")
-      .get(this.materialsController.getAll.bind(this.materialsController));
+      .get(authenticate, authorize, this.materialsController.getAll.bind(this.materialsController));
 
     // getOne
     app
       .route("/api/materials/:id")
-      .get(this.materialsController.getOne.bind(this.materialsController));
+      .get(authenticate, authorize, this.materialsController.getOne.bind(this.materialsController));
 
     // create
     app
       .route("/api/materials")
-      .post(this.materialsController.create.bind(this.materialsController));
+      .post(authenticate, authorize, this.materialsController.create.bind(this.materialsController));
 
     // update (PUT / PATCH)
     app
       .route("/api/materials/:id")
-      .put(this.materialsController.update.bind(this.materialsController))
-      .patch(this.materialsController.patch.bind(this.materialsController));
+      .put(authenticate, authorize, this.materialsController.update.bind(this.materialsController))
+      .patch(authenticate, authorize, this.materialsController.patch.bind(this.materialsController));
 
     // delete (físico)
     app
       .route("/api/materials/:id")
-      .delete(this.materialsController.delete.bind(this.materialsController));
+      .delete(authenticate, authorize, this.materialsController.delete.bind(this.materialsController));
 
     // deactivate (lógico)
     app
       .route("/api/materials/:id/deactivate")
-      .patch(this.materialsController.deactivate.bind(this.materialsController));
+      .patch(authenticate, authorize, this.materialsController.deactivate.bind(this.materialsController));
 
     // rates: history + new period
     app
       .route("/api/materials/:id/rates")
-      .get(this.materialRatesController.getHistory.bind(this.materialRatesController))
-      .post(this.materialRatesController.create.bind(this.materialRatesController));
+      .get(authenticate, authorize, this.materialRatesController.getHistory.bind(this.materialRatesController))
+      .post(authenticate, authorize, this.materialRatesController.create.bind(this.materialRatesController));
 
     // rates: applicable rate on a date (?date=YYYY-MM-DD, today by default)
     app
       .route("/api/materials/:id/rates/current")
-      .get(this.materialRatesController.getApplicable.bind(this.materialRatesController));
+      .get(authenticate, authorize, this.materialRatesController.getApplicable.bind(this.materialRatesController));
   }
 }

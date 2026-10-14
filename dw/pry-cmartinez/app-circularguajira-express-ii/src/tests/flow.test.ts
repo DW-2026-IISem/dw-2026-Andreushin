@@ -1,5 +1,5 @@
 /**
- * End-to-end business flow (Phase I, no auth): recycler + material/rates + route ->
+ * End-to-end business flow (Phase I, protected by JWT + RBAC since ISS-13): recycler + material/rates + route ->
  * collection with weighings -> settlement -> verify -> void -> settle again.
  *
  * Runs the real App against the configured database on a random port and goes through
@@ -15,6 +15,7 @@ import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 import { todayInColombia } from "../features/business/materials/material-rates.service";
+import { createTestIdentity, TestIdentity } from "./support/identity";
 
 type Json = Record<string, unknown>;
 interface ApiResponse {
@@ -24,11 +25,15 @@ interface ApiResponse {
 
 let server: Server;
 let baseUrl = "";
+let caller: TestIdentity;
 
 const api = async (method: string, path: string, body?: unknown): Promise<ApiResponse> => {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
-    headers: body === undefined ? undefined : { "Content-Type": "application/json" },
+    headers: {
+      Authorization: `Bearer ${caller.token}`,
+      ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+    },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   return { status: response.status, body: (await response.json()) as Json };
@@ -52,6 +57,7 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
     server = new App().app.listen(0);
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
+    caller = await createTestIdentity(`test.flow${tag}`, ["ADMIN"]);
 
     const recycler = await api("POST", "/recyclers", {
       name: `TEST Reciclador ${tag}`,
@@ -82,6 +88,7 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
     await api("PATCH", `/materials/${ids.materialNoRate}/deactivate`);
     await api("PATCH", `/routes/${ids.route}/deactivate`);
     await api("PATCH", `/recyclers/${ids.recycler}/deactivate`);
+    await caller.remove();
     server.close();
     await sequelize.close();
   });

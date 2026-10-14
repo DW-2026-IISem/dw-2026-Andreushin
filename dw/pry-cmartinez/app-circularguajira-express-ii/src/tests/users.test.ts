@@ -13,6 +13,7 @@ import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 import { signAccessToken } from "../shared/auth/jwt";
+import { createTestIdentity } from "./support/identity";
 import { verifyPassword } from "../shared/auth/password";
 import { User } from "../features/auth/users/user.model";
 import { Role } from "../features/auth/roles/role.model";
@@ -51,9 +52,9 @@ describe("ISS-10 users API (JWT)", () => {
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
 
-    const caller = await User.create({ username: `test.admin${tag}`, email: `test.admin${tag}@circularguajira.co`, password: "Admin2026!", status: "active" });
-    cleanup.push(() => caller.destroy());
-    token = signAccessToken(caller).token;
+    const caller = await createTestIdentity(`test.admin${tag}`, ["ADMIN"]);
+    cleanup.push(() => caller.remove());
+    token = caller.token;
   });
 
   after(async () => {
@@ -129,7 +130,8 @@ describe("ISS-10 users API (JWT)", () => {
   it("deactivation takes effect immediately and physical delete purges", async () => {
     const operator = await User.findByPk(operatorId);
     const operatorToken = signAccessToken({ id: operatorId, username: operator?.username ?? "" }).token;
-    assert.equal((await api("GET", "/users", undefined, operatorToken)).status, 200);
+    // Authenticated but without a grant for GET /api/users (RBAC, deny by default).
+    assert.equal((await api("GET", "/users", undefined, operatorToken)).status, 403);
 
     assert.equal((await api("PATCH", `/users/${operatorId}/deactivate`)).status, 200);
     assert.equal((await api("GET", "/users", undefined, operatorToken)).status, 401);

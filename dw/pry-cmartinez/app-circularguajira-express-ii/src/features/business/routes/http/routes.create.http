@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### create ruta -> 201 (active por defecto)
 POST {{baseUrl}}/routes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -12,6 +15,7 @@ Content-Type: application/json
 
 ### create ruta: nombre repetido -> 409
 POST {{baseUrl}}/routes
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -21,6 +25,7 @@ Content-Type: application/json
 
 ### create punto en la ruta 1 -> 201
 POST {{baseUrl}}/collection-points
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -32,6 +37,7 @@ Content-Type: application/json
 
 ### create punto: orden de visita repetido en la misma ruta -> 409
 POST {{baseUrl}}/collection-points
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -43,6 +49,7 @@ Content-Type: application/json
 
 ### create punto: ruta inexistente -> 404
 POST {{baseUrl}}/collection-points
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {

@@ -1,10 +1,10 @@
 import { Application } from "express";
 import { ResourceRolesController } from "./resource-roles.controller";
-import { authenticate } from "../access/authenticate";
+import { authenticate, authorize } from "../access";
 
 /**
- * Grant (permission) endpoints (5 operations, no physical delete). Access mode now: JWT
- * (`authenticate`); ISS-13 chains `authorize` (JWT + RBAC).
+ * Grant (permission) endpoints (5 operations, no physical delete). Access mode: JWT + RBAC
+ * (`authenticate` 401, then `authorize` 403).
  */
 export class ResourceRolesRoutes {
   public resourceRolesController: ResourceRolesController = new ResourceRolesController();
@@ -13,18 +13,18 @@ export class ResourceRolesRoutes {
     const controller = this.resourceRolesController;
 
     // getAll
-    app.route("/api/resource-roles").get(authenticate, controller.getAll.bind(controller));
+    app.route("/api/resource-roles").get(authenticate, authorize, controller.getAll.bind(controller));
 
     // getOne
-    app.route("/api/resource-roles/:id").get(authenticate, controller.getOne.bind(controller));
+    app.route("/api/resource-roles/:id").get(authenticate, authorize, controller.getOne.bind(controller));
 
     // grant (create or reactivate)
-    app.route("/api/resource-roles").post(authenticate, controller.grant.bind(controller));
+    app.route("/api/resource-roles").post(authenticate, authorize, controller.grant.bind(controller));
 
     // deactivate (revoke, logical)
-    app.route("/api/resource-roles/:id/deactivate").patch(authenticate, controller.deactivate.bind(controller));
+    app.route("/api/resource-roles/:id/deactivate").patch(authenticate, authorize, controller.deactivate.bind(controller));
 
     // reactivate
-    app.route("/api/resource-roles/:id/reactivate").patch(authenticate, controller.reactivate.bind(controller));
+    app.route("/api/resource-roles/:id/reactivate").patch(authenticate, authorize, controller.reactivate.bind(controller));
   }
 }

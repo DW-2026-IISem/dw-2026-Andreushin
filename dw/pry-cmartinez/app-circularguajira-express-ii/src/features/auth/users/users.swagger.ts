@@ -1,8 +1,8 @@
 import { bearerSecurity, unauthorizedResponse } from "../../../shared/http/swagger-security";
 
 /**
- * OpenAPI docs for the users feature. Access mode: JWT (Bearer token of an active user);
- * RBAC (403) is added to these operations in ISS-13.
+ * OpenAPI docs for the users feature. Access mode: JWT + RBAC (Bearer token of an active user);
+ * RBAC (403) is applied by src/swagger from the resource catalog.
  */
 const TAG = "Usuarios";
 
@@ -37,7 +37,7 @@ export const usersSwagger = {
     {
       name: TAG,
       description:
-        "Identidades del personal: CRUD, cambio de contraseña y permisos efectivos. La contraseña nunca entra ni sale en claro — **JWT**",
+        "Identidades del personal: CRUD, cambio de contraseña y permisos efectivos. La contraseña nunca entra ni sale en claro — **JWT + RBAC**",
     },
   ],
   paths: {

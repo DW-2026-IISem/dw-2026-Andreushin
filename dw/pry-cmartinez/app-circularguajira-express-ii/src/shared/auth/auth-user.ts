@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { UnauthorizedError } from "../errors/httpError";
 
-// Identity resolved by `authenticate` (ISS-13) and stored in `req.auth`.
+// Identity resolved by `authenticate` and stored in `req.auth`.
 export interface AuthUser {
   id: number;
   username: string;

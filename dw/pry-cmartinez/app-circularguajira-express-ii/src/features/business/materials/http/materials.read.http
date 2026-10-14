@@ -1,10 +1,15 @@
 @baseUrl = http://localhost:4000/api/materials
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### getAll: solo materiales activos
 GET {{baseUrl}}
+Authorization: Bearer {{token}}
 
 ### getOne: material activo por id
 GET {{baseUrl}}/1
+Authorization: Bearer {{token}}
 
 ### getOne: inexistente o inactivo -> 404
 GET {{baseUrl}}/9999
+Authorization: Bearer {{token}}

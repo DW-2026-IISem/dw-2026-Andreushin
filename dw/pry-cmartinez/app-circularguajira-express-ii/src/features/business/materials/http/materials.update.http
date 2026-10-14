@@ -1,7 +1,10 @@
 @baseUrl = http://localhost:4000/api/materials
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### PUT: reemplazo completo (status no se envía: solo cambia con deactivate) -> 200
 PUT {{baseUrl}}/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -11,6 +14,7 @@ Content-Type: application/json
 
 ### PATCH: cambio parcial -> 200
 PATCH {{baseUrl}}/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {
@@ -19,6 +23,7 @@ Content-Type: application/json
 
 ### PATCH: cuerpo vacío -> 400
 PATCH {{baseUrl}}/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {}

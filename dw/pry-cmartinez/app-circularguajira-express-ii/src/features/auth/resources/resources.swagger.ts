@@ -1,7 +1,7 @@
 import { bearerSecurity, unauthorizedResponse } from "../../../shared/http/swagger-security";
 
 /**
- * OpenAPI docs for the recursos feature. Access mode: JWT; RBAC (403) is added in ISS-13.
+ * OpenAPI docs for the recursos feature. Access mode: JWT + RBAC (403 applied by src/swagger).
  */
 const TAG = "Recursos";
 
@@ -28,7 +28,7 @@ const errorResponse = (description: string) => jsonResponse(description, "#/comp
 const ITEM = "#/components/schemas/Resource";
 
 export const resourcesSwagger = {
-  tags: [{ name: TAG, description: "Catálogo de puntos de acceso protegibles: par (method, path) con la ruta en patrón — **JWT**" }],
+  tags: [{ name: TAG, description: "Catálogo de puntos de acceso protegibles: par (method, path) con la ruta en patrón — **JWT + RBAC**" }],
   paths: {
     "/api/resources": {
       get: {

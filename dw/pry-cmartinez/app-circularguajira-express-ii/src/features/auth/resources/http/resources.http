@@ -1,4 +1,4 @@
-### Recursos (modalidad JWT). Un recurso es el par (method, path) con la ruta EN PATRÓN.
+### Recursos (modalidad JWT + RBAC: solo ADMIN). Un recurso es el par (method, path) con la ruta EN PATRÓN.
 @baseUrl = http://localhost:4000/api
 @token = <access_token>
 

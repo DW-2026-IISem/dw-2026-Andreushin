@@ -1,16 +1,23 @@
 @baseUrl = http://localhost:4000/api
+# JWT + RBAC: access token de un usuario con la concesión (401 sin token, 403 sin permiso).
+@token = <access_token>
 
 ### deactivate ruta (lógico) -> 200
 PATCH {{baseUrl}}/routes/2/deactivate
+Authorization: Bearer {{token}}
 
 ### delete ruta con puntos -> 409
 DELETE {{baseUrl}}/routes/1
+Authorization: Bearer {{token}}
 
 ### deactivate punto (lógico) -> 200
 PATCH {{baseUrl}}/collection-points/1/deactivate
+Authorization: Bearer {{token}}
 
 ### delete punto (físico) -> 200
 DELETE {{baseUrl}}/collection-points/1
+Authorization: Bearer {{token}}
 
 ### delete ruta sin puntos (físico, aunque esté inactiva) -> 200
 DELETE {{baseUrl}}/routes/2
+Authorization: Bearer {{token}}
