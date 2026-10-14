@@ -781,11 +781,85 @@ git commit -m "ISS-04: Seeders con Faker"
 git push origin main
 ```
 
+Commit: [`eb32d21`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/eb32d211f99dfeb2ea86db901905cefc5bffa485)
+
 ### ISS-05 — Swagger / OpenAPI
 
 Documentar rutas, parámetros, cuerpos, respuestas y errores mediante Swagger/OpenAPI. Mantener la especificación alineada con los endpoints implementados.
 
 **Verificación:** documentación cargada y endpoints de la Fase I consultables.
+
+Cada feature documenta su API en `<plural>.swagger.ts`; un registry externo (`src/swagger`) las fusiona, igual que el SeedersRunner. Materiales y rutas se suman en ISS-06 e ISS-07.
+
+Criterios de aceptación (ISS-05)
+
+- [x] `collectors/recyclers.swagger.ts` con tags, paths y schemas de Recycler; endpoints marcados SIN AUTH
+- [x] `src/swagger/index.ts` fusiona los módulos de las features (`buildOpenApiDocument`) y monta la UI (`setupSwagger`)
+- [x] La App llama a `setupSwagger` desde el método `docs()`
+- [x] `GET /api/docs` muestra Swagger UI
+- [x] `GET /api/docs.json` devuelve el documento OpenAPI
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+npm install swagger-ui-express@^5.0.1
+npm install -D @types/swagger-ui-express@^4.1.8
+mkdir -p src/swagger
+
+# features/business/collectors/recyclers.swagger.ts: tag Recicladores, 7 operaciones con sus
+#   códigos reales (200/201/400/404/409) y schemas Recycler, RecyclerInput y RecyclerPatch
+# src/swagger/index.ts: featureSwaggerModules, ErrorResponse compartido, buildOpenApiDocument
+#   (OpenAPI 3.0.3) y setupSwagger (/api/docs y /api/docs.json)
+# src/config/index.ts: import de setupSwagger, this.docs() en el constructor y método docs()
+```
+
+### Verificación del ISS
+
+```bash
+curl -s http://localhost:4000/api/docs.json | head -c 400
+# navegador: http://localhost:4000/api/docs
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Docs del feature:** `recyclers.swagger.ts` exporta `recyclersSwagger` con `tags`, los paths `/api/recyclers`, `/{id}` y `/{id}/deactivate`, cada operación con "SIN AUTH" y los schemas `Recycler`, `RecyclerInput` y `RecyclerPatch`.
+
+![Ev1 ISS-05](images/Ev1-ISS-05.png)
+
+**Ev2 — Registry:** `src/swagger/index.ts` importa `recyclersSwagger`, lo fusiona con `Object.assign` en `buildOpenApiDocument` (OpenAPI 3.0.3, "CircularGuajira API") y `setupSwagger` monta `/api/docs.json` y `/api/docs`.
+
+![Ev2 ISS-05](images/Ev2-ISS-05.png)
+
+**Ev3 — Montaje en la App:** `config/index.ts` importa `setupSwagger`, llama a `this.docs()` y el método `docs()` lo invoca.
+
+![Ev3 ISS-05](images/Ev3-ISS-05.png)
+
+**Ev4 — Swagger UI:** el navegador en `http://localhost:4000/api/docs` muestra "CircularGuajira API", el tag Recicladores (SIN AUTH) con los 7 endpoints y los 4 schemas.
+
+![Ev4 ISS-05](images/Ev4-ISS-05.png)
+
+**Ev5 — OpenAPI JSON:** `/api/docs.json` responde 200 `application/json`, con `openapi 3.0.3`, los tres paths con sus métodos y los schemas.
+
+![Ev5 ISS-05](images/Ev5-ISS-05.png)
+
+**Ev6 — Type-check:** `npx tsc --noEmit` termina sin errores.
+
+![Ev6 ISS-05](images/Ev6-ISS-05.png)
+
+### Commit
+
+```bash
+git add package.json package-lock.json \
+  src/features/business/collectors/recyclers.swagger.ts \
+  src/swagger/index.ts src/config/index.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-05.png docs/images/Ev2-ISS-05.png \
+  docs/images/Ev3-ISS-05.png docs/images/Ev4-ISS-05.png docs/images/Ev5-ISS-05.png \
+  docs/images/Ev6-ISS-05.png
+git commit -m "ISS-05: Swagger / OpenAPI"
+git push origin main
+```
 
 ### ISS-06 — Feature `materials` (materiales y `TarifaMaterial`)
 

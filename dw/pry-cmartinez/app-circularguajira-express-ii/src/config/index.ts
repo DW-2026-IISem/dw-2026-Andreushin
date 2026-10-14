@@ -3,6 +3,7 @@ import express, { Application } from "express";
 import morgan from "morgan";
 import cors from "cors";
 import { Routes } from "../routes/index";
+import { setupSwagger } from "../swagger/index";
 import { sequelize, testConnection } from "../database/db";
 // Models must be loaded before sequelize.sync().
 import "../features/business/collectors/recycler.model";
@@ -18,6 +19,7 @@ export class App {
     this.settings();
     this.middlewares();
     this.routes();
+    this.docs();
   }
 
   private settings(): void {
@@ -36,6 +38,10 @@ export class App {
       res.json({ status: "ok" });
     });
     this.routePrv.recyclersRoutes.routes(this.app);
+  }
+
+  private docs(): void {
+    setupSwagger(this.app);
   }
 
   private async dbConnection(): Promise<void> {
