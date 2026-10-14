@@ -59,7 +59,7 @@ Crear la aplicación Express y la estructura por *features* para el dominio de r
 Criterios de aceptación (ISS-01)
 
 - [x] 2.1 Existe package.json con "type": "commonjs" y scripts build / dev
-- [x] 2.2 Árbol src/ con config, database/seeders, routes, shared, features/business/clients (auth fuera de alcance de este lab)
+- [x] 2.2 Árbol src/ con config, database/seeders, routes, shared, features/business/collectors (auth fuera de alcance de este lab)
 - [x] 2.3 Dependencias Express/TS instaladas (npm ls --depth=0)
 - [x] 2.4 Existe tsconfig.json (rootDir: ./src, outDir: ./dist, strict: true)
 - [x] 2.5 Existen src/server.ts y src/config/index.ts (esqueleto App)
@@ -97,7 +97,7 @@ mkdir -p \
   src/shared/errors \
   src/shared/http \
   src/shared/database \
-  src/features/business/clients
+  src/features/business/collectors
 find src -type d | sort
 ```
 
@@ -225,7 +225,7 @@ curl localhost:4000/health
 
 ![Ev1 ISS-01](images/Ev1-ISS-01.png)
 
-**Ev2 — Estructura src/:** `find src -type d | sort` muestra config, database/seeders, routes, shared y features/business/clients.
+**Ev2 — Estructura src/:** `find src -type d | sort` muestra config, database/seeders, routes, shared y features/business/collectors.
 
 ![Ev2 ISS-01](images/Ev2-ISS-01.png)
 
@@ -257,11 +257,75 @@ git commit -m "ISS-01: Esqueleto del proyecto"
 git push origin main
 ```
 
+Commit: [`db14ec1`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/db14ec17acb78c5fdee78c4daae177165bd1ba6f)
+
 ### ISS-02 — Infraestructura de base de datos
 
 Configurar Sequelize, conexión, modelos, asociaciones y migraciones para la base relacional. Definir convenciones para claves, fechas, restricciones e índices.
 
+Criterios de aceptación (ISS-02)
+
+- [x] 3.1 Paquetes Sequelize/drivers instalados; existe .env con DB_ENGINE y bloques de motores
+- [x] 3.2 Existe src/database/db.ts exportando sequelize, getDatabaseInfo, testConnection
+- [x] 3.3 Existe carpeta src/database/seeders/ sin lógica implementada aún
+- [x] npx tsc --noEmit sin errores al cerrar el ISS
+
+### Pasos
+
+```bash
+npm install sequelize@^6.37.8 mysql2@^3.24.4 pg@^8.23.0 pg-hstore@^2.3.4 \
+  tedious@^20.0.0 oracledb@^7.0.1
+npm install -D @types/sequelize@^6.12.0
+
+# .env: PORT, DB_ENGINE y bloques MYSQL_*, POSTGRES_*, MSSQL_*, ORACLE_* (no se versiona)
+test -f .env && grep DB_ENGINE .env
+npm ls sequelize mysql2 --depth=0
+
+# src/database/db.ts: config por motor según DB_ENGINE, instancia sequelize,
+# getDatabaseInfo (sin contraseña) y testConnection (sequelize.authenticate)
+mkdir -p src/database/seeders
+touch src/database/seeders/.gitkeep
+```
+
+### Verificación del ISS
+
+```bash
+npx tsc --noEmit
+test -f src/database/db.ts && test -f .env && test -d src/database/seeders
+npm run dev
+```
+
 **Verificación:** conexión comprobable y migraciones ejecutables; los errores no exponen secretos.
+
+#### Evidencias
+
+**Ev1 — Drivers y .env:** `npm ls --depth=0` lista sequelize 6.37.8, mysql2, pg, pg-hstore, tedious, oracledb y @types/sequelize; el `.env` tiene PORT, DB_ENGINE y los bloques MySQL/Postgres/MSSQL/Oracle (solo nombres de variables).
+
+![Ev1 ISS-02](images/Ev1-ISS-02.png)
+
+**Ev2 — db.ts:** `grep -nE '^export' src/database/db.ts` muestra `sequelize`, `getDatabaseInfo` y `testConnection`.
+
+![Ev2 ISS-02](images/Ev2-ISS-02.png)
+
+**Ev3 — Seeders:** `src/database/seeders/` solo contiene `.gitkeep`.
+
+![Ev3 ISS-02](images/Ev3-ISS-02.png)
+
+**Ev4 — Type-check y arranque:** `npx tsc --noEmit` sin errores y `npm run dev` arranca en el puerto 4000.
+
+![Ev4 ISS-02](images/Ev4-ISS-02.png)
+
+### Commit
+
+```bash
+git add package.json package-lock.json \
+  src/database/db.ts src/database/seeders/.gitkeep \
+  docs/PROCESO.md docs/images/Ev2-ISS-01.png \
+  docs/images/Ev1-ISS-02.png docs/images/Ev2-ISS-02.png \
+  docs/images/Ev3-ISS-02.png docs/images/Ev4-ISS-02.png
+git commit -m "ISS-02: Infraestructura de base de datos"
+git push origin main
+```
 
 ### ISS-03 — Feature `collectors` (recicladores)
 
