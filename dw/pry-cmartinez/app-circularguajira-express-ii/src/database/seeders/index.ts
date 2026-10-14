@@ -10,6 +10,8 @@ import "../../features/business/weighing/weighing.associations";
 import "../../features/business/settlements/settlements.associations";
 import "../../features/auth/rbac.associations";
 import { seedUsers } from "../../features/auth/users/users.seeder";
+import { seedRoles } from "../../features/auth/roles/roles.seeder";
+import { seedResources } from "../../features/auth/resources/resources.seeder";
 import { seedCollections } from "../../features/business/weighing/weighing.seeder";
 import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";
@@ -53,6 +55,9 @@ export async function runAllSeeders(): Promise<void> {
   await seedSettlements(counts.settlements);
   // Phase II: auth
   await seedUsers(counts.users);
+  // Deterministic catalogs (no counts): roles and protected resources.
+  await seedRoles();
+  await seedResources();
 
   console.log("🌱 SeedersRunner finished");
 }

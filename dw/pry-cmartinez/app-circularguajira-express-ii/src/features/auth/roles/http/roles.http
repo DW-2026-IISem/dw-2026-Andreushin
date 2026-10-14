@@ -1,0 +1,57 @@
+### Roles (modalidad JWT). Hasta que exista el login, pega un access token válido.
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+
+### getAll: ADMIN, LOGISTICA, BASCULA, PLANTA, FINANZAS
+GET {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+
+### getOne
+GET {{baseUrl}}/roles/1
+Authorization: Bearer {{token}}
+
+### create: nace SIN permisos; el nombre se guarda en mayúsculas -> 201
+POST {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "auditoria",
+  "description": "Solo lectura"
+}
+
+### create: nombre repetido -> 409
+POST {{baseUrl}}/roles
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "BASCULA"
+}
+
+### PUT -> 200
+PUT {{baseUrl}}/roles/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "AUDITORIA",
+  "description": "Auditoría de liquidaciones"
+}
+
+### PATCH -> 200
+PATCH {{baseUrl}}/roles/6
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Auditoría operativa"
+}
+
+### deactivate: sus usuarios pierden de inmediato esos permisos
+PATCH {{baseUrl}}/roles/6/deactivate
+Authorization: Bearer {{token}}
+
+### delete (físico); 409 si tiene asignaciones o concesiones
+DELETE {{baseUrl}}/roles/6
+Authorization: Bearer {{token}}

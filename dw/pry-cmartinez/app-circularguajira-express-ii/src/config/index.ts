@@ -52,6 +52,8 @@ export class App {
     this.routePrv.settlementsRoutes.routes(this.app);
     // Phase II: auth
     this.routePrv.usersRoutes.routes(this.app);
+    this.routePrv.rolesRoutes.routes(this.app);
+    this.routePrv.resourcesRoutes.routes(this.app);
   }
 
   private docs(): void {

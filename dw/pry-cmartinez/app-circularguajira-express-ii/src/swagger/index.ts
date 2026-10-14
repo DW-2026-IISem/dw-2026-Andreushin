@@ -7,6 +7,8 @@ import { routesSwagger } from "../features/business/routes/routes.swagger";
 import { weighingSwagger } from "../features/business/weighing/weighing.swagger";
 import { settlementsSwagger } from "../features/business/settlements/settlements.swagger";
 import { usersSwagger } from "../features/auth/users/users.swagger";
+import { rolesSwagger } from "../features/auth/roles/roles.swagger";
+import { resourcesSwagger } from "../features/auth/resources/resources.swagger";
 
 export type FeatureSwaggerModule = {
   tags: unknown[];
@@ -25,6 +27,8 @@ const featureSwaggerModules: FeatureSwaggerModule[] = [
   weighingSwagger,
   settlementsSwagger,
   usersSwagger,
+  rolesSwagger,
+  resourcesSwagger,
 ];
 
 // Shared by every feature: shape produced by src/shared/http/handleError.ts.

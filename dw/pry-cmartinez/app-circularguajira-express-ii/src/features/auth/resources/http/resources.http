@@ -1,0 +1,59 @@
+### Recursos (modalidad JWT). Un recurso es el par (method, path) con la ruta EN PATRÓN.
+@baseUrl = http://localhost:4000/api
+@token = <access_token>
+
+### getAll: el catálogo completo (87 recursos sembrados)
+GET {{baseUrl}}/resources
+Authorization: Bearer {{token}}
+
+### getOne
+GET {{baseUrl}}/resources/1
+Authorization: Bearer {{token}}
+
+### create: punto de acceso nuevo (verbo y ruta se normalizan) -> 201
+POST {{baseUrl}}/resources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "get",
+  "path": "/api/reports/settlements/:id/",
+  "description": "Reporte de liquidación"
+}
+
+### create: (method, path) ya existe -> 409
+POST {{baseUrl}}/resources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "POST",
+  "path": "/api/weighings"
+}
+
+### create: ruta que no es un patrón de la API -> 400
+POST {{baseUrl}}/resources
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "method": "GET",
+  "path": "reportes"
+}
+
+### PATCH -> 200
+PATCH {{baseUrl}}/resources/88
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "description": "Reporte de liquidación por id"
+}
+
+### deactivate: ningún rol puede ya autorizar ese endpoint
+PATCH {{baseUrl}}/resources/88/deactivate
+Authorization: Bearer {{token}}
+
+### delete (físico); 409 si está concedido a algún rol
+DELETE {{baseUrl}}/resources/88
+Authorization: Bearer {{token}}

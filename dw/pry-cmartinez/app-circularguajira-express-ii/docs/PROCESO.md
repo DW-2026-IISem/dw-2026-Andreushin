@@ -1553,11 +1553,100 @@ git commit -m "ISS-10: Feature users (identidad y contraseña)"
 git push origin main
 ```
 
+Commit: [`a12cb79`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/a12cb796361427c4f887e597d48468eb2ce5d1ee)
+
 ### ISS-11 — Features `roles` y `resources`
 
 Registrar los roles iniciales y los recursos/acciones protegidos. Incluir, entre otros, `POST /recolecciones`, `POST /pesajes`, `POST /lotes-material` y `POST /liquidaciones`. Definir la matriz de acceso según las responsabilidades del negocio.
 
 **Verificación:** roles y recursos se inicializan de forma repetible y la matriz queda documentada.
+
+Los dos extremos del permiso: el **rol** (a quién se concede) y el **recurso** (qué se concede, el par `(method, path)` con la ruta en patrón). Las concesiones que los unen son ISS-12. Igual que en ISS-10, las rutas quedan en modalidad JWT hasta que ISS-13 encadene `authorize`.
+
+Matriz de mínimo privilegio declarada en `resource-catalog.ts` (ADMIN recibe todo): LOGISTICA gestiona rutas, puntos, recicladores y recepción de recolecciones; BASCULA registra pesajes (y recolecciones, que se crean con sus pesajes); PLANTA gestiona el catálogo de materiales y consulta recolecciones y pesajes; FINANZAS gestiona tarifas y liquidaciones. El borrado físico y la administración de auth son solo de ADMIN.
+
+Criterios de aceptación (ISS-11)
+
+- [x] `roles/dto/role.dto.ts` y `role.validation.ts` (nombre único en mayúsculas, sin `status` en PUT/PATCH)
+- [x] Roles: repository, service, controller y rutas `/api/roles` (7 operaciones, JWT)
+- [x] `roles.seeder.ts` (ADMIN, LOGISTICA, BASCULA, PLANTA, FINANZAS, idempotente) y `roles.swagger.ts`
+- [x] `resources/dto/` y `resource-catalog.ts` con los 87 recursos de la API (54 de negocio y 33 de administración) y los roles que reciben cada uno
+- [x] Resources: repository, service, controller y rutas `/api/resources` (7 operaciones, JWT); `(method, path)` normalizado y único (409)
+- [x] `resources.seeder.ts` (carga el catálogo, idempotente) y `resources.swagger.ts`
+- [x] Archivos `http/` de ambos features
+- [x] npx tsc --noEmit sin errores; `test:rbac` verifica el CRUD y que toda operación documentada está en el catálogo
+
+### Pasos
+
+```bash
+mkdir -p src/features/auth/{roles,resources}/{dto,http}
+
+# resources/resource-catalog.ts: ROLE_NAMES, RESOURCE_CATALOG (helper crud() para las 7 operaciones
+#   de cada feature; el DELETE físico solo ADMIN) y resourcesForRole()
+# roles/: dto (role.dto + role.validation), repository, service, controller, routes, seeder, swagger, http
+# resources/: dto (resource.dto + resource.validation: método permitido y patrón /api/...),
+#   repository, service, controller, routes, seeder, swagger, http
+# routes/index.ts, config/index.ts, src/swagger/index.ts y SeedersRunner (seedRoles, seedResources)
+# src/tests/rbac-catalog.test.ts + "test:rbac" en package.json
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:rbac
+npm run db:seed   # dos veces: la segunda no crea nada
+npx tsc --noEmit
+```
+
+**Decisiones respecto a la guía:** roles del dominio en lugar de ADMIN/SELLER; catálogo propio (87 recursos en vez de 58) con los roles de cada recurso en el mismo archivo, del que ISS-12 derivará las concesiones; rutas `/api/roles` y `/api/resources`; las rutas de ISS-12 quedan catalogadas como `/api/role-users` y `/api/resource-roles`.
+
+#### Evidencias
+
+**Ev1 — DTO de roles:** `roles/dto` exporta `RoleCreateDto`, `RoleUpdateDto`, `RolePatchDto` y los parsers de validación.
+
+![Ev1 ISS-11](images/Ev1-ISS-11.png)
+
+**Ev2 — Rutas de roles:** las 7 operaciones de `/api/roles` usan `authenticate`, responden 401 sin token y OpenAPI las documenta con `bearerAuth`.
+
+![Ev2 ISS-11](images/Ev2-ISS-11.png)
+
+**Ev3 — Seeder de roles:** el primer `db:seed` crea 5 roles y 87 recursos; el segundo no crea nada; MySQL lista ADMIN, LOGISTICA, BASCULA, PLANTA y FINANZAS activos con su descripción.
+
+![Ev3 ISS-11](images/Ev3-ISS-11.png)
+
+**Ev4 — Catálogo:** `resource-catalog.ts` exporta `ROLE_NAMES`, `RESOURCE_CATALOG` (helper `crud`) y `resourcesForRole`; 87 recursos únicos; ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13, FINANZAS 18.
+
+![Ev4 ISS-11](images/Ev4-ISS-11.png)
+
+**Ev5 — Rutas de recursos:** las 7 operaciones de `/api/resources` usan `authenticate`, responden 401 sin token y están documentadas con `bearerAuth`.
+
+![Ev5 ISS-11](images/Ev5-ISS-11.png)
+
+**Ev6 — Recursos sembrados:** MySQL agrupa los 87 recursos activos por feature (recyclers 7, materials 10, routes 8, settlements 8, users 9, role-users 5, resource-roles 5...) y el seeder reconcilia con `findOrCreate` y reactivación.
+
+![Ev6 ISS-11](images/Ev6-ISS-11.png)
+
+**Ev7 — Archivos http:** `roles.http` y `resources.http` con lectura, alta, 409, 400, cambios y bajas.
+
+![Ev7 ISS-11](images/Ev7-ISS-11.png)
+
+**Ev8 — Pruebas y type-check:** `test:rbac` pasa 4 de 4 (cobertura del catálogo, 401, CRUD de roles y de recursos con 409 por FK y por duplicados); `tsc` sin errores; `test:users` 7 de 7.
+
+![Ev8 ISS-11](images/Ev8-ISS-11.png)
+
+### Commit
+
+```bash
+git add package.json src/features/auth/roles src/features/auth/resources \
+  src/routes/index.ts src/config/index.ts src/swagger/index.ts \
+  src/database/seeders/index.ts src/tests/rbac-catalog.test.ts \
+  docs/PROCESO.md docs/images/Ev1-ISS-11.png docs/images/Ev2-ISS-11.png \
+  docs/images/Ev3-ISS-11.png docs/images/Ev4-ISS-11.png docs/images/Ev5-ISS-11.png \
+  docs/images/Ev6-ISS-11.png docs/images/Ev7-ISS-11.png docs/images/Ev8-ISS-11.png
+git commit -m "ISS-11: Features roles y resources"
+git push origin main
+```
 
 ### ISS-12 — Features `roleUsers` y `resourceRoles`
 

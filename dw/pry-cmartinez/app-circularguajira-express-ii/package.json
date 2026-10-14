@@ -15,7 +15,8 @@
     "db:seed": "ts-node -- src/database/seeders/index.ts",
     "test:flow": "node --require ts-node/register --test src/tests/flow.test.ts",
     "test:auth": "node --require ts-node/register --test src/tests/auth.test.ts",
-    "test:users": "node --require ts-node/register --test src/tests/users.test.ts"
+    "test:users": "node --require ts-node/register --test src/tests/users.test.ts",
+    "test:rbac": "node --require ts-node/register --test src/tests/rbac-catalog.test.ts"
   },
   "keywords": [],
   "author": "",
