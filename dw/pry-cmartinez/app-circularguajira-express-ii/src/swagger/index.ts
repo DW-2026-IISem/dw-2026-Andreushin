@@ -92,17 +92,31 @@ export function buildOpenApiDocument() {
     info: {
       title: "CircularGuajira API",
       version: "1.0.0",
-      description:
-        "API de la cadena de reciclaje CircularGuajira (Express + Sequelize). " +
-        "Modalidades de acceso: **OPEN** (sin credencial), **JWT** (`Authorization: Bearer`, 401) y " +
-        "**JWT + RBAC** (401 sin identidad válida, 403 sin concesión activa del par método + ruta). " +
-        "Login, refresh y logout son OPEN; perfil, permisos y sesiones propias, JWT; negocio y administración, JWT + RBAC. " +
-        "Obtén el token en `POST /api/session/login` y pégalo en **Authorize**.",
+      description: [
+        "API de la cadena de reciclaje CircularGuajira (Express + Sequelize) con **Auth con RBAC**.",
+        "",
+        "**Modalidades de acceso** (declaradas por operación):",
+        "",
+        "- **OPEN**, sin identidad previa: `POST /api/session/login`, `/refresh`, `/logout`.",
+        "- **JWT**, access token válido de un usuario activo (401 si no): `/api/session/profile`, `/api/session/permissions`, `/api/sessions/*`.",
+        "- **JWT + RBAC**, además una concesión activa del par (método, ruta) (403 si no, deny by default): " +
+          "todo el negocio y la administración de seguridad.",
+        "",
+        "Obtén el `accessToken` en `POST /api/session/login` y pulsa **Authorize**. " +
+          "Usuarios de laboratorio (`npm run db:seed`): `admin`, `logistica`, `bascula`, `planta` y `finanzas`; ver README.",
+      ].join("\n"),
     },
     servers: [{ url: `http://localhost:${process.env.PORT || 4000}`, description: "Local" }],
     tags,
     paths,
-    components: { schemas, securitySchemes: bearerSecurityScheme },
+    // Secure by default: an operation without its own `security` requires the access token;
+    // the OPEN ones override it with `security: []`.
+    security: bearerSecurity,
+    components: {
+      schemas,
+      securitySchemes: bearerSecurityScheme,
+      responses: { Unauthorized: unauthorizedResponse, Forbidden: forbiddenResponse },
+    },
   };
 }
 

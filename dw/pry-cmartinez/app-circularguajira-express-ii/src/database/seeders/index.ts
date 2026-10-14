@@ -47,7 +47,16 @@ export async function runAllSeeders(): Promise<void> {
   // The seeders never change the schema: it must be migrated first.
   await assertNoPendingMigrations();
 
-  // Order: business parents -> children.
+  // Security first, so the system is operable right away (canonical users with their
+  // roles and the full RBAC matrix): roles -> resources -> users -> role_users -> resource_roles.
+  // Roles and resources are deterministic catalogs (no counts) and reconcile on every run.
+  await seedRoles();
+  await seedResources();
+  await seedUsers(counts.users);
+  await seedRoleUsers();
+  await seedResourceRoles();
+
+  // Business: parents -> children.
   await seedRecyclers(counts.recyclers);
   await seedMaterials(counts.materials);
   await seedMaterialRates(counts.materialRates);
@@ -55,14 +64,6 @@ export async function runAllSeeders(): Promise<void> {
   await seedCollectionPoints(counts.collectionPoints);
   await seedCollections(counts.collections, counts.weighings);
   await seedSettlements(counts.settlements);
-  // Phase II: auth
-  await seedUsers(counts.users);
-  // Deterministic catalogs (no counts): roles and protected resources.
-  await seedRoles();
-  await seedResources();
-  // The permission matrix: assignments (user -> role) and grants (role -> resource).
-  await seedRoleUsers();
-  await seedResourceRoles();
 
   console.log("🌱 SeedersRunner finished");
 }

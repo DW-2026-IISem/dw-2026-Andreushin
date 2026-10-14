@@ -1,9 +1,12 @@
 /**
- * End-to-end business flow (Phase I, protected by JWT + RBAC since ISS-13): recycler + material/rates + route ->
+ * End-to-end business flow, protected by JWT + RBAC: each step is done by the role that owns
+ * it (LOGISTICA, PLANTA, FINANZAS, BASCULA; physical deletes by ADMIN), with access tokens
+ * obtained through POST /api/session/login. Flow: recycler + material/rates + route ->
  * collection with weighings -> settlement -> verify -> void -> settle again.
  *
  * Runs the real App against the configured database on a random port and goes through
- * the HTTP API only. It creates its own TEST-* data and leaves it deactivated.
+ * the HTTP API only. It creates its own TEST-* data and leaves it deactivated. Requires the
+ * seeded roles and grants (npm run db:seed).
  *
  *   npm run test:flow
  */
@@ -15,6 +18,7 @@ import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 import { todayInColombia } from "../features/business/materials/material-rates.service";
+import { RoleName } from "../features/auth/resources/resource-catalog";
 import { createTestIdentity, TestIdentity } from "./support/identity";
 
 type Json = Record<string, unknown>;
@@ -25,13 +29,14 @@ interface ApiResponse {
 
 let server: Server;
 let baseUrl = "";
-let caller: TestIdentity;
+const identities: TestIdentity[] = [];
+const tokens = new Map<RoleName, string>();
 
-const api = async (method: string, path: string, body?: unknown): Promise<ApiResponse> => {
+const api = async (role: RoleName, method: string, path: string, body?: unknown): Promise<ApiResponse> => {
   const response = await fetch(`${baseUrl}${path}`, {
     method,
     headers: {
-      Authorization: `Bearer ${caller.token}`,
+      Authorization: `Bearer ${tokens.get(role) ?? ""}`,
       ...(body === undefined ? {} : { "Content-Type": "application/json" }),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
@@ -57,9 +62,20 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
     server = new App().app.listen(0);
     await new Promise<void>((resolve) => server.once("listening", () => resolve()));
     baseUrl = `http://127.0.0.1:${(server.address() as AddressInfo).port}/api`;
-    caller = await createTestIdentity(`test.flow${tag}`, ["ADMIN"]);
+    // One user per role, logged in through the session API (password set by createTestIdentity).
+    for (const role of ["ADMIN", "LOGISTICA", "PLANTA", "FINANZAS", "BASCULA"] as const) {
+      const identity = await createTestIdentity(`test.flow.${role.toLowerCase()}${tag}`, [role]);
+      identities.push(identity);
+      const login = await fetch(`${baseUrl}/session/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: identity.user.username, password: "Clave2026!" }),
+      });
+      assert.equal(login.status, 200);
+      tokens.set(role, ((await login.json()) as { accessToken: string }).accessToken);
+    }
 
-    const recycler = await api("POST", "/recyclers", {
+    const recycler = await api("LOGISTICA", "POST", "/recyclers", {
       name: `TEST Reciclador ${tag}`,
       documentNumber: `9${tag}`,
       recyclerType: "independent",
@@ -69,42 +85,42 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
     assert.equal(recycler.status, 201);
     ids.recycler = idOf(recycler);
 
-    const material = await api("POST", "/materials", { name: `TEST-PET-${tag}` });
-    const materialNoRate = await api("POST", "/materials", { name: `TEST-SINTARIFA-${tag}` });
+    const material = await api("PLANTA", "POST", "/materials", { name: `TEST-PET-${tag}` });
+    const materialNoRate = await api("PLANTA", "POST", "/materials", { name: `TEST-SINTARIFA-${tag}` });
     assert.equal(material.status, 201);
     ids.material = idOf(material);
     ids.materialNoRate = idOf(materialNoRate);
 
-    const route = await api("POST", "/routes", { name: `TEST Ruta ${tag}`, municipality: "Riohacha" });
+    const route = await api("LOGISTICA", "POST", "/routes", { name: `TEST Ruta ${tag}`, municipality: "Riohacha" });
     assert.equal(route.status, 201);
     ids.route = idOf(route);
   });
 
   after(async () => {
     // Leave the TEST-* data out of the active listings.
-    await api("PATCH", `/settlements/${ids.settlement}/void`);
-    await api("PATCH", `/collections/${ids.collection}/deactivate`);
-    await api("PATCH", `/materials/${ids.material}/deactivate`);
-    await api("PATCH", `/materials/${ids.materialNoRate}/deactivate`);
-    await api("PATCH", `/routes/${ids.route}/deactivate`);
-    await api("PATCH", `/recyclers/${ids.recycler}/deactivate`);
-    await caller.remove();
+    await api("FINANZAS", "PATCH", `/settlements/${ids.settlement}/void`);
+    await api("BASCULA", "PATCH", `/collections/${ids.collection}/deactivate`);
+    await api("PLANTA", "PATCH", `/materials/${ids.material}/deactivate`);
+    await api("PLANTA", "PATCH", `/materials/${ids.materialNoRate}/deactivate`);
+    await api("LOGISTICA", "PATCH", `/routes/${ids.route}/deactivate`);
+    await api("LOGISTICA", "PATCH", `/recyclers/${ids.recycler}/deactivate`);
+    for (const identity of identities) await identity.remove();
     server.close();
     await sequelize.close();
   });
 
   it("rates: a new period closes the open one and the applicable rate depends on the date", async () => {
-    assert.equal((await api("POST", `/materials/${ids.material}/rates`, { pricePerKg: 1000, validFrom: daysAgo(20) })).status, 201);
-    assert.equal((await api("POST", `/materials/${ids.material}/rates`, { pricePerKg: 1200, validFrom: daysAgo(5) })).status, 201);
+    assert.equal((await api("FINANZAS", "POST", `/materials/${ids.material}/rates`, { pricePerKg: 1000, validFrom: daysAgo(20) })).status, 201);
+    assert.equal((await api("FINANZAS", "POST", `/materials/${ids.material}/rates`, { pricePerKg: 1200, validFrom: daysAgo(5) })).status, 201);
 
-    const history = list(await api("GET", `/materials/${ids.material}/rates`), "rates");
+    const history = list(await api("FINANZAS", "GET", `/materials/${ids.material}/rates`), "rates");
     assert.equal(history[1].validTo, daysAgo(6));
-    assert.equal((await api("GET", `/materials/${ids.material}/rates/current?date=${daysAgo(10)}`)).body.pricePerKg, 1000);
-    assert.equal((await api("GET", `/materials/${ids.material}/rates/current?date=${daysAgo(30)}`)).status, 404);
+    assert.equal((await api("FINANZAS", "GET", `/materials/${ids.material}/rates/current?date=${daysAgo(10)}`)).body.pricePerKg, 1000);
+    assert.equal((await api("FINANZAS", "GET", `/materials/${ids.material}/rates/current?date=${daysAgo(30)}`)).status, 404);
   });
 
   it("collection: net = gross - tare, amount = net x applicable rate, totals derived", async () => {
-    const created = await api("POST", "/collections", {
+    const created = await api("BASCULA", "POST", "/collections", {
       recyclerId: ids.recycler,
       routeId: ids.route,
       collectedOn: daysAgo(10),
@@ -123,8 +139,8 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
   });
 
   it("collection: a failing line rolls the whole collection back", async () => {
-    const before = list(await api("GET", "/collections"), "collections").length;
-    const failed = await api("POST", "/collections", {
+    const before = list(await api("BASCULA", "GET", "/collections"), "collections").length;
+    const failed = await api("BASCULA", "POST", "/collections", {
       recyclerId: ids.recycler,
       routeId: ids.route,
       collectedOn: daysAgo(10),
@@ -134,57 +150,68 @@ describe("Phase I business flow: collection -> weighing -> settlement", () => {
       ],
     });
     assert.equal(failed.status, 404);
-    assert.equal(list(await api("GET", "/collections"), "collections").length, before);
+    assert.equal(list(await api("BASCULA", "GET", "/collections"), "collections").length, before);
   });
 
   it("invalid input is rejected", async () => {
     const base = { recyclerId: ids.recycler, routeId: ids.route };
-    const grossBelowTare = await api("POST", "/collections", { ...base, weighings: [{ materialId: ids.material, grossKg: 1, tareKg: 2 }] });
-    const future = await api("POST", "/collections", { ...base, collectedOn: "2999-01-01", weighings: [{ materialId: ids.material, grossKg: 5 }] });
-    const empty = await api("POST", "/collections", { ...base, weighings: [] });
+    const grossBelowTare = await api("BASCULA", "POST", "/collections", { ...base, weighings: [{ materialId: ids.material, grossKg: 1, tareKg: 2 }] });
+    const future = await api("BASCULA", "POST", "/collections", { ...base, collectedOn: "2999-01-01", weighings: [{ materialId: ids.material, grossKg: 5 }] });
+    const empty = await api("BASCULA", "POST", "/collections", { ...base, weighings: [] });
     assert.deepEqual([grossBelowTare.status, future.status, empty.status], [400, 400, 400]);
   });
 
   it("changing the collection date re-prices its weighings", async () => {
-    const moved = await api("PATCH", `/collections/${ids.collection}`, { collectedOn: daysAgo(2) });
+    const moved = await api("BASCULA", "PATCH", `/collections/${ids.collection}`, { collectedOn: daysAgo(2) });
     assert.equal(moved.status, 200);
     assert.equal(list(moved, "weighings")[0].pricePerKg, 1200);
     assert.equal(moved.body.totalAmount, 70200);
   });
 
   it("settlement freezes the collection and verifies consistently", async () => {
-    const settled = await api("POST", "/settlements", { collectionId: ids.collection, notes: "TEST" });
+    const settled = await api("FINANZAS", "POST", "/settlements", { collectionId: ids.collection, notes: "TEST" });
     assert.equal(settled.status, 201);
     ids.settlement = idOf(settled);
     assert.equal(settled.body.totalAmount, 70200);
     assert.equal(settled.body.lineCount, 2);
 
-    assert.equal((await api("POST", "/settlements", { collectionId: ids.collection })).status, 409);
-    const collection = await api("GET", `/collections/${ids.collection}`);
+    assert.equal((await api("FINANZAS", "POST", "/settlements", { collectionId: ids.collection })).status, 409);
+    const collection = await api("BASCULA", "GET", `/collections/${ids.collection}`);
     const firstWeighing = list(collection, "weighings")[0].id as number;
-    assert.equal((await api("PATCH", `/weighings/${firstWeighing}`, { tareKg: 1 })).status, 409);
+    assert.equal((await api("BASCULA", "PATCH", `/weighings/${firstWeighing}`, { tareKg: 1 })).status, 409);
 
-    const verification = await api("GET", `/settlements/${ids.settlement}/verify`);
+    const verification = await api("FINANZAS", "GET", `/settlements/${ids.settlement}/verify`);
     assert.equal(verification.body.consistent, true);
   });
 
   it("voiding reopens the collection; it can be corrected and settled again", async () => {
-    assert.equal((await api("DELETE", `/settlements/${ids.settlement}`)).status, 409);
-    assert.equal((await api("PATCH", `/settlements/${ids.settlement}/void`)).status, 200);
+    assert.equal((await api("ADMIN", "DELETE", `/settlements/${ids.settlement}`)).status, 409);
+    assert.equal((await api("FINANZAS", "PATCH", `/settlements/${ids.settlement}/void`)).status, 200);
 
-    const collection = await api("GET", `/collections/${ids.collection}`);
+    const collection = await api("BASCULA", "GET", `/collections/${ids.collection}`);
     const firstWeighing = list(collection, "weighings")[0].id as number;
-    assert.equal((await api("PATCH", `/weighings/${firstWeighing}`, { tareKg: 0.5 })).status, 200);
+    assert.equal((await api("BASCULA", "PATCH", `/weighings/${firstWeighing}`, { tareKg: 0.5 })).status, 200);
 
-    const resettled = await api("POST", "/settlements", { collectionId: ids.collection });
+    const resettled = await api("FINANZAS", "POST", "/settlements", { collectionId: ids.collection });
     assert.equal(resettled.status, 201);
     assert.equal(resettled.body.totalAmount, 72000);
-    assert.equal((await api("DELETE", `/settlements/${ids.settlement}`)).status, 200);
+    assert.equal((await api("ADMIN", "DELETE", `/settlements/${ids.settlement}`)).status, 200);
     ids.settlement = idOf(resettled);
-    assert.equal((await api("GET", `/settlements/${ids.settlement}/verify`)).body.consistent, true);
+    assert.equal((await api("FINANZAS", "GET", `/settlements/${ids.settlement}/verify`)).body.consistent, true);
+  });
+
+  it("each step is denied (403) to the roles without that responsibility", async () => {
+    const denied = [
+      await api("LOGISTICA", "POST", `/materials/${ids.material}/rates`, { pricePerKg: 1, validFrom: daysAgo(1) }),
+      await api("FINANZAS", "POST", "/collections", { recyclerId: ids.recycler, routeId: ids.route, weighings: [] }),
+      await api("BASCULA", "POST", "/settlements", { collectionId: ids.collection }),
+      await api("FINANZAS", "DELETE", `/settlements/${ids.settlement}`),
+      await api("PLANTA", "PATCH", `/collections/${ids.collection}`, { notes: "x" }),
+    ];
+    assert.deepEqual(denied.map((r) => r.status), [403, 403, 403, 403, 403]);
   });
 
   it("integrity: a recycler with collections cannot be physically deleted", async () => {
-    assert.equal((await api("DELETE", `/recyclers/${ids.recycler}`)).status, 409);
+    assert.equal((await api("ADMIN", "DELETE", `/recyclers/${ids.recycler}`)).status, 409);
   });
 });

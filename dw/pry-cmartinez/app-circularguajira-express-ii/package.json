@@ -20,7 +20,8 @@
     "test:permissions": "node --require ts-node/register --test src/tests/permissions.test.ts",
     "test:access": "node --require ts-node/register --test src/tests/access.test.ts",
     "test:sessions": "node --require ts-node/register --test src/tests/sessions.test.ts",
-    "test:session": "node --require ts-node/register --test src/tests/session.test.ts"
+    "test:session": "node --require ts-node/register --test src/tests/session.test.ts",
+    "test:all": "node --require ts-node/register --test --test-concurrency=1 src/tests/*.test.ts"
   },
   "keywords": [],
   "author": "",

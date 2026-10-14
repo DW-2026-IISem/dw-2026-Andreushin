@@ -2009,10 +2009,106 @@ git commit -m "ISS-15: Feature session (login y perfil)"
 git push origin main
 ```
 
+Commit: [`cc5a07b`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/cc5a07bb5d86b8d57bfae310512352c1654cb1c2)
+
 
 ### Compuerta `CIERRE-AUTH`
 
 El backend se cierra cuando las features de negocio continúan funcionando protegidas por RBAC, los flujos de sesión están integrados, cada rol tiene permisos explícitos y existen pruebas de autenticación, autorización y negocio. Actualizar OpenAPI con los requisitos de autenticación y documentar la configuración necesaria para ejecutar el proyecto.
+
+Definition of Done del backend (Fase I + Fase II), equivalente al cierre del laboratorio StoreLab: 12 features (5 de negocio y 7 de seguridad), 14 tablas (8 de negocio y 6 de seguridad), tres modalidades por ruta, sin entidad Permission (el permiso es la fila de `resource_roles`), deny by default, access token corto y refresh token opaco, rotativo y revocable. El cableado del laboratorio (config, routes, swagger, seeders) ya estaba integrado ISS a ISS; el cierre repite el flujo de negocio con los roles reales, ordena los seeders, fija la postura secure by default en OpenAPI y documenta la configuración.
+
+Criterios de aceptación (CIERRE-AUTH)
+
+- [x] El flujo de negocio corre protegido: cada paso lo ejecuta el rol responsable con el token del login (LOGISTICA, PLANTA, FINANZAS, BASCULA; borrados físicos ADMIN) y los demás roles reciben 403
+- [x] Flujos de sesión integrados: login → perfil → negocio → refresh con rotación → logout → refresh rechazado
+- [x] Cada rol tiene permisos explícitos: 5 roles, 87 recursos y 169 concesiones reconciliadas desde `resource-catalog.ts` (ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13, FINANZAS 18)
+- [x] Pruebas de autenticación, autorización y negocio: `npm run test:all` ejecuta las 11 suites en serie
+- [x] OpenAPI: `bearerAuth` global (secure by default), `security` explícito en cada operación (3 OPEN, 7 JWT, 87 JWT + RBAC con 401 y 403), respuestas `Unauthorized`/`Forbidden` reutilizables y el mapa de modalidades en la descripción
+- [x] Configuración documentada: `README.md` (requisitos, variables, migraciones, seeders, usuarios de laboratorio, modalidades, pruebas) y `.env.example` sin secretos
+- [x] SeedersRunner con la seguridad primero; JSON malformado → 400 en JSON; npx tsc --noEmit sin errores
+
+### Modalidades de acceso (mapa definitivo)
+
+```text
+OPEN        sin middleware             POST /api/session/login | refresh | logout; GET /health, /api/docs
+JWT         authenticate               GET /api/session/profile | permissions; /api/sessions/*
+JWT + RBAC  authenticate, authorize    /api/recyclers, /api/materials (+ rates), /api/routes (+ points),
+                                       /api/collection-points, /api/collections, /api/weighings, /api/settlements,
+                                       /api/users, /api/roles, /api/resources, /api/role-users, /api/resource-roles
+```
+
+Alta de un permiso sin desplegar código: `POST /api/resources` con `{ method, path }`, `POST /api/resource-roles` con `{ roleId, resourceId }` y verificación con `GET /api/session/permissions`; el efecto es inmediato porque `authorize` consulta la matriz en cada petición.
+
+### Pendientes
+
+- Las pruebas usan la base de desarrollo (credenciales fijas); crean sus usuarios y datos `TEST-*` y los eliminan o desactivan al terminar.
+- Sin límite de intentos de login (rate limiting) ni bloqueo de cuenta; queda fuera del alcance del laboratorio.
+- La matriz por rol es la propuesta del proyecto; ajustarla es editar `resource-catalog.ts` y volver a ejecutar `npm run db:seed`.
+
+### Pasos
+
+```bash
+# src/tests/flow.test.ts: un usuario por rol con login HTTP; cada paso con el rol responsable + caso de 403
+# src/database/seeders/index.ts: seguridad primero (roles -> resources -> users -> role_users -> resource_roles)
+# src/swagger/index.ts: security global, components.responses y descripción con las modalidades
+# package.json -> "test:all" (node --test --test-concurrency=1 src/tests/*.test.ts)
+# README.md y .env.example
+npm run db:seed
+npm run test:all
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:all
+npm run db:seed
+curl -s localhost:4000/api/docs.json
+npx tsc --noEmit
+```
+
+#### Evidencias
+
+**Ev1 — Negocio con RBAC:** `test:flow` pasa 9 de 9 con un usuario por rol; los únicos 403 son los cinco intentos fuera de responsabilidad (tarifa por LOGISTICA, recolección por FINANZAS, liquidación por BASCULA, borrado físico por FINANZAS, cambio de recolección por PLANTA).
+
+![Ev1 CIERRE-AUTH](images/Ev1-CIERRE-AUTH.png)
+
+**Ev2 — Sesión integrada:** con `npm run dev`, login de `finanzas`; perfil con `roles: ["FINANZAS"]` → 200; `GET /api/settlements` → 200; refresh rota el token; logout → 200; refresh con el token cerrado → 401.
+
+![Ev2 CIERRE-AUTH](images/Ev2-CIERRE-AUTH.png)
+
+**Ev3 — Permisos por rol:** `db:seed` reconcilia 5 roles, 87 recursos, 5 asignaciones y las concesiones ADMIN 87, LOGISTICA 30, BASCULA 21, PLANTA 13, FINANZAS 18 sin cambios; el catálogo documenta la responsabilidad de cada rol.
+
+![Ev3 CIERRE-AUTH](images/Ev3-CIERRE-AUTH.png)
+
+**Ev4 — Suite completa:** `npm run test:all` pasa 53 de 53 en 11 suites (seguridad base, usuarios, roles y recursos, asignaciones, middlewares, sesiones, sesión y flujo de negocio).
+
+![Ev4 CIERRE-AUTH](images/Ev4-CIERRE-AUTH.png)
+
+**Ev5 — OpenAPI:** `security` global `bearerAuth`, `components.responses` con `Unauthorized` y `Forbidden`, 97 operaciones (87 JWT + RBAC, 7 JWT, 3 OPEN) y la descripción con las modalidades.
+
+![Ev5 CIERRE-AUTH](images/Ev5-CIERRE-AUTH.png)
+
+**Ev6 — Configuración:** secciones del `README.md`, claves de `.env.example` (valores de ejemplo, sin secretos) y `.env` ignorado por git.
+
+![Ev6 CIERRE-AUTH](images/Ev6-CIERRE-AUTH.png)
+
+**Ev7 — Seeders, errores y type-check:** el SeedersRunner siembra la seguridad antes que el negocio; un JSON malformado en el login responde 400 en JSON; `tsc` sin errores.
+
+![Ev7 CIERRE-AUTH](images/Ev7-CIERRE-AUTH.png)
+
+### Commit
+
+```bash
+git add package.json README.md .env.example docs/PROCESO.md \
+  src/database/seeders/index.ts src/swagger/index.ts src/tests/flow.test.ts \
+  docs/images/Ev1-CIERRE-AUTH.png docs/images/Ev2-CIERRE-AUTH.png docs/images/Ev3-CIERRE-AUTH.png \
+  docs/images/Ev4-CIERRE-AUTH.png docs/images/Ev5-CIERRE-AUTH.png docs/images/Ev6-CIERRE-AUTH.png \
+  docs/images/Ev7-CIERRE-AUTH.png
+git commit -m "CIERRE-AUTH: Compuerta de la Fase II"
+git push origin main
+```
+
 
 ## Secuencia y entregables
 
