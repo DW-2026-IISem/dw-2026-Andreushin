@@ -32,6 +32,7 @@ describe('CollectionList', () => {
     http.expectOne(`${API}/collections`).flush({ collections: COLLECTIONS });
     http.expectOne(`${API}/recyclers`).flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez', status: 'active' }] });
     http.expectOne(`${API}/routes`).flush({ routes: [{ id: 5, name: 'Manaure Salinas', status: 'active' }] });
+    http.expectOne(`${API}/materials`).flush({ materials: [{ id: 1, name: 'PET', description: null, status: 'active' }] });
     await fixture.whenStable();
     return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
   }
@@ -64,5 +65,13 @@ describe('CollectionList', () => {
     );
 
     expect(add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'No se pudo cancelar' }));
+  });
+
+  it('should open the detail dialog with the selected collection', async () => {
+    const { fixture, list } = await createList();
+    list.openDetail(COLLECTIONS[0]);
+    await fixture.whenStable();
+    expect(list.detailVisible()).toBe(true);
+    expect(list.detailTitle()).toBe('Recolección #7');
   });
 });

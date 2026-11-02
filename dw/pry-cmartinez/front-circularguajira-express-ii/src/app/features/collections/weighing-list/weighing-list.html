@@ -1,0 +1,81 @@
+<app-page-header title="Pesajes" subtitle="Líneas de cada recolección. Agregar o corregir un pesaje recalcula los totales; una recolección liquidada no se modifica.">
+  <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
+  <button pButton type="button" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i>
+    <span pButtonLabel>Nuevo pesaje</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input pInputText type="search" aria-label="Buscar pesajes" placeholder="Buscar por recolección o material…" [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+      </div>
+      @if (filter()) {
+        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+      }
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th>Recolección</th>
+        <th>Material</th>
+        <th class="text-right">Bruto / tara</th>
+        <th class="text-right">Neto</th>
+        <th class="text-right">Importe</th>
+        <th class="w-36 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-weighing>
+      <tr>
+        <td>
+          <p class="text-sm font-medium text-slate-800">{{ collectionLabel()(weighing.collectionId) }}</p>
+          <p class="text-xs text-slate-400">Pesaje #{{ weighing.id }}</p>
+        </td>
+        <td><p-tag [value]="materialName()(weighing.materialId)" severity="secondary" [rounded]="true" /></td>
+        <td class="text-right text-sm">{{ weighing.grossKg | number: '1.2-2' }} / {{ weighing.tareKg | number: '1.2-2' }}</td>
+        <td class="text-right text-sm font-medium">{{ weighing.netKg | number: '1.2-2' }} kg</td>
+        <td class="text-right">
+          <p class="text-sm font-medium">{{ weighing.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</p>
+          <p class="text-xs text-slate-400">{{ weighing.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg</p>
+        </td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" aria-label="Editar pesaje" pTooltip="Editar" (click)="openEdit(weighing)">
+              <i pButtonIcon class="pi pi-pencil"></i>
+            </button>
+            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al pesaje" pTooltip="Baja lógica" (click)="deactivate(weighing)">
+              <i pButtonIcon class="pi pi-ban"></i>
+            </button>
+            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar pesaje" pTooltip="Eliminar" (click)="remove(weighing)">
+              <i pButtonIcon class="pi pi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6">
+          @if (filter()) {
+            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún pesaje coincide con la búsqueda." />
+          } @else {
+            <app-empty-state icon="pi pi-gauge" title="Sin pesajes activos" message="Los pesajes se crean con cada recolección o con «Nuevo pesaje»." />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
+  <app-weighing-form [weighing]="editing()" [collections]="collectionOptions()" [materials]="materials()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+</p-dialog>

@@ -41,11 +41,13 @@ export class Shell {
    * driven navigation.
    */
   readonly items: MenuItem[] = [
+    { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard' },
     { label: 'Recicladores', icon: 'pi pi-users', routerLink: '/recyclers' },
     { label: 'Materiales', icon: 'pi pi-tags', routerLink: '/materials' },
     { label: 'Rutas', icon: 'pi pi-map', routerLink: '/routes' },
     { label: 'Puntos de recolección', icon: 'pi pi-map-marker', routerLink: '/collection-points' },
     { label: 'Recolecciones', icon: 'pi pi-truck', routerLink: '/collections' },
+    { label: 'Pesajes', icon: 'pi pi-gauge', routerLink: '/weighings' },
     { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/prototype' },
   ];
 

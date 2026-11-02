@@ -1,0 +1,63 @@
+<dl class="grid gap-3 text-sm sm:grid-cols-2">
+  <div>
+    <dt class="text-slate-500">Reciclador</dt>
+    <dd class="font-medium text-slate-800">{{ recyclerName() }}</dd>
+  </div>
+  <div>
+    <dt class="text-slate-500">Ruta</dt>
+    <dd class="font-medium text-slate-800">{{ routeName() }}</dd>
+  </div>
+  <div>
+    <dt class="text-slate-500">Fecha</dt>
+    <dd class="font-medium text-slate-800">{{ collection().collectedOn | date: 'dd/MM/yyyy' : 'UTC' }}</dd>
+  </div>
+  <div>
+    <dt class="text-slate-500">Estado</dt>
+    <dd><app-status-tag [status]="collection().status" /></dd>
+  </div>
+</dl>
+
+<div class="mt-4 overflow-x-auto">
+  <p-table [value]="collection().weighings ?? []" tableStyleClass="min-w-2xl">
+    <ng-template #header>
+      <tr>
+        <th>Material</th>
+        <th class="text-right">Bruto</th>
+        <th class="text-right">Tara</th>
+        <th class="text-right">Neto</th>
+        <th class="text-right">Tarifa</th>
+        <th class="text-right">Importe</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-weighing>
+      <tr>
+        <td>{{ materialName()(weighing.materialId) }}</td>
+        <td class="text-right">{{ weighing.grossKg | number: '1.2-2' }}</td>
+        <td class="text-right">{{ weighing.tareKg | number: '1.2-2' }}</td>
+        <td class="text-right font-medium">{{ weighing.netKg | number: '1.2-2' }} kg</td>
+        <td class="text-right">{{ weighing.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg</td>
+        <td class="text-right">{{ weighing.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6" class="py-4 text-center text-sm text-slate-500">La recolección no tiene pesajes activos.</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<dl class="mt-4 flex flex-wrap justify-end gap-x-8 gap-y-2 border-t border-slate-200 pt-3 text-sm">
+  <div class="flex gap-2">
+    <dt class="text-slate-500">Pesajes</dt>
+    <dd class="font-medium">{{ weighingCount() }}</dd>
+  </div>
+  <div class="flex gap-2">
+    <dt class="text-slate-500">Neto</dt>
+    <dd class="font-medium">{{ collection().totalNetKg | number: '1.2-2' }} kg</dd>
+  </div>
+  <div class="flex gap-2 text-base">
+    <dt class="font-semibold">Total</dt>
+    <dd class="font-semibold">{{ collection().totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+  </div>
+</dl>

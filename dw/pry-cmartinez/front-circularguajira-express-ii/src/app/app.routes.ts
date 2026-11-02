@@ -4,7 +4,7 @@ import { Routes } from '@angular/router';
  * Application routes.
  *
  * `prototype` keeps its own layout (ISS-01B). `''` mounts the `Shell`, whose children are
- * the business screens: `/` opens the first one (recyclers).
+ * the business screens: `/` opens the operations panel.
  */
 export const routes: Routes = [
   {
@@ -15,8 +15,13 @@ export const routes: Routes = [
     path: '',
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
-      // The first business screen is the default redirect. ISS-07 will change it to the dashboard.
-      { path: '', pathMatch: 'full', redirectTo: 'recyclers' },
+      // Since ISS-07 the default screen is the operations panel.
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      {
+        path: 'dashboard',
+        title: 'Panel · CircularGuajira',
+        loadComponent: () => import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+      },
       {
         path: 'recyclers',
         title: 'Recicladores · CircularGuajira',
@@ -53,6 +58,12 @@ export const routes: Routes = [
         title: 'Nueva recolección · CircularGuajira',
         loadComponent: () =>
           import('./features/collections/collection-form/collection-form').then((m) => m.CollectionForm),
+      },
+      {
+        path: 'weighings',
+        title: 'Pesajes · CircularGuajira',
+        loadComponent: () =>
+          import('./features/collections/weighing-list/weighing-list').then((m) => m.WeighingList),
       },
     ],
   },

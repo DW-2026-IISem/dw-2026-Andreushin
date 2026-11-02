@@ -1122,3 +1122,122 @@ git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell
 git commit -m "FRONT-ISS-06: Recolecciones transaccionales con sus pesajes"
 git push origin main
 ```
+
+Commit: [`ffdfebf`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/ffdfebf2f13c6ee37370411a9809b7ffc18926df)
+
+### ISS-07 — Pesajes, detalle de recolección, panel y cierre de la Fase I
+
+Cierra la Fase I con tres piezas, traducidas de la guía: **pesajes** (`/api/weighings`, el «detalle de ventas») como CRUD independiente de líneas, **`CollectionDetail`** (el `SaleDetail`) como componente presentacional dentro de un diálogo, y el **panel de operación** (dashboard). El flujo normal sigue siendo registrar la recolección completa (ISS-06); `/weighings` existe para corregir líneas: cada escritura bloquea la recolección (409 si está liquidada) y Express recalcula neto, importe y totales en la misma transacción. En edición solo cambian bruto y tara.
+
+El panel consulta la API **una vez** (cuatro peticiones en paralelo: recicladores, materiales, recolecciones y liquidaciones) y todo lo demás lo calcula con `computed`: valor y kilos recolectados, recolecciones **sin liquidar** (el equivalente al «stock bajo»: activas sin liquidación emitida) y las 5 últimas. `toNumber` normaliza los DECIMAL antes de sumar. Desde este ISS la ruta vacía abre el panel.
+
+Criterios de aceptación (ISS-07)
+
+- [x] `/weighings` lista los pesajes con la recolección y el material resueltos
+- [x] Crear un pesaje actualiza los totales de la recolección
+- [x] Editar un pesaje solo permite bruto y tara; recolección y material quedan bloqueados
+- [x] La baja lógica de un pesaje recalcula los totales de la recolección
+- [x] Un pesaje de una recolección liquidada no se modifica (409) y el motivo se muestra
+- [x] El diálogo de detalle muestra cabecera, pesajes y total de la recolección
+- [x] El panel carga sin errores y sus KPIs coinciden con los listados de la API
+- [x] El panel muestra las recolecciones sin liquidar y las últimas recolecciones
+- [x] Los indicadores se recalculan al recargar los datos
+- [x] `CollectionDetail` es presentacional (`input.required`), el panel deriva todo con `computed` y el menú tiene todas las entradas de negocio
+- [x] Cierre de Fase I: contra el backend real todos los endpoints de negocio responden 401 y ninguna petición lleva `Authorization`
+- [x] No hay interceptor, guard, `SessionStore` ni directiva de permisos; `/` redirige al panel
+- [x] `ng build` termina con código 0
+- [x] Las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/collections/weighing-list --skip-tests --defaults
+ng generate component features/collections/weighing-form --skip-tests --defaults
+ng generate component features/collections/collection-detail --skip-tests --defaults
+ng generate component features/dashboard --skip-tests --defaults
+# weighing-form/list, collection-detail (diálogo en collection-list), dashboard con sus pruebas,
+# rutas `weighings` y `dashboard`, redirección '' → 'dashboard' y menú «Panel» y «Pesajes»
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+for path in recyclers materials routes collection-points collections weighings settlements; do
+  printf '%-18s ' $path; curl -s -o /dev/null -w '%{http_code}\n' http://localhost:4000/api/$path
+done
+grep -rnE 'HttpInterceptor|withInterceptors|canActivate|SessionStore|appHasPermission|Authorization' src/app \
+  --include=*.ts --include=*.html | grep -v '\.spec\.ts' | grep -vE ':[0-9]+:\s*(\*|//)' || echo "sin piezas de Fase II"
+npm test -- --watch=false
+```
+
+**Verificación:** la aplicación cubre el negocio de la Fase I (recicladores, materiales, rutas, puntos, recolecciones, pesajes y panel) contra `/api/*`, sin ninguna pieza de autenticación. El backend real ya está en Fase II y responde 401: es la señal para abrir el ISS-08.
+
+#### Evidencias
+
+**Ev1 — Pesajes:** 24 pesajes con recolección (`#1 · 2026-10-05`), material, bruto/tara, neto, importe con su tarifa y acciones.
+
+![Ev1 ISS-07](images/Ev1-ISS-07.png)
+
+**Ev2 — Crear pesaje:** la #7 tenía 204.17 kg, 363,249.7 COP y 3 pesajes; «Nuevo pesaje» (PET 12/0.4 kg) hace `POST /api/weighings` y la recolección queda en 215.77 kg, 377,053.7 COP y 4 pesajes.
+
+![Ev2 ISS-07](images/Ev2-ISS-07.png)
+
+**Ev3 — Editar pesaje:** recolección y material bloqueados (`aria-disabled="true"`), bruto cargado y nota; «Guardar» hace `PATCH /api/weighings/19` con `{"grossKg":85,"tareKg":0.96}` y la #7 pasa a 220.98 kg y 380,440.2 COP.
+
+![Ev3 ISS-07](images/Ev3-ISS-07.png)
+
+**Ev4 — Baja lógica:** desactivar el pesaje #21 hace `PATCH /deactivate` y la #7 vuelve a 3 pesajes con 167.94 kg y 349,677 COP.
+
+![Ev4 ISS-07](images/Ev4-ISS-07.png)
+
+**Ev5 — Recolección liquidada:** corregir el pesaje #5 de la #2 responde 409 «La recolección 2 está liquidada (liquidación 4); anula la liquidación para modificarla» y el diálogo sigue abierto.
+
+![Ev5 ISS-07](images/Ev5-ISS-07.png)
+
+**Ev6 — Detalle:** el diálogo de la recolección #7 muestra reciclador, ruta, fecha, estado, sus 3 pesajes con tarifa e importe y el total $363,249.70, el mismo de la lista.
+
+![Ev6 ISS-07](images/Ev6-ISS-07.png)
+
+**Ev7 — KPIs = listados:** el panel muestra 10 recicladores, 10 materiales, 8 recolecciones y $4,843,863; la API devuelve 10, 10, 8 y 4,843,863.3. Las cuatro peticiones salen sin `Authorization`.
+
+![Ev7 ISS-07](images/Ev7-ISS-07.png)
+
+**Ev8 — Panel:** KPIs, 1,066.91 kg netos, $1,573,608 sin liquidar, la tabla de 4 recolecciones pendientes y las 5 últimas recolecciones.
+
+![Ev8 ISS-07](images/Ev8-ISS-07.png)
+
+**Ev9 — Recarga:** con 8 recolecciones y 4 pendientes se registra una nueva en el backend; «Recargar» deja 9 recolecciones, el monto sube 22,560 (4,830,291 → 4,852,851) y 5 pendientes.
+
+![Ev9 ISS-07](images/Ev9-ISS-07.png)
+
+**Ev10 — Código:** `collection = input.required<Collection>()` y `materialName = computed(...)`; la edición envía solo `grossKg` y `tareKg`; el panel usa `forkJoin` y `collectedAmount`, `unsettled` y `latestCollections` como `computed`; el menú tiene Panel y las siete pantallas de negocio.
+
+![Ev10 ISS-07](images/Ev10-ISS-07.png)
+
+**Ev11 — Cierre de Fase I:** contra el backend real los 7 endpoints de negocio responden 401 y el panel muestra «Falta el token de acceso…»; sus 4 peticiones salen sin `Authorization`.
+
+![Ev11 ISS-07](images/Ev11-ISS-07.png)
+
+**Ev12 — Sin piezas de Fase II:** no hay interceptor, guard, `SessionStore`, directiva de permisos ni `Authorization` en el código; `''` redirige a `dashboard`; los CSS no tienen reglas.
+
+![Ev12 ISS-07](images/Ev12-ISS-07.png)
+
+**Ev13 — Build:** `ng build` código 0 (Initial total 571.98 kB; `weighing-list` 14.79 kB, `collection-list` 12.51 kB y `dashboard` 10.64 kB diferidos).
+
+![Ev13 ISS-07](images/Ev13-ISS-07.png)
+
+**Ev14 — Pruebas:** 25 pruebas de panel y recolecciones; la suite queda en 28 archivos y 134 pruebas.
+
+![Ev14 ISS-07](images/Ev14-ISS-07.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell/shell.spec.ts \
+  src/app/features/collections src/app/features/dashboard \
+  docs/PROCESO.md docs/images/Ev*-ISS-07.png
+git commit -m "FRONT-ISS-07: Pesajes, detalle de recolección, panel y cierre de la Fase I"
+git push origin main
+```

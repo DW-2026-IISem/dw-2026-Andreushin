@@ -61,6 +61,8 @@ describe('Shell', () => {
     expect(hrefs).toContain('/routes');
     expect(hrefs).toContain('/collection-points');
     expect(hrefs).toContain('/collections');
+    expect(hrefs).toContain('/weighings');
+    expect(hrefs).toContain('/dashboard');
     expect(hrefs).toContain('/prototype');
   });
 
