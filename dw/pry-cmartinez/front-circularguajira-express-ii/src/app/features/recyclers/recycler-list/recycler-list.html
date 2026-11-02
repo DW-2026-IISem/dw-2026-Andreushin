@@ -1,4 +1,7 @@
-<app-page-header title="Recicladores" subtitle="El backend solo lista los recicladores activos; la baja lógica cambia su estado.">
+<app-page-header
+  title="Recicladores"
+  subtitle="El backend solo lista los recicladores activos; la baja lógica cambia su estado."
+>
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/recyclers'">
     <button pButton type="button" (click)="openCreate()">
@@ -62,7 +65,9 @@
       <tr>
         <td>
           <p class="font-medium text-slate-800">{{ recycler.name }}</p>
-          <p class="text-xs text-slate-400">#{{ recycler.id }} · Doc. {{ recycler.documentNumber }}</p>
+          <p class="text-xs text-slate-400">
+            #{{ recycler.id }} · Doc. {{ recycler.documentNumber }}
+          </p>
         </td>
         <td class="text-sm text-slate-700">{{ typeLabel(recycler.recyclerType) }}</td>
         <td>
@@ -74,17 +79,44 @@
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'PATCH /api/recyclers/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar reciclador"
+                pTooltip="Editar"
+                (click)="openEdit(recycler)"
+              >
                 <i pButtonIcon class="pi pi-pencil"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/recyclers/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Dar de baja al reciclador"
+                pTooltip="Baja lógica"
+                (click)="deactivate(recycler)"
+              >
                 <i pButtonIcon class="pi pi-ban"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/recyclers/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar reciclador"
+                pTooltip="Eliminar"
+                (click)="remove(recycler)"
+              >
                 <i pButtonIcon class="pi pi-trash"></i>
               </button>
             </ng-container>
@@ -97,9 +129,17 @@
       <tr>
         <td colspan="6">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún reciclador coincide con la búsqueda. Borra el filtro para ver todos." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ningún reciclador coincide con la búsqueda. Borra el filtro para ver todos."
+            />
           } @else {
-            <app-empty-state icon="pi pi-users" title="Sin recicladores activos" message="Crea el primero con el botón «Nuevo reciclador» o ejecuta el seeder del backend." />
+            <app-empty-state
+              icon="pi pi-users"
+              title="Sin recicladores activos"
+              message="Crea el primero con el botón «Nuevo reciclador» o ejecuta el seeder del backend."
+            />
           }
         </td>
       </tr>

@@ -18,8 +18,18 @@ describe('ResourceForm', () => {
     await fixture.whenStable();
     const emitted: ResourcePayload[] = [];
     fixture.componentInstance.saved.subscribe((payload) => emitted.push(payload));
-    fixture.componentInstance.form.setValue({ method: 'GET', path: '/api/reports/', description: '', status: 'active' });
+    fixture.componentInstance.form.setValue({
+      method: 'GET',
+      path: '/api/reports/',
+      description: '',
+      status: 'active',
+    });
     fixture.componentInstance.submit();
-    expect(emitted[0]).toEqual({ method: 'GET', path: '/api/reports', description: null, status: 'active' });
+    expect(emitted[0]).toEqual({
+      method: 'GET',
+      path: '/api/reports',
+      description: null,
+      status: 'active',
+    });
   });
 });

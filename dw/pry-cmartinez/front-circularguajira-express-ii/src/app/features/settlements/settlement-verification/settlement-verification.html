@@ -1,6 +1,7 @@
 @if (report().consistent) {
   <p-message severity="success" styleClass="w-full">
-    Liquidación consistente: los {{ report().lines.length }} pesajes coinciden con la tarifa vigente el {{ report().collectedOn }}.
+    Liquidación consistente: los {{ report().lines.length }} pesajes coinciden con la tarifa vigente
+    el {{ report().collectedOn }}.
   </p-message>
 } @else {
   <p-message severity="error" styleClass="w-full">
@@ -11,11 +12,17 @@
 <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
   <div class="rounded-lg bg-slate-50 p-3">
     <dt class="text-slate-500">Guardado</dt>
-    <dd class="font-medium">{{ report().stored.totalNetKg | number: '1.2-2' }} kg · {{ report().stored.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+    <dd class="font-medium">
+      {{ report().stored.totalNetKg | number: '1.2-2' }} kg ·
+      {{ report().stored.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+    </dd>
   </div>
   <div class="rounded-lg bg-slate-50 p-3">
     <dt class="text-slate-500">Recalculado</dt>
-    <dd class="font-medium">{{ report().recomputed.totalNetKg | number: '1.2-2' }} kg · {{ report().recomputed.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+    <dd class="font-medium">
+      {{ report().recomputed.totalNetKg | number: '1.2-2' }} kg ·
+      {{ report().recomputed.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+    </dd>
   </div>
 </dl>
 
@@ -34,13 +41,24 @@
       <tr>
         <td>{{ materialName()(line.materialId) }}</td>
         <td class="text-right">{{ line.netKg | number: '1.2-2' }} kg</td>
-        <td class="text-right">{{ line.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg</td>
+        <td class="text-right">
+          {{ line.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg
+        </td>
         <td class="text-right">{{ line.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
         <td class="text-center">
           <span class="inline-flex gap-1">
-            <p-tag [value]="line.netOk ? 'OK' : 'Error'" [severity]="line.netOk ? 'success' : 'danger'" />
-            <p-tag [value]="line.amountOk ? 'OK' : 'Error'" [severity]="line.amountOk ? 'success' : 'danger'" />
-            <p-tag [value]="line.rateOk ? 'OK' : 'Error'" [severity]="line.rateOk ? 'success' : 'danger'" />
+            <p-tag
+              [value]="line.netOk ? 'OK' : 'Error'"
+              [severity]="line.netOk ? 'success' : 'danger'"
+            />
+            <p-tag
+              [value]="line.amountOk ? 'OK' : 'Error'"
+              [severity]="line.amountOk ? 'success' : 'danger'"
+            />
+            <p-tag
+              [value]="line.rateOk ? 'OK' : 'Error'"
+              [severity]="line.rateOk ? 'success' : 'danger'"
+            />
           </span>
         </td>
       </tr>

@@ -44,7 +44,9 @@ describe('Prototype', () => {
   }
 
   function menuButton(compiled: HTMLElement): HTMLButtonElement {
-    const button = compiled.querySelector('app-header button[aria-label="Mostrar u ocultar el menú"]');
+    const button = compiled.querySelector(
+      'app-header button[aria-label="Mostrar u ocultar el menú"]',
+    );
     expect(button).toBeTruthy();
     return button as HTMLButtonElement;
   }

@@ -19,7 +19,10 @@ describe('HasPermission', () => {
     TestBed.configureTestingModule({ imports: [Host] });
     const session = TestBed.inject(SessionStore);
     session.setTokens(TOKENS);
-    session.setAccess({ user: PROFILE, permissions: [{ resourceId: 3, method: 'POST', path: '/api/recyclers' }] });
+    session.setAccess({
+      user: PROFILE,
+      permissions: [{ resourceId: 3, method: 'POST', path: '/api/recyclers' }],
+    });
   });
   afterEach(() => localStorage.clear());
 
@@ -37,7 +40,10 @@ describe('HasPermission', () => {
     const element = fixture.nativeElement as HTMLElement;
     const session = TestBed.inject(SessionStore);
 
-    session.setAccess({ user: PROFILE, permissions: [{ resourceId: 6, method: 'DELETE', path: '/api/recyclers/:id' }] });
+    session.setAccess({
+      user: PROFILE,
+      permissions: [{ resourceId: 6, method: 'DELETE', path: '/api/recyclers/:id' }],
+    });
     fixture.detectChanges();
     await fixture.whenStable();
 

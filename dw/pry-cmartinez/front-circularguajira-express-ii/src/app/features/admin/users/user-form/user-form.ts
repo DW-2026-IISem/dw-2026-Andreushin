@@ -82,6 +82,8 @@ export class UserForm {
       avatar: value.avatar.trim() || null,
     };
     // password + status only exist on create; sending them in the PATCH answers 400.
-    this.saved.emit(this.user() ? payload : { ...payload, password: value.password, status: value.status });
+    this.saved.emit(
+      this.user() ? payload : { ...payload, password: value.password, status: value.status },
+    );
   }
 }

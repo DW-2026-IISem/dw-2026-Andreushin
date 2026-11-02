@@ -1,6 +1,13 @@
-<app-page-header title="Recolecciones" subtitle="Cada recolección guarda sus pesajes y los importes que calculó el backend con la tarifa vigente.">
+<app-page-header
+  title="Recolecciones"
+  subtitle="Cada recolección guarda sus pesajes y los importes que calculó el backend con la tarifa vigente."
+>
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
-  <p-tag [value]="(totalAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0') + ' en total'" severity="secondary" [rounded]="true" />
+  <p-tag
+    [value]="(totalAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0') + ' en total'"
+    severity="secondary"
+    [rounded]="true"
+  />
   <ng-container *appHasPermission="'POST /api/collections'">
     <a pButton routerLink="/collections/new">
       <i pButtonIcon class="pi pi-plus"></i>
@@ -14,7 +21,14 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
     <ng-template #caption>
       <div class="flex items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
@@ -29,14 +43,20 @@
         />
       </div>
       @if (filter()) {
-        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
       }
     </ng-template>
 
     <ng-template #header>
       <tr>
-        <th pSortableColumn="id"><div class="flex items-center gap-1"># <p-sort-icon field="id" /></div></th>
-        <th pSortableColumn="collectedOn"><div class="flex items-center gap-1">Fecha <p-sort-icon field="collectedOn" /></div></th>
+        <th pSortableColumn="id">
+          <div class="flex items-center gap-1"># <p-sort-icon field="id" /></div>
+        </th>
+        <th pSortableColumn="collectedOn">
+          <div class="flex items-center gap-1">Fecha <p-sort-icon field="collectedOn" /></div>
+        </th>
         <th>Reciclador y ruta</th>
         <th class="text-right">Neto</th>
         <th class="text-right">Total</th>
@@ -51,26 +71,60 @@
         <td class="text-sm">{{ collection.collectedOn | date: 'dd/MM/yyyy' : 'UTC' }}</td>
         <td>
           <p class="text-sm text-slate-700">{{ recyclerName()(collection.recyclerId) }}</p>
-          <p-tag [value]="routeName()(collection.routeId)" severity="secondary" [rounded]="true" styleClass="mt-1" />
+          <p-tag
+            [value]="routeName()(collection.routeId)"
+            severity="secondary"
+            [rounded]="true"
+            styleClass="mt-1"
+          />
         </td>
         <td class="text-right">
           <p class="text-sm">{{ collection.totalNetKg | number: '1.2-2' }} kg</p>
           <p class="text-xs text-slate-400">{{ weighingCount(collection) }} pesajes</p>
         </td>
-        <td class="text-right font-medium">{{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
+        <td class="text-right font-medium">
+          {{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+        </td>
         <td><app-status-tag [status]="collection.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Ver detalle de la recolección" pTooltip="Ver detalle" (click)="openDetail(collection)">
+            <button
+              pButton
+              type="button"
+              text
+              rounded
+              severity="secondary"
+              aria-label="Ver detalle de la recolección"
+              pTooltip="Ver detalle"
+              (click)="openDetail(collection)"
+            >
               <i pButtonIcon class="pi pi-eye"></i>
             </button>
             <ng-container *appHasPermission="'PATCH /api/collections/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Cancelar recolección" pTooltip="Cancelar (baja lógica)" (click)="deactivate(collection)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Cancelar recolección"
+                pTooltip="Cancelar (baja lógica)"
+                (click)="deactivate(collection)"
+              >
                 <i pButtonIcon class="pi pi-ban"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/collections/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar recolección" pTooltip="Eliminar" (click)="remove(collection)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar recolección"
+                pTooltip="Eliminar"
+                (click)="remove(collection)"
+              >
                 <i pButtonIcon class="pi pi-trash"></i>
               </button>
             </ng-container>
@@ -83,9 +137,17 @@
       <tr>
         <td colspan="7">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ninguna recolección coincide con la búsqueda." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ninguna recolección coincide con la búsqueda."
+            />
           } @else {
-            <app-empty-state icon="pi pi-truck" title="Sin recolecciones activas" message="Registra la primera con «Nueva recolección»." />
+            <app-empty-state
+              icon="pi pi-truck"
+              title="Sin recolecciones activas"
+              message="Registra la primera con «Nueva recolección»."
+            />
           }
         </td>
       </tr>
@@ -93,7 +155,15 @@
   </p-table>
 </div>
 
-<p-dialog [visible]="detailVisible()" (visibleChange)="detailVisible.set($event)" [header]="detailTitle()" [modal]="true" [draggable]="false" [dismissableMask]="true" styleClass="w-full max-w-3xl mx-4">
+<p-dialog
+  [visible]="detailVisible()"
+  (visibleChange)="detailVisible.set($event)"
+  [header]="detailTitle()"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-3xl mx-4"
+>
   @if (selected(); as collection) {
     <app-collection-detail
       [collection]="collection"

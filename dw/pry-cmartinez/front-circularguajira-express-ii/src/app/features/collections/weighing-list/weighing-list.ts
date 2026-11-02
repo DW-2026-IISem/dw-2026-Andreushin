@@ -72,12 +72,20 @@ export class WeighingList {
   });
 
   readonly collectionLabel = computed(() => {
-    const labels = new Map(this.collections().map((collection) => [collection.id, `#${collection.id} · ${collection.collectedOn}`]));
+    const labels = new Map(
+      this.collections().map((collection) => [
+        collection.id,
+        `#${collection.id} · ${collection.collectedOn}`,
+      ]),
+    );
     return (id: number) => labels.get(id) ?? `#${id}`;
   });
 
   readonly collectionOptions = computed<CollectionOption[]>(() =>
-    this.collections().map((collection) => ({ id: collection.id, label: `#${collection.id} · ${collection.collectedOn}` })),
+    this.collections().map((collection) => ({
+      id: collection.id,
+      label: `#${collection.id} · ${collection.collectedOn}`,
+    })),
   );
 
   readonly visibleRows = computed(() =>
@@ -90,7 +98,9 @@ export class WeighingList {
   readonly dialogVisible = signal(false);
   readonly editing = signal<Weighing | null>(null);
   readonly resetKey = signal(0);
-  readonly title = computed(() => (this.editing() ? `Editar pesaje #${this.editing()?.id}` : 'Nuevo pesaje'));
+  readonly title = computed(() =>
+    this.editing() ? `Editar pesaje #${this.editing()?.id}` : 'Nuevo pesaje',
+  );
 
   constructor() {
     this.load();
@@ -143,7 +153,10 @@ export class WeighingList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success(current ? 'Pesaje actualizado' : 'Pesaje agregado', 'Totales de la recolección recalculados.');
+        this.notify.success(
+          current ? 'Pesaje actualizado' : 'Pesaje agregado',
+          'Totales de la recolección recalculados.',
+        );
         this.load();
       },
       error: (error: unknown) => {
@@ -167,7 +180,8 @@ export class WeighingList {
             this.notify.warn(`Pesaje #${weighing.id} desactivado`);
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         });
       },
     });

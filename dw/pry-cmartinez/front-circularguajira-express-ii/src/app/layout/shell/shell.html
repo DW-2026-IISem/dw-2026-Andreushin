@@ -17,14 +17,14 @@
     @if (!sidebarCollapsed()) {
       <aside class="hidden w-72 shrink-0 lg:block">
         <app-aside
-        [items]="items()"
-        [showSession]="true"
-        [username]="username()"
-        [roleLabel]="session.roleLabel()"
-        [permissionCount]="session.permissionCount()"
-        (navigated)="mobileOpen.set(false)"
-        (logoutRequested)="logout()"
-      />
+          [items]="items()"
+          [showSession]="true"
+          [username]="username()"
+          [roleLabel]="session.roleLabel()"
+          [permissionCount]="session.permissionCount()"
+          (navigated)="mobileOpen.set(false)"
+          (logoutRequested)="logout()"
+        />
       </aside>
     }
 

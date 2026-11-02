@@ -47,9 +47,13 @@ export class SessionStore {
   /** Roles come in the profile (the permission rows do not carry them). */
   readonly roleNames = computed(() => [...(this._user()?.roles ?? [])].sort());
 
-  readonly roleLabel = computed(() => (this.roleNames().length ? this.roleNames().join(' · ') : 'Sin rol'));
+  readonly roleLabel = computed(() =>
+    this.roleNames().length ? this.roleNames().join(' · ') : 'Sin rol',
+  );
 
-  readonly initials = computed(() => (this._user()?.username ?? '').slice(0, 2).toUpperCase() || 'IN');
+  readonly initials = computed(
+    () => (this._user()?.username ?? '').slice(0, 2).toUpperCase() || 'IN',
+  );
 
   /** Set of "METHOD /api/path" strings for O(1) lookups in the UI. */
   readonly permissionsIndex = computed(

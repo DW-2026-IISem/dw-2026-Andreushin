@@ -1,6 +1,13 @@
-<app-page-header title="Puntos de recolección" subtitle="Paradas de cada ruta en orden de visita. Solo se asignan a rutas activas.">
+<app-page-header
+  title="Puntos de recolección"
+  subtitle="Paradas de cada ruta en orden de visita. Solo se asignan a rutas activas."
+>
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <p-tag [value]="routesWithoutPoints() + ' rutas sin puntos'" [severity]="routesWithoutPoints() > 0 ? 'warn' : 'success'" [rounded]="true" />
+  <p-tag
+    [value]="routesWithoutPoints() + ' rutas sin puntos'"
+    [severity]="routesWithoutPoints() > 0 ? 'warn' : 'success'"
+    [rounded]="true"
+  />
   <ng-container *appHasPermission="'POST /api/collection-points'">
     <button pButton type="button" (click)="openCreate()">
       <i pButtonIcon class="pi pi-plus"></i>
@@ -16,7 +23,14 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
     <ng-template #caption>
       <div class="flex items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
@@ -31,15 +45,21 @@
         />
       </div>
       @if (filter()) {
-        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
       }
     </ng-template>
 
     <ng-template #header>
       <tr>
         <th>Ruta</th>
-        <th pSortableColumn="visitOrder"><div class="flex items-center gap-1">Orden <p-sort-icon field="visitOrder" /></div></th>
-        <th pSortableColumn="name"><div class="flex items-center gap-1">Punto <p-sort-icon field="name" /></div></th>
+        <th pSortableColumn="visitOrder">
+          <div class="flex items-center gap-1">Orden <p-sort-icon field="visitOrder" /></div>
+        </th>
+        <th pSortableColumn="name">
+          <div class="flex items-center gap-1">Punto <p-sort-icon field="name" /></div>
+        </th>
         <th>Dirección</th>
         <th>Estado</th>
         <th class="w-40 text-right">Acciones</th>
@@ -49,7 +69,11 @@
     <ng-template #body let-point>
       <tr>
         <td>
-          <p-tag [value]="routeName()(point.routeId)" [severity]="routeIsActive()(point.routeId) ? 'secondary' : 'danger'" [rounded]="true" />
+          <p-tag
+            [value]="routeName()(point.routeId)"
+            [severity]="routeIsActive()(point.routeId) ? 'secondary' : 'danger'"
+            [rounded]="true"
+          />
         </td>
         <td class="text-sm font-medium text-slate-700">{{ point.visitOrder }}</td>
         <td>
@@ -61,17 +85,44 @@
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'PATCH /api/collection-points/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar punto" pTooltip="Editar" (click)="openEdit(point)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar punto"
+                pTooltip="Editar"
+                (click)="openEdit(point)"
+              >
                 <i pButtonIcon class="pi pi-pencil"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/collection-points/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al punto" pTooltip="Baja lógica" (click)="deactivate(point)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Dar de baja al punto"
+                pTooltip="Baja lógica"
+                (click)="deactivate(point)"
+              >
                 <i pButtonIcon class="pi pi-ban"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/collection-points/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar punto" pTooltip="Eliminar" (click)="remove(point)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar punto"
+                pTooltip="Eliminar"
+                (click)="remove(point)"
+              >
                 <i pButtonIcon class="pi pi-trash"></i>
               </button>
             </ng-container>
@@ -84,9 +135,17 @@
       <tr>
         <td colspan="6">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún punto coincide con la búsqueda. Borra el filtro para ver todos." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ningún punto coincide con la búsqueda. Borra el filtro para ver todos."
+            />
           } @else {
-            <app-empty-state icon="pi pi-map-marker" title="Sin puntos activos" message="Crea el primero con el botón «Nuevo punto» o ejecuta el seeder del backend." />
+            <app-empty-state
+              icon="pi pi-map-marker"
+              title="Sin puntos activos"
+              message="Crea el primero con el botón «Nuevo punto» o ejecuta el seeder del backend."
+            />
           }
         </td>
       </tr>
@@ -94,6 +153,22 @@
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-2xl mx-4">
-  <app-collection-point-form [point]="editing()" [routes]="routes()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-2xl mx-4"
+>
+  <app-collection-point-form
+    [point]="editing()"
+    [routes]="routes()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
 </p-dialog>

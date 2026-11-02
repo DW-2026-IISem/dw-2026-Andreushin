@@ -1,26 +1,65 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
   <div>
-    <label for="role-name" class="mb-1 block text-sm font-medium text-slate-700">Nombre <span class="text-red-500">*</span></label>
-    <input id="role-name" pInputText formControlName="name" placeholder="AUDITORIA" class="w-full uppercase" />
+    <label for="role-name" class="mb-1 block text-sm font-medium text-slate-700"
+      >Nombre <span class="text-red-500">*</span></label
+    >
+    <input
+      id="role-name"
+      pInputText
+      formControlName="name"
+      placeholder="AUDITORIA"
+      class="w-full uppercase"
+    />
     @if (form.controls.name.touched && form.controls.name.invalid) {
-      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">De 2 a 80 letras o guion bajo, empezando por letra.</p-message>
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+        >De 2 a 80 letras o guion bajo, empezando por letra.</p-message
+      >
     } @else {
-      <p class="mt-1 text-xs text-slate-500">Se guarda en MAYÚSCULAS. El nombre no autoriza nada: lo hacen sus concesiones.</p>
+      <p class="mt-1 text-xs text-slate-500">
+        Se guarda en MAYÚSCULAS. El nombre no autoriza nada: lo hacen sus concesiones.
+      </p>
     }
   </div>
   <div>
-    <label for="role-description" class="mb-1 block text-sm font-medium text-slate-700">Descripción</label>
-    <textarea id="role-description" pTextarea formControlName="description" rows="2" class="w-full"></textarea>
+    <label for="role-description" class="mb-1 block text-sm font-medium text-slate-700"
+      >Descripción</label
+    >
+    <textarea
+      id="role-description"
+      pTextarea
+      formControlName="description"
+      rows="2"
+      class="w-full"
+    ></textarea>
   </div>
   <div>
-    <label id="role-status-label" for="role-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select inputId="role-status" ariaLabelledBy="role-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+    <label
+      id="role-status-label"
+      for="role-status"
+      class="mb-1 block text-sm font-medium text-slate-700"
+      >Estado</label
+    >
+    <p-select
+      inputId="role-status"
+      ariaLabelledBy="role-status-label"
+      formControlName="status"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [fluid]="true"
+    />
     @if (role()) {
-      <p class="mt-1 text-xs text-slate-500">El estado de un rol existente solo cambia con la baja lógica.</p>
+      <p class="mt-1 text-xs text-slate-500">
+        El estado de un rol existente solo cambia con la baja lógica.
+      </p>
     }
   </div>
   <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()"><span pButtonLabel>Cancelar</span></button>
-    <button pButton type="submit" [loading]="saving()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span>
+    </button>
   </div>
 </form>

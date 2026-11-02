@@ -3,14 +3,25 @@ import { Weighing, WeighingCreatePayload } from '../../../core/models/weighing.m
 import { WeighingForm } from './weighing-form';
 
 const WEIGHING: Weighing = {
-  id: 19, collectionId: 7, materialId: 3, rateId: 9, pricePerKg: 650, grossKg: '79.79', tareKg: '0.96', netKg: 78.83, amount: 51239.5, status: 'active',
+  id: 19,
+  collectionId: 7,
+  materialId: 3,
+  rateId: 9,
+  pricePerKg: 650,
+  grossKg: '79.79',
+  tareKg: '0.96',
+  netKg: 78.83,
+  amount: 51239.5,
+  status: 'active',
 };
 
 describe('WeighingForm', () => {
   async function createForm(weighing: Weighing | null = null) {
     const fixture = TestBed.createComponent(WeighingForm);
     fixture.componentRef.setInput('collections', [{ id: 7, label: '#7 · 2026-10-14' }]);
-    fixture.componentRef.setInput('materials', [{ id: 3, name: 'Archivo', description: null, status: 'active' }]);
+    fixture.componentRef.setInput('materials', [
+      { id: 3, name: 'Archivo', description: null, status: 'active' },
+    ]);
     fixture.componentRef.setInput('weighing', weighing);
     await fixture.whenStable();
     const saved: WeighingCreatePayload[] = [];

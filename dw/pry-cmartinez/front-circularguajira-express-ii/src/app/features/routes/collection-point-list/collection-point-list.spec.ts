@@ -18,10 +18,38 @@ const ROUTES: Route[] = [
   { id: 5, name: 'Ruta Uribia', municipality: 'Uribia', description: null, status: 'active' },
 ];
 const POINTS: CollectionPoint[] = [
-  { id: 1, routeId: 1, name: 'Tienda El Progreso', address: 'Calle 2 # 7-15', visitOrder: 1, status: 'active' },
-  { id: 2, routeId: 1, name: 'Colegio Divina Pastora', address: 'Carrera 7 # 12-40', visitOrder: 2, status: 'active' },
-  { id: 3, routeId: 2, name: 'Bodega La 15', address: 'Calle 15 # 4-20', visitOrder: 1, status: 'active' },
-  { id: 4, routeId: 9, name: 'Parque Padilla', address: 'Calle 1', visitOrder: 1, status: 'active' },
+  {
+    id: 1,
+    routeId: 1,
+    name: 'Tienda El Progreso',
+    address: 'Calle 2 # 7-15',
+    visitOrder: 1,
+    status: 'active',
+  },
+  {
+    id: 2,
+    routeId: 1,
+    name: 'Colegio Divina Pastora',
+    address: 'Carrera 7 # 12-40',
+    visitOrder: 2,
+    status: 'active',
+  },
+  {
+    id: 3,
+    routeId: 2,
+    name: 'Bodega La 15',
+    address: 'Calle 15 # 4-20',
+    visitOrder: 1,
+    status: 'active',
+  },
+  {
+    id: 4,
+    routeId: 9,
+    name: 'Parque Padilla',
+    address: 'Calle 1',
+    visitOrder: 1,
+    status: 'active',
+  },
 ];
 
 describe('CollectionPointList', () => {
@@ -30,7 +58,12 @@ describe('CollectionPointList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CollectionPointList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -44,7 +77,11 @@ describe('CollectionPointList', () => {
     http.expectOne(POINTS_URL).flush({ points: POINTS });
     http.expectOne(ROUTES_URL).flush({ routes: ROUTES });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should load points and routes in parallel and show the route name, not the id', async () => {
@@ -85,12 +122,28 @@ describe('CollectionPointList', () => {
     const { list } = await createList();
     const add = vi.spyOn(TestBed.inject(MessageService), 'add');
     list.openCreate();
-    list.save({ routeId: 5, name: 'Punto nuevo', address: 'Calle 3', visitOrder: 1, status: 'active' });
+    list.save({
+      routeId: 5,
+      name: 'Punto nuevo',
+      address: 'Calle 3',
+      visitOrder: 1,
+      status: 'active',
+    });
 
-    http.expectOne(POINTS_URL).flush({ message: 'La ruta 5 debe estar activa' }, { status: 400, statusText: 'Bad Request' });
+    http
+      .expectOne(POINTS_URL)
+      .flush(
+        { message: 'La ruta 5 debe estar activa' },
+        { status: 400, statusText: 'Bad Request' },
+      );
 
     expect(list.dialogVisible()).toBe(true);
-    expect(add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'No se pudo guardar', detail: 'La ruta 5 debe estar activa' }));
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        summary: 'No se pudo guardar',
+        detail: 'La ruta 5 debe estar activa',
+      }),
+    );
   });
 
   it('should PATCH the edited point keeping its numeric routeId and reload both lists', async () => {
@@ -100,7 +153,12 @@ describe('CollectionPointList', () => {
 
     const update = http.expectOne(`${POINTS_URL}/3`);
     expect(update.request.method).toBe('PATCH');
-    expect(update.request.body).toEqual({ routeId: 2, name: 'Bodega La 15', address: 'Calle 15 # 4-22', visitOrder: 1 });
+    expect(update.request.body).toEqual({
+      routeId: 2,
+      name: 'Bodega La 15',
+      address: 'Calle 15 # 4-22',
+      visitOrder: 1,
+    });
     update.flush({ ...POINTS[2], address: 'Calle 15 # 4-22' });
     http.expectOne(POINTS_URL).flush({ points: POINTS });
     http.expectOne(ROUTES_URL).flush({ routes: ROUTES });
@@ -111,8 +169,13 @@ describe('CollectionPointList', () => {
     // forkJoin fails as soon as one request fails and cancels the rest, so routes answer first.
     const points = http.expectOne(POINTS_URL);
     http.expectOne(ROUTES_URL).flush({ routes: ROUTES });
-    points.flush({ message: 'Falta el token de acceso' }, { status: 401, statusText: 'Unauthorized' });
+    points.flush(
+      { message: 'Falta el token de acceso' },
+      { status: 401, statusText: 'Unauthorized' },
+    );
     await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector('p-message')?.textContent).toContain('Falta el token de acceso');
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('p-message')?.textContent,
+    ).toContain('Falta el token de acceso');
   });
 });

@@ -1,4 +1,7 @@
-<app-page-header title="Pesajes" subtitle="Líneas de cada recolección. Agregar o corregir un pesaje recalcula los totales; una recolección liquidada no se modifica.">
+<app-page-header
+  title="Pesajes"
+  subtitle="Líneas de cada recolección. Agregar o corregir un pesaje recalcula los totales; una recolección liquidada no se modifica."
+>
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/weighings'">
     <button pButton type="button" (click)="openCreate()">
@@ -13,14 +16,31 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
     <ng-template #caption>
       <div class="flex items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
-        <input pInputText type="search" aria-label="Buscar pesajes" placeholder="Buscar por recolección o material…" [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar pesajes"
+          placeholder="Buscar por recolección o material…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
       </div>
       @if (filter()) {
-        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
       }
     </ng-template>
 
@@ -38,30 +58,71 @@
     <ng-template #body let-weighing>
       <tr>
         <td>
-          <p class="text-sm font-medium text-slate-800">{{ collectionLabel()(weighing.collectionId) }}</p>
+          <p class="text-sm font-medium text-slate-800">
+            {{ collectionLabel()(weighing.collectionId) }}
+          </p>
           <p class="text-xs text-slate-400">Pesaje #{{ weighing.id }}</p>
         </td>
-        <td><p-tag [value]="materialName()(weighing.materialId)" severity="secondary" [rounded]="true" /></td>
-        <td class="text-right text-sm">{{ weighing.grossKg | number: '1.2-2' }} / {{ weighing.tareKg | number: '1.2-2' }}</td>
+        <td>
+          <p-tag
+            [value]="materialName()(weighing.materialId)"
+            severity="secondary"
+            [rounded]="true"
+          />
+        </td>
+        <td class="text-right text-sm">
+          {{ weighing.grossKg | number: '1.2-2' }} / {{ weighing.tareKg | number: '1.2-2' }}
+        </td>
         <td class="text-right text-sm font-medium">{{ weighing.netKg | number: '1.2-2' }} kg</td>
         <td class="text-right">
-          <p class="text-sm font-medium">{{ weighing.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</p>
-          <p class="text-xs text-slate-400">{{ weighing.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg</p>
+          <p class="text-sm font-medium">
+            {{ weighing.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+          </p>
+          <p class="text-xs text-slate-400">
+            {{ weighing.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg
+          </p>
         </td>
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'PATCH /api/weighings/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar pesaje" pTooltip="Editar" (click)="openEdit(weighing)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar pesaje"
+                pTooltip="Editar"
+                (click)="openEdit(weighing)"
+              >
                 <i pButtonIcon class="pi pi-pencil"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/weighings/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al pesaje" pTooltip="Baja lógica" (click)="deactivate(weighing)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Dar de baja al pesaje"
+                pTooltip="Baja lógica"
+                (click)="deactivate(weighing)"
+              >
                 <i pButtonIcon class="pi pi-ban"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/weighings/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar pesaje" pTooltip="Eliminar" (click)="remove(weighing)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar pesaje"
+                pTooltip="Eliminar"
+                (click)="remove(weighing)"
+              >
                 <i pButtonIcon class="pi pi-trash"></i>
               </button>
             </ng-container>
@@ -74,9 +135,17 @@
       <tr>
         <td colspan="6">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún pesaje coincide con la búsqueda." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ningún pesaje coincide con la búsqueda."
+            />
           } @else {
-            <app-empty-state icon="pi pi-gauge" title="Sin pesajes activos" message="Los pesajes se crean con cada recolección o con «Nuevo pesaje»." />
+            <app-empty-state
+              icon="pi pi-gauge"
+              title="Sin pesajes activos"
+              message="Los pesajes se crean con cada recolección o con «Nuevo pesaje»."
+            />
           }
         </td>
       </tr>
@@ -84,6 +153,23 @@
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
-  <app-weighing-form [weighing]="editing()" [collections]="collectionOptions()" [materials]="materials()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-xl mx-4"
+>
+  <app-weighing-form
+    [weighing]="editing()"
+    [collections]="collectionOptions()"
+    [materials]="materials()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
 </p-dialog>

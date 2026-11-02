@@ -10,7 +10,13 @@ import { signInAs } from '../../../core/testing/session-fixtures';
 
 const BASE = `${environment.apiUrl}/routes`;
 const ROUTES: Route[] = [
-  { id: 1, name: 'Ruta Centro', municipality: 'Riohacha', description: 'Zona comercial', status: 'active' },
+  {
+    id: 1,
+    name: 'Ruta Centro',
+    municipality: 'Riohacha',
+    description: 'Zona comercial',
+    status: 'active',
+  },
   { id: 2, name: 'Ruta Maicao', municipality: 'Maicao', description: null, status: 'active' },
 ];
 
@@ -20,7 +26,12 @@ describe('RouteList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RouteList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -33,7 +44,11 @@ describe('RouteList', () => {
     const fixture = TestBed.createComponent(RouteList);
     http.expectOne(BASE).flush({ routes: ROUTES });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should render the active routes with their municipality', async () => {
@@ -63,10 +78,16 @@ describe('RouteList', () => {
     list.remove(ROUTES[0]);
     http
       .expectOne(`${BASE}/1`)
-      .flush({ message: 'La ruta tiene 2 punto(s) de recolección; elimínalos o desactiva la ruta' }, { status: 409, statusText: 'Conflict' });
+      .flush(
+        { message: 'La ruta tiene 2 punto(s) de recolección; elimínalos o desactiva la ruta' },
+        { status: 409, statusText: 'Conflict' },
+      );
 
     expect(add).toHaveBeenCalledWith(
-      expect.objectContaining({ summary: 'No se pudo eliminar', detail: 'La ruta tiene 2 punto(s) de recolección; elimínalos o desactiva la ruta' }),
+      expect.objectContaining({
+        summary: 'No se pudo eliminar',
+        detail: 'La ruta tiene 2 punto(s) de recolección; elimínalos o desactiva la ruta',
+      }),
     );
   });
 });

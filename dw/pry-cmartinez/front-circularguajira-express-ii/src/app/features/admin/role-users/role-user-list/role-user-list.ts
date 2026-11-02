@@ -30,7 +30,20 @@ import { RoleUserApi } from '../role-user-api';
 @Component({
   host: { class: 'block' },
   selector: 'app-role-user-list',
-  imports: [HasPermission, ButtonModule, DatePipe, DialogModule, EmptyState, FormsModule, MessageModule, PageHeader, SelectModule, TableModule, TagModule, TooltipModule],
+  imports: [
+    HasPermission,
+    ButtonModule,
+    DatePipe,
+    DialogModule,
+    EmptyState,
+    FormsModule,
+    MessageModule,
+    PageHeader,
+    SelectModule,
+    TableModule,
+    TagModule,
+    TooltipModule,
+  ],
   templateUrl: './role-user-list.html',
   styleUrl: './role-user-list.css',
 })
@@ -55,7 +68,9 @@ export class RoleUserList {
   readonly visibleRows = computed(() => {
     const user = this.userFilter();
     const role = this.roleFilter();
-    return this.rows().filter((row) => (!user || row.userId === user.id) && (!role || row.roleId === role.id));
+    return this.rows().filter(
+      (row) => (!user || row.userId === user.id) && (!role || row.roleId === role.id),
+    );
   });
 
   readonly dialogVisible = signal(false);
@@ -66,10 +81,14 @@ export class RoleUserList {
   readonly alreadyAssigned = computed(() => {
     const user = this.selectedUser();
     const role = this.selectedRole();
-    return Boolean(user && role && this.rows().some((row) => row.userId === user.id && row.roleId === role.id));
+    return Boolean(
+      user && role && this.rows().some((row) => row.userId === user.id && row.roleId === role.id),
+    );
   });
 
-  readonly canSave = computed(() => Boolean(this.selectedUser() && this.selectedRole()) && !this.alreadyAssigned());
+  readonly canSave = computed(
+    () => Boolean(this.selectedUser() && this.selectedRole()) && !this.alreadyAssigned(),
+  );
 
   constructor() {
     this.load();
@@ -78,7 +97,11 @@ export class RoleUserList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    forkJoin({ rows: this.api.list(), users: this.usersApi.list(), roles: this.rolesApi.list() }).subscribe({
+    forkJoin({
+      rows: this.api.list(),
+      users: this.usersApi.list(),
+      roles: this.rolesApi.list(),
+    }).subscribe({
       next: ({ rows, users, roles }) => {
         this.rows.set(rows);
         this.users.set(users);
@@ -115,7 +138,10 @@ export class RoleUserList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success('Rol asignado', `${user.username} ahora tiene ${role.name}. Debe pulsar «Actualizar permisos» o volver a entrar.`);
+        this.notify.success(
+          'Rol asignado',
+          `${user.username} ahora tiene ${role.name}. Debe pulsar «Actualizar permisos» o volver a entrar.`,
+        );
         this.load();
       },
       error: (error: unknown) => {

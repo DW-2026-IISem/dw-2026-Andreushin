@@ -12,8 +12,20 @@ const ROLES = [
   { id: 4, name: 'PLANTA', description: null, status: 'active' },
 ];
 const RESOURCES = [
-  { id: 1, method: 'GET', path: '/api/recyclers', description: 'Listar recicladores', status: 'active' },
-  { id: 60, method: 'GET', path: '/api/resource-roles', description: 'Listar concesiones', status: 'active' },
+  {
+    id: 1,
+    method: 'GET',
+    path: '/api/recyclers',
+    description: 'Listar recicladores',
+    status: 'active',
+  },
+  {
+    id: 60,
+    method: 'GET',
+    path: '/api/resource-roles',
+    description: 'Listar concesiones',
+    status: 'active',
+  },
 ];
 const GRANTS = [
   { id: 1, roleId: 1, resourceId: 60, status: 'active', role: ROLES[0], resource: RESOURCES[1] },
@@ -26,7 +38,12 @@ describe('ResourceRoleList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ResourceRoleList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
@@ -40,12 +57,19 @@ describe('ResourceRoleList', () => {
     http.expectOne(`${API}/roles`).flush({ roles: ROLES });
     http.expectOne(`${API}/resources`).flush({ resources: RESOURCES });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should count grants per role and grant { roleId, resourceId }', async () => {
     const { list } = await createList();
-    expect(list.countsByRole()).toEqual([{ name: 'ADMIN', count: 2 }, { name: 'PLANTA', count: 0 }]);
+    expect(list.countsByRole()).toEqual([
+      { name: 'ADMIN', count: 2 },
+      { name: 'PLANTA', count: 0 },
+    ]);
 
     list.openGrant();
     list.selectedRole.set(list.roles()[0]);
@@ -64,7 +88,9 @@ describe('ResourceRoleList', () => {
 
   it('should not let ADMIN revoke its own RBAC administration grants', async () => {
     const { element } = await createList();
-    const buttons = [...element.querySelectorAll('button[aria-label="Retirar permiso"]')] as HTMLButtonElement[];
+    const buttons = [
+      ...element.querySelectorAll('button[aria-label="Retirar permiso"]'),
+    ] as HTMLButtonElement[];
     // Row 1: ADMIN · GET /api/resource-roles (lock-out) · row 2: ADMIN · GET /api/recyclers.
     expect(buttons.map((button) => button.disabled)).toEqual([true, false]);
   });

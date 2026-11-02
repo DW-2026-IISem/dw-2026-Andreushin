@@ -101,7 +101,9 @@ export class CollectionList {
   readonly detailTitle = computed(() => `Recolección #${this.selected()?.id ?? ''}`);
 
   /** Sum of the stored totals of the active collections. */
-  readonly totalAmount = computed(() => round2(this.rows().reduce((sum, row) => sum + toNumber(row.totalAmount), 0)));
+  readonly totalAmount = computed(() =>
+    round2(this.rows().reduce((sum, row) => sum + toNumber(row.totalAmount), 0)),
+  );
 
   constructor() {
     this.load();
@@ -114,9 +116,13 @@ export class CollectionList {
       collections: this.api.list(),
       // Optional sources: PLANTA cannot read recyclers or routes, FINANZAS cannot read routes.
       // Without them the table falls back to «Reciclador #id» instead of failing with a 403.
-      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () =>
+        this.recyclersApi.list(),
+      ),
       routes: readIf(this.session.canPermission('GET /api/routes'), () => this.routesApi.list()),
-      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () =>
+        this.materialsApi.list(),
+      ),
     }).subscribe({
       next: ({ collections, recyclers, routes, materials }) => {
         this.rows.set(collections);

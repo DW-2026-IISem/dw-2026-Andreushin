@@ -22,7 +22,9 @@ describe('filterRows', () => {
   });
 
   it('should ignore upper and lower case', () => {
-    expect(filterRows(ROWS, 'WAYUU', pick).map((row) => row.name)).toEqual(['Asociación Wayuu Recicla']);
+    expect(filterRows(ROWS, 'WAYUU', pick).map((row) => row.name)).toEqual([
+      'Asociación Wayuu Recicla',
+    ]);
   });
 
   it('should search every picked field, including numbers in text', () => {

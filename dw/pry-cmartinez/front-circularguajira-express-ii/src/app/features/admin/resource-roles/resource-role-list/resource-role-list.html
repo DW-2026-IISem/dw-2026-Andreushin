@@ -1,6 +1,11 @@
-<app-page-header title="Concesiones" subtitle="Qué operación puede ejecutar cada rol. Cada fila activa es un permiso; el backend la consulta en cada petición.">
+<app-page-header
+  title="Concesiones"
+  subtitle="Qué operación puede ejecutar cada rol. Cada fila activa es un permiso; el backend la consulta en cada petición."
+>
   <ng-container *appHasPermission="'POST /api/resource-roles'">
-    <button pButton type="button" (click)="openGrant()"><i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Conceder permiso</span></button>
+    <button pButton type="button" (click)="openGrant()">
+      <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Conceder permiso</span>
+    </button>
   </ng-container>
 </app-page-header>
 
@@ -15,32 +20,88 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 15" [rows]="15" dataKey="id" tableStyleClass="min-w-2xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 15"
+    [rows]="15"
+    dataKey="id"
+    tableStyleClass="min-w-2xl"
+  >
     <ng-template #caption>
       <div class="grid gap-2 md:grid-cols-[14rem_1fr]">
-        <p-select ariaLabel="Filtrar por rol" [options]="roles()" optionLabel="name" [showClear]="true" placeholder="Todos los roles" [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)" [fluid]="true" />
+        <p-select
+          ariaLabel="Filtrar por rol"
+          [options]="roles()"
+          optionLabel="name"
+          [showClear]="true"
+          placeholder="Todos los roles"
+          [ngModel]="roleFilter()"
+          (ngModelChange)="roleFilter.set($event)"
+          [fluid]="true"
+        />
         <div class="flex items-center gap-2">
           <i class="pi pi-search text-slate-400"></i>
-          <input pInputText type="search" aria-label="Buscar concesiones" placeholder="Buscar por ruta, método o rol…" [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+          <input
+            pInputText
+            type="search"
+            aria-label="Buscar concesiones"
+            placeholder="Buscar por ruta, método o rol…"
+            [value]="filter()"
+            (input)="filter.set($any($event.target).value)"
+            class="w-full"
+          />
         </div>
       </div>
-      <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} concesiones activas.</p>
+      <p class="mt-2 text-xs text-slate-500">
+        {{ visibleRows().length }} de {{ rows().length }} concesiones activas.
+      </p>
     </ng-template>
     <ng-template #header>
-      <tr><th>Rol</th><th class="w-24">Método</th><th>Ruta</th><th class="w-24 text-right">Acciones</th></tr>
+      <tr>
+        <th>Rol</th>
+        <th class="w-24">Método</th>
+        <th>Ruta</th>
+        <th class="w-24 text-right">Acciones</th>
+      </tr>
     </ng-template>
     <ng-template #body let-row>
       <tr>
-        <td><p-tag [value]="row.role?.name ?? 'Rol #' + row.roleId" severity="info" [rounded]="true" /></td>
-        <td><p-tag [value]="row.resource?.method ?? '?'" [severity]="methodSeverity(row.resource?.method)" /></td>
         <td>
-          <code class="text-sm wrap-break-word">{{ row.resource?.path ?? 'Recurso #' + row.resourceId }}</code>
+          <p-tag
+            [value]="row.role?.name ?? 'Rol #' + row.roleId"
+            severity="info"
+            [rounded]="true"
+          />
+        </td>
+        <td>
+          <p-tag
+            [value]="row.resource?.method ?? '?'"
+            [severity]="methodSeverity(row.resource?.method)"
+          />
+        </td>
+        <td>
+          <code class="text-sm wrap-break-word">{{
+            row.resource?.path ?? 'Recurso #' + row.resourceId
+          }}</code>
           <p class="text-xs text-slate-400">{{ row.resource?.description }}</p>
         </td>
         <td>
           <div class="flex justify-end">
             <ng-container *appHasPermission="'PATCH /api/resource-roles/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Retirar permiso" [pTooltip]="isLockout(row) ? 'Retirarlo te dejaría sin acceso a la administración' : 'Retirar'" [disabled]="isLockout(row)" (click)="revoke(row)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Retirar permiso"
+                [pTooltip]="
+                  isLockout(row) ? 'Retirarlo te dejaría sin acceso a la administración' : 'Retirar'
+                "
+                [disabled]="isLockout(row)"
+                (click)="revoke(row)"
+              >
                 <i pButtonIcon class="pi pi-minus-circle"></i>
               </button>
             </ng-container>
@@ -49,41 +110,111 @@
       </tr>
     </ng-template>
     <ng-template #emptymessage>
-      <tr><td colspan="4"><app-empty-state icon="pi pi-shield" title="Sin concesiones" message="Ninguna concesión activa coincide con el filtro." /></td></tr>
+      <tr>
+        <td colspan="4">
+          <app-empty-state
+            icon="pi pi-shield"
+            title="Sin concesiones"
+            message="Ninguna concesión activa coincide con el filtro."
+          />
+        </td>
+      </tr>
     </ng-template>
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" header="Conceder permiso" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  header="Conceder permiso"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-xl mx-4"
+>
   <div class="space-y-4">
     <div>
-      <label id="grant-role-label" for="grant-role" class="mb-1 block text-sm font-medium text-slate-700">Rol <span class="text-red-500">*</span></label>
-      <p-select inputId="grant-role" ariaLabelledBy="grant-role-label" [options]="roles()" optionLabel="name" placeholder="Elige un rol" appendTo="body" [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event)" [fluid]="true" />
+      <label
+        id="grant-role-label"
+        for="grant-role"
+        class="mb-1 block text-sm font-medium text-slate-700"
+        >Rol <span class="text-red-500">*</span></label
+      >
+      <p-select
+        inputId="grant-role"
+        ariaLabelledBy="grant-role-label"
+        [options]="roles()"
+        optionLabel="name"
+        placeholder="Elige un rol"
+        appendTo="body"
+        [ngModel]="selectedRole()"
+        (ngModelChange)="selectedRole.set($event)"
+        [fluid]="true"
+      />
     </div>
     <div>
-      <label id="grant-resource-label" for="grant-resource" class="mb-1 block text-sm font-medium text-slate-700">Recurso <span class="text-red-500">*</span></label>
+      <label
+        id="grant-resource-label"
+        for="grant-resource"
+        class="mb-1 block text-sm font-medium text-slate-700"
+        >Recurso <span class="text-red-500">*</span></label
+      >
       <!-- PrimeNG 22: #selectedItem / #item are template variables (pTemplate is ignored). -->
-      <p-select inputId="grant-resource" ariaLabelledBy="grant-resource-label" [options]="resources()" optionLabel="path" [filter]="true" filterBy="path,method" placeholder="Elige método y ruta" appendTo="body" [ngModel]="selectedResource()" (ngModelChange)="selectedResource.set($event)" [fluid]="true">
+      <p-select
+        inputId="grant-resource"
+        ariaLabelledBy="grant-resource-label"
+        [options]="resources()"
+        optionLabel="path"
+        [filter]="true"
+        filterBy="path,method"
+        placeholder="Elige método y ruta"
+        appendTo="body"
+        [ngModel]="selectedResource()"
+        (ngModelChange)="selectedResource.set($event)"
+        [fluid]="true"
+      >
         <ng-template #selectedItem let-resource>
           <span class="flex items-center gap-2">
-            <p-tag [value]="resource.method" [severity]="methodSeverity(resource.method)" [rounded]="true" />
+            <p-tag
+              [value]="resource.method"
+              [severity]="methodSeverity(resource.method)"
+              [rounded]="true"
+            />
             <code class="text-xs">{{ resource.path }}</code>
           </span>
         </ng-template>
         <ng-template #item let-resource>
           <span class="flex items-center gap-2">
-            <p-tag [value]="resource.method" [severity]="methodSeverity(resource.method)" [rounded]="true" />
+            <p-tag
+              [value]="resource.method"
+              [severity]="methodSeverity(resource.method)"
+              [rounded]="true"
+            />
             <code class="text-xs">{{ resource.path }}</code>
           </span>
         </ng-template>
       </p-select>
     </div>
     @if (alreadyGranted()) {
-      <p-message severity="warn" styleClass="w-full">{{ selectedRole()?.name }} ya tiene {{ selectedResource()?.method }} {{ selectedResource()?.path }}.</p-message>
+      <p-message severity="warn" styleClass="w-full"
+        >{{ selectedRole()?.name }} ya tiene {{ selectedResource()?.method }}
+        {{ selectedResource()?.path }}.</p-message
+      >
     }
     <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-      <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)"><span pButtonLabel>Cancelar</span></button>
-      <button pButton type="button" [disabled]="!canSave()" [loading]="saving()" (click)="grant()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Conceder</span></button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        outlined
+        (click)="dialogVisible.set(false)"
+      >
+        <span pButtonLabel>Cancelar</span>
+      </button>
+      <button pButton type="button" [disabled]="!canSave()" [loading]="saving()" (click)="grant()">
+        <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Conceder</span>
+      </button>
     </div>
   </div>
 </p-dialog>

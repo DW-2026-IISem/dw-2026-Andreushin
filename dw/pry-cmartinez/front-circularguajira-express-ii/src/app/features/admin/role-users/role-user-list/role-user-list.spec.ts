@@ -8,7 +8,13 @@ import { RoleUserList } from './role-user-list';
 
 const API = environment.apiUrl;
 const USERS = [
-  { id: PROFILE.id, username: 'admin', email: 'admin@circularguajira.co', avatar: null, status: 'active' },
+  {
+    id: PROFILE.id,
+    username: 'admin',
+    email: 'admin@circularguajira.co',
+    avatar: null,
+    status: 'active',
+  },
   { id: 4, username: 'planta', email: 'planta@circularguajira.co', avatar: null, status: 'active' },
 ];
 const ROLES = [
@@ -26,7 +32,12 @@ describe('RoleUserList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RoleUserList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
@@ -40,7 +51,11 @@ describe('RoleUserList', () => {
     http.expectOne(`${API}/users`).flush({ users: USERS });
     http.expectOne(`${API}/roles`).flush({ roles: ROLES });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should filter by user and by role', async () => {
@@ -73,7 +88,9 @@ describe('RoleUserList', () => {
 
   it('should not let the session user retire its own role', async () => {
     const { element } = await createList();
-    const buttons = [...element.querySelectorAll('button[aria-label="Retirar rol"]')] as HTMLButtonElement[];
+    const buttons = [
+      ...element.querySelectorAll('button[aria-label="Retirar rol"]'),
+    ] as HTMLButtonElement[];
     expect(buttons.map((button) => button.disabled)).toEqual([true, false]);
   });
 });

@@ -44,9 +44,21 @@ export class Prototype {
   readonly items: MenuItem[] = [
     { label: 'Inicio', icon: 'pi pi-home', command: () => this.select('Inicio') },
     { label: 'Recicladores', icon: 'pi pi-users', command: () => this.select('Recicladores') },
-    { label: 'Materiales y tarifas', icon: 'pi pi-tags', command: () => this.select('Materiales y tarifas') },
-    { label: 'Rutas de recolección', icon: 'pi pi-map', command: () => this.select('Rutas de recolección') },
-    { label: 'Pesajes y liquidaciones', icon: 'pi pi-receipt', command: () => this.select('Pesajes y liquidaciones') },
+    {
+      label: 'Materiales y tarifas',
+      icon: 'pi pi-tags',
+      command: () => this.select('Materiales y tarifas'),
+    },
+    {
+      label: 'Rutas de recolección',
+      icon: 'pi pi-map',
+      command: () => this.select('Rutas de recolección'),
+    },
+    {
+      label: 'Pesajes y liquidaciones',
+      icon: 'pi pi-receipt',
+      command: () => this.select('Pesajes y liquidaciones'),
+    },
   ];
 
   /**

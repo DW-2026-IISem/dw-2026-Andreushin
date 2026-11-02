@@ -24,7 +24,15 @@ export interface PendingCollectionOption {
 @Component({
   host: { class: 'block' },
   selector: 'app-settlement-form',
-  imports: [ButtonModule, CurrencyPipe, DecimalPipe, MessageModule, ReactiveFormsModule, SelectModule, TextareaModule],
+  imports: [
+    ButtonModule,
+    CurrencyPipe,
+    DecimalPipe,
+    MessageModule,
+    ReactiveFormsModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './settlement-form.html',
   styleUrl: './settlement-form.css',
 })

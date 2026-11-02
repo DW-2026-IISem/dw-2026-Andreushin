@@ -59,7 +59,11 @@ export class Shell {
         expanded: true,
         items: group.items
           .filter((item) => !item.permission || this.session.canPermission(item.permission))
-          .map<MenuItem>((item) => ({ label: item.label, icon: item.icon, routerLink: item.routerLink })),
+          .map<MenuItem>((item) => ({
+            label: item.label,
+            icon: item.icon,
+            routerLink: item.routerLink,
+          })),
       }))
       .filter((group) => (group.items?.length ?? 0) > 0),
   );

@@ -16,7 +16,9 @@ export class WeighingApi {
   private readonly base = `${environment.apiUrl}/weighings`;
 
   list(): Observable<Weighing[]> {
-    return this.http.get<{ weighings: Weighing[] }>(this.base).pipe(map((response) => response.weighings));
+    return this.http
+      .get<{ weighings: Weighing[] }>(this.base)
+      .pipe(map((response) => response.weighings));
   }
 
   get(id: number): Observable<Weighing> {

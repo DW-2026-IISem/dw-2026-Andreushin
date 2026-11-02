@@ -24,7 +24,12 @@ describe('Dashboard', () => {
   afterEach(() => http.verify());
 
   function flushAll(collections: object[]): void {
-    http.expectOne(`${API}/recyclers`).flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez' }, { id: 9, name: 'Asociación Orta' }] });
+    http.expectOne(`${API}/recyclers`).flush({
+      recyclers: [
+        { id: 4, name: 'Teodoro Valadez' },
+        { id: 9, name: 'Asociación Orta' },
+      ],
+    });
     http.expectOne(`${API}/materials`).flush({ materials: [{ id: 1 }, { id: 2 }, { id: 3 }] });
     http.expectOne(`${API}/collections`).flush({ collections });
     http.expectOne(`${API}/settlements`).flush({
@@ -36,9 +41,30 @@ describe('Dashboard', () => {
   }
 
   const COLLECTIONS = [
-    { id: 3, recyclerId: 9, collectedOn: '2026-09-20', totalNetKg: '100.00', totalAmount: '1000.50', status: 'active' },
-    { id: 5, recyclerId: 9, collectedOn: '2026-09-21', totalNetKg: 50, totalAmount: 500, status: 'active' },
-    { id: 7, recyclerId: 4, collectedOn: '2026-10-14', totalNetKg: 20.25, totalAmount: 2000, status: 'active' },
+    {
+      id: 3,
+      recyclerId: 9,
+      collectedOn: '2026-09-20',
+      totalNetKg: '100.00',
+      totalAmount: '1000.50',
+      status: 'active',
+    },
+    {
+      id: 5,
+      recyclerId: 9,
+      collectedOn: '2026-09-21',
+      totalNetKg: 50,
+      totalAmount: 500,
+      status: 'active',
+    },
+    {
+      id: 7,
+      recyclerId: 4,
+      collectedOn: '2026-10-14',
+      totalNetKg: 20.25,
+      totalAmount: 2000,
+      status: 'active',
+    },
   ];
 
   it('should query the API once with four parallel requests and derive the KPIs', async () => {
@@ -68,7 +94,9 @@ describe('Dashboard', () => {
     const fixture = TestBed.createComponent(Dashboard);
     flushAll(COLLECTIONS);
     await fixture.whenStable();
-    expect(fixture.componentInstance.latestCollections().map((collection) => collection.id)).toEqual([7, 5, 3]);
+    expect(
+      fixture.componentInstance.latestCollections().map((collection) => collection.id),
+    ).toEqual([7, 5, 3]);
   });
 
   it('should recalculate the indicators when the data is reloaded', async () => {

@@ -3,7 +3,14 @@
     <label for="recycler-name" class="mb-1 block text-sm font-medium text-slate-700">
       Nombre <span class="text-red-500">*</span>
     </label>
-    <input id="recycler-name" pInputText formControlName="name" placeholder="Asociación Wayuu Recicla" autocomplete="name" class="w-full" />
+    <input
+      id="recycler-name"
+      pInputText
+      formControlName="name"
+      placeholder="Asociación Wayuu Recicla"
+      autocomplete="name"
+      class="w-full"
+    />
     @if (form.controls.name.touched && form.controls.name.invalid) {
       <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
         El nombre es obligatorio (máximo 120 caracteres).
@@ -16,7 +23,13 @@
       <label for="recycler-document" class="mb-1 block text-sm font-medium text-slate-700">
         Documento / NIT <span class="text-red-500">*</span>
       </label>
-      <input id="recycler-document" pInputText formControlName="documentNumber" placeholder="900123456-7" class="w-full" />
+      <input
+        id="recycler-document"
+        pInputText
+        formControlName="documentNumber"
+        placeholder="900123456-7"
+        class="w-full"
+      />
       @if (form.controls.documentNumber.touched && form.controls.documentNumber.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           De 5 a 15 dígitos, con dígito de verificación opcional (-7).
@@ -25,10 +38,22 @@
     </div>
 
     <div>
-      <label id="recycler-type-label" for="recycler-type" class="mb-1 block text-sm font-medium text-slate-700">
+      <label
+        id="recycler-type-label"
+        for="recycler-type"
+        class="mb-1 block text-sm font-medium text-slate-700"
+      >
         Tipo <span class="text-red-500">*</span>
       </label>
-      <p-select inputId="recycler-type" ariaLabelledBy="recycler-type-label" formControlName="recyclerType" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+      <p-select
+        inputId="recycler-type"
+        ariaLabelledBy="recycler-type-label"
+        formControlName="recyclerType"
+        [options]="typeOptions"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </div>
   </div>
 
@@ -37,7 +62,14 @@
       <label for="recycler-phone" class="mb-1 block text-sm font-medium text-slate-700">
         Teléfono <span class="text-red-500">*</span>
       </label>
-      <input id="recycler-phone" pInputText formControlName="phone" placeholder="3001234567" autocomplete="tel" class="w-full" />
+      <input
+        id="recycler-phone"
+        pInputText
+        formControlName="phone"
+        placeholder="3001234567"
+        autocomplete="tel"
+        class="w-full"
+      />
       @if (form.controls.phone.touched && form.controls.phone.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           De 7 a 15 dígitos, con + opcional.
@@ -46,8 +78,18 @@
     </div>
 
     <div>
-      <label for="recycler-email" class="mb-1 block text-sm font-medium text-slate-700">Email</label>
-      <input id="recycler-email" type="email" pInputText formControlName="email" placeholder="reciclador@correo.co" autocomplete="email" class="w-full" />
+      <label for="recycler-email" class="mb-1 block text-sm font-medium text-slate-700"
+        >Email</label
+      >
+      <input
+        id="recycler-email"
+        type="email"
+        pInputText
+        formControlName="email"
+        placeholder="reciclador@correo.co"
+        autocomplete="email"
+        class="w-full"
+      />
       @if (form.controls.email.touched && form.controls.email.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           Formato de email inválido.
@@ -57,15 +99,39 @@
   </div>
 
   <div>
-    <label for="recycler-address" class="mb-1 block text-sm font-medium text-slate-700">Dirección</label>
-    <textarea id="recycler-address" pTextarea formControlName="address" rows="2" placeholder="Barrio Los Olivos, Riohacha" class="w-full"></textarea>
+    <label for="recycler-address" class="mb-1 block text-sm font-medium text-slate-700"
+      >Dirección</label
+    >
+    <textarea
+      id="recycler-address"
+      pTextarea
+      formControlName="address"
+      rows="2"
+      placeholder="Barrio Los Olivos, Riohacha"
+      class="w-full"
+    ></textarea>
   </div>
 
   <div>
-    <label id="recycler-status-label" for="recycler-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select inputId="recycler-status" ariaLabelledBy="recycler-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+    <label
+      id="recycler-status-label"
+      for="recycler-status"
+      class="mb-1 block text-sm font-medium text-slate-700"
+      >Estado</label
+    >
+    <p-select
+      inputId="recycler-status"
+      ariaLabelledBy="recycler-status-label"
+      formControlName="status"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [fluid]="true"
+    />
     @if (recycler()) {
-      <p class="mt-1 text-xs text-slate-500">El estado de un reciclador existente solo cambia con la baja lógica.</p>
+      <p class="mt-1 text-xs text-slate-500">
+        El estado de un reciclador existente solo cambia con la baja lógica.
+      </p>
     }
   </div>
 

@@ -1,7 +1,12 @@
-<app-page-header title="Roles" subtitle="Agrupan permisos. Un rol sin concesiones no autoriza nada, aunque se llame ADMIN.">
+<app-page-header
+  title="Roles"
+  subtitle="Agrupan permisos. Un rol sin concesiones no autoriza nada, aunque se llame ADMIN."
+>
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/roles'">
-    <button pButton type="button" (click)="openCreate()"><i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Nuevo rol</span></button>
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Nuevo rol</span>
+    </button>
   </ng-container>
 </app-page-header>
 
@@ -14,38 +19,110 @@
     <ng-template #caption>
       <div class="flex items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
-        <input pInputText type="search" aria-label="Buscar roles" placeholder="Buscar por nombre o descripción…" [value]="filter()" (input)="filter.set($any($event.target).value)" class="w-full" />
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar roles"
+          placeholder="Buscar por nombre o descripción…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
       </div>
     </ng-template>
     <ng-template #header>
-      <tr><th>Rol</th><th>Descripción</th><th>Estado</th><th class="w-40 text-right">Acciones</th></tr>
+      <tr>
+        <th>Rol</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
     </ng-template>
     <ng-template #body let-role>
       <tr>
-        <td><p-tag [value]="role.name" severity="info" [rounded]="true" /><p class="mt-1 text-xs text-slate-400">#{{ role.id }}</p></td>
+        <td>
+          <p-tag [value]="role.name" severity="info" [rounded]="true" />
+          <p class="mt-1 text-xs text-slate-400">#{{ role.id }}</p>
+        </td>
         <td class="text-sm text-slate-600">{{ role.description || '—' }}</td>
         <td><app-status-tag [status]="role.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'PATCH /api/roles/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar rol" pTooltip="Editar" (click)="openEdit(role)"><i pButtonIcon class="pi pi-pencil"></i></button>
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar rol"
+                pTooltip="Editar"
+                (click)="openEdit(role)"
+              >
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/roles/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al rol" pTooltip="Baja lógica" (click)="deactivate(role)"><i pButtonIcon class="pi pi-ban"></i></button>
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Dar de baja al rol"
+                pTooltip="Baja lógica"
+                (click)="deactivate(role)"
+              >
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/roles/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar rol" pTooltip="Eliminar" (click)="remove(role)"><i pButtonIcon class="pi pi-trash"></i></button>
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar rol"
+                pTooltip="Eliminar"
+                (click)="remove(role)"
+              >
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
             </ng-container>
           </div>
         </td>
       </tr>
     </ng-template>
     <ng-template #emptymessage>
-      <tr><td colspan="4"><app-empty-state icon="pi pi-id-card" title="Sin roles" message="Ningún rol activo coincide." /></td></tr>
+      <tr>
+        <td colspan="4">
+          <app-empty-state
+            icon="pi pi-id-card"
+            title="Sin roles"
+            message="Ningún rol activo coincide."
+          />
+        </td>
+      </tr>
     </ng-template>
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
-  <app-role-form [role]="editing()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-xl mx-4"
+>
+  <app-role-form
+    [role]="editing()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
 </p-dialog>

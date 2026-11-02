@@ -2,7 +2,12 @@ import { TestBed } from '@angular/core/testing';
 import { Material, MaterialPayload } from '../../../core/models/material.model';
 import { MaterialForm } from './material-form';
 
-const MATERIAL: Material = { id: 7, name: 'Vidrio', description: 'Envases de vidrio', status: 'active' };
+const MATERIAL: Material = {
+  id: 7,
+  name: 'Vidrio',
+  description: 'Envases de vidrio',
+  status: 'active',
+};
 
 describe('MaterialForm', () => {
   async function createForm(material: Material | null = null) {
@@ -25,7 +30,9 @@ describe('MaterialForm', () => {
     form.submit();
     await fixture.whenStable();
     expect(saved).toEqual([]);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('El nombre es obligatorio');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'El nombre es obligatorio',
+    );
   });
 
   it('should reject a name longer than 60 characters (backend limit)', async () => {
@@ -72,8 +79,8 @@ describe('MaterialForm', () => {
     const { fixture, form } = await createForm();
     let cancelled = 0;
     form.cancelled.subscribe(() => cancelled++);
-    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((item) =>
-      item.textContent?.includes('Cancelar'),
+    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
+      (item) => item.textContent?.includes('Cancelar'),
     ) as HTMLButtonElement;
     button.click();
     expect(cancelled).toBe(1);

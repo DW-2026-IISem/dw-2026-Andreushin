@@ -15,7 +15,14 @@ import { Route, RoutePayload } from '../../../core/models/route.model';
 @Component({
   host: { class: 'block' },
   selector: 'app-route-form',
-  imports: [MessageModule, ReactiveFormsModule, ButtonModule, InputTextModule, SelectModule, TextareaModule],
+  imports: [
+    MessageModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './route-form.html',
   styleUrl: './route-form.css',
 })

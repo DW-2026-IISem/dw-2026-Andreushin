@@ -1,6 +1,10 @@
 <div class="flex h-full flex-col border-r border-slate-200 bg-white text-slate-900">
   <div class="flex h-16 items-center gap-3 border-b border-slate-200 px-5">
-    <img src="/brand/circularguajira-mark.svg" alt="Logo de CircularGuajira Express II" class="h-9 w-9 rounded-lg" />
+    <img
+      src="/brand/circularguajira-mark.svg"
+      alt="Logo de CircularGuajira Express II"
+      class="h-9 w-9 rounded-lg"
+    />
     <div class="min-w-0">
       <p class="truncate text-sm font-semibold text-slate-900">{{ appName() }}</p>
       <p class="text-[11px] uppercase tracking-wider text-slate-400">Panel administrativo</p>
@@ -19,7 +23,14 @@
       <p class="text-xs text-slate-400">{{ roleLabel() }}</p>
       <div class="mt-3 flex items-center justify-between text-xs text-slate-400">
         <span>{{ permissionCount() }} permisos</span>
-        <button pButton type="button" text rounded aria-label="Cerrar sesión" (click)="logoutRequested.emit()">
+        <button
+          pButton
+          type="button"
+          text
+          rounded
+          aria-label="Cerrar sesión"
+          (click)="logoutRequested.emit()"
+        >
           <i pButtonIcon class="pi pi-sign-out"></i>
         </button>
       </div>

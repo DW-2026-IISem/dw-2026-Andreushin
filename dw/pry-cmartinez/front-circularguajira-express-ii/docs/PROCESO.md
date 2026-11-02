@@ -1668,3 +1668,101 @@ git add src/app/app.routes.ts src/app/layout/shell src/app/core/utils/http-metho
 git commit -m "FRONT-ISS-10: Formularios de las entidades Auth"
 git push origin main
 ```
+
+Commit: [`ab102bf`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/ab102bf10697c72af18d6cc607f0b0719d77c5e6)
+
+### ISS-11 — Build, calidad y cierre del proyecto
+
+Cierre del proyecto: build sin errores ni avisos, recorrido de humo de las dos fases contra el backend real, emulación de la Fase I en una copia de práctica, código formateado y publicación estática con fallback SPA.
+
+- **Entornos:** `environment.development.ts` (`ng serve`) y `environment.ts` (`ng build`) quedan en `requireAuth: true` y `apiUrl: 'http://localhost:4000/api'` (sin barra final). Este backend no tiene `AUTH_ENABLED`: siempre exige JWT. La Fase I se emula con un build de práctica (`requireAuth: false`, en el scratchpad, sin tocar el repo) contra el stub del contrato sin middlewares que se usó en los ISS-03 a 07B.
+- **Presupuestos** (`angular.json`): inicial 750 kB de aviso / 1 MB de error, estilos por componente 4 kB / 8 kB. El inicial es 579.71 kB; todas las pantallas cargan con `loadComponent`.
+- **Sesión revocada:** si el refresh deja de servir, el interceptor limpia la sesión y vuelve a `/login?returnUrl=…&reason=expired`, y el login muestra «Tu sesión terminó…». Un toast no servía: su contenedor vive en el Shell, que se destruye al salir.
+- **Calidad:** `npm run format` / `npm run format:check` (Prettier, ya configurado en `.prettierrc`); se formatearon 114 archivos. `strict: true`, sin `any` en TypeScript, `inject()`, signals y `computed`.
+- **Publicación:** `ng build` deja `dist/front-circularguajira-express-ii/browser/`; cualquier servidor estático con fallback a `index.html` lo sirve. En Nginx: `location / { try_files $uri $uri/ /index.html; }`; en un subdirectorio, `ng build --base-href /circularguajira/`.
+
+Errores reales de este proyecto y su causa (Angular 22 / PrimeNG 22):
+
+- Botón con `icon="pi …"` sin icono: en PrimeNG 22 se usa `<i pButtonIcon class="pi …">` (ISS-03).
+- `p-table` vacía: las plantillas son variables `#header`/`#body`/`#emptymessage`, no `pTemplate`; lo mismo para `#selectedItem`/`#item` del `p-select` (ISS-03, ISS-10).
+- `p-select` sin nombre accesible: `ariaLabelledBy` apuntando al `id` del `<label>` (ISS-04).
+- `(click)="void(x)"` no hace nada: `void` es el operador de JavaScript; el método pasó a `voidSettlement` (ISS-07B).
+- Un `forkJoin` con una fuente sin permiso tumbaba toda la pantalla con 403: las fuentes opcionales se leen con `readIf` (ISS-09).
+- `class` en `p-card` no ubica la tarjeta en la grilla: va en un envoltorio (ISS-08).
+- `Test timed out` con varios workers: `vitest-base.config.mts` con 1 worker y 60 s (ISS-01).
+- Capturas en blanco al compilar: falta de memoria en la máquina de 4 GB; se apagaron los contenedores que no se usan (ISS-07, ISS-10, ISS-11).
+- Aviso `[PrimeUI] PrimeUI license is not configured`: informativo; los componentes usados son de la edición community.
+
+Criterios de aceptación (ISS-11)
+
+- [x] `ng build` termina con 0 errores y sin avisos de presupuesto
+- [x] Los 15 puntos del checklist de humo pasan contra el backend real
+- [x] Emular la Fase I (`requireAuth: false` contra un backend sin middlewares) da el comportamiento esperado: sin guards, directiva siempre visible, sin Bearer y 200 en negocio
+- [x] Revocar el refresh token cierra la sesión de forma controlada y con mensaje
+- [x] `prettier --check` no reporta archivos sin formatear
+- [x] El `dist/` se sirve con fallback SPA y las rutas profundas cargan y recargan bien
+- [x] Las pruebas pasan
+
+### Pasos
+
+```bash
+npm run format            # prettier --write "src/**/*.{ts,html,css}"
+npm run format:check
+ng build
+# servidor estático con fallback a index.html sobre dist/front-circularguajira-express-ii/browser
+cd ../app-circularguajira-express-ii && npm run dev
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+npm run format:check
+npm test -- --watch=false
+node smoke.mjs            # recorrido de humo (herramienta de evidencias, fuera del repo)
+```
+
+**Verificación:** el build sale limpio, el código está formateado y tipado, y el recorrido de humo en un navegador real contra el backend Express recorre sesión, negocio, RBAC, refresh y revocación.
+
+#### Evidencias
+
+**Ev1 — Build:** `ng build` código 0, sin avisos; Initial total 579.71 kB frente a los presupuestos de 750 kB (aviso) y 1 MB (error).
+
+![Ev1 ISS-11](images/Ev1-ISS-11.png)
+
+**Ev2 — Checklist de humo:** Playwright contra el backend real: 1 `/dashboard` → login con `returnUrl`; 2 admin con 14 opciones; 3 CRUD de reciclador con búsqueda; 4 CRUD de material; 5 ruta y punto con select de ruta; 6 recolección con pesaje valorizado (48 kg × $470/kg = $22 560); 7 pesajes filtrados por recolección y editados (la recolección recalcula a 58 kg); 8 KPIs del panel iguales a la API; 9 rol, recurso, asignación y concesión (201); 10 «Ver permisos» con el rol y la ruta nuevos; 11 logout (refresh viejo → 401); 12 planta con menú reducido y `/admin/users` → `/forbidden`; 13 recarga con sesión; 14 un solo refresh con reintentos; 15 refresh revocado → `/login?reason=expired`. **15/15**, y la limpieza deja la base como estaba (las filas de rol, recurso y pivotes de prueba quedan inactivas).
+
+![Ev2 ISS-11](images/Ev2-ISS-11.png)
+
+**Ev3 — Fase I emulada:** build de práctica con `requireAuth: false` contra el stub sin middlewares: `/dashboard` abre sin sesión (`sesion: null`), todas las peticiones salen sin Authorization y responden 200, el Header muestra «Fase I · sin auth», el menú no tiene Seguridad, las acciones de liquidaciones se pintan todas, y `/profile` y `/admin/users` redirigen a `/dashboard` (`authOnlyGuard`).
+
+![Ev3 ISS-11](images/Ev3-ISS-11.png)
+
+**Ev4 — Refresh revocado:** con finanzas en `/settlements` se revoca su refresh en el backend (`POST /api/session/logout` 200) y se vence el access; al recargar, las 4 lecturas dan 401, el único `POST /api/session/refresh` da 401 y la app termina en `/login?returnUrl=%2Fsettlements&reason=expired` con `storage: null` y el aviso «Tu sesión terminó…».
+
+![Ev4 ISS-11](images/Ev4-ISS-11.png)
+
+**Ev5 — Formato y tipos:** `npm run format:check` → «All matched files use Prettier code style!»; `tsc` sin errores y 0 usos de `any`.
+
+![Ev5 ISS-11](images/Ev5-ISS-11.png)
+
+**Ev6 — Publicación SPA:** el `dist` tiene `index.html`, `main`, `styles` y 49 chunks diferidos; `/`, `/admin/resource-roles`, `/settlements` y `/collections/new` responden 200 `text/html`; abrir `/admin/resource-roles` directo lleva al login con `returnUrl` y, tras entrar, recargar esa ruta abre «Concesiones · CircularGuajira».
+
+![Ev6 ISS-11](images/Ev6-ISS-11.png)
+
+**Ev7 — Pruebas:** las del login (incluido el aviso `reason=expired`) y del interceptor pasan; la suite queda en 46 archivos y 200 pruebas.
+
+![Ev7 ISS-11](images/Ev7-ISS-11.png)
+
+Checklist de cierre por fase:
+
+- [x] Fase I: los CRUD de negocio (recicladores, materiales, rutas y puntos, recolecciones con pesajes, liquidaciones) usan el contrato real y funcionan sin middlewares (Ev3) y con JWT (Ev2).
+- [x] Fase II: login obligatorio, un solo refresh en vuelo, cada ruta con `permissionGuard`, cada botón de escritura con `*appHasPermission`, menú calculado con la matriz efectiva y administración completa de User → Role → Resource, comprobado contra el backend real (Ev2).
+
+### Commit
+
+```bash
+git add src package.json docs/PROCESO.md docs/images/Ev*-ISS-11.png
+git commit -m "FRONT-ISS-11: Build, calidad y cierre del proyecto"
+git push origin main
+```

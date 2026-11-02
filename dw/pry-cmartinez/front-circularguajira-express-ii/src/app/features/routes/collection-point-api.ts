@@ -3,7 +3,11 @@ import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ApiMessage } from '../../core/models/api.model';
-import { CollectionPoint, CollectionPointPayload, CollectionPointUpdatePayload } from '../../core/models/collection-point.model';
+import {
+  CollectionPoint,
+  CollectionPointPayload,
+  CollectionPointUpdatePayload,
+} from '../../core/models/collection-point.model';
 
 /** Contract of `/collection-points` in Express: lists wrapped as `{ points }`, single items unwrapped. */
 @Injectable({ providedIn: 'root' })
@@ -12,7 +16,9 @@ export class CollectionPointApi {
   private readonly base = `${environment.apiUrl}/collection-points`;
 
   list(): Observable<CollectionPoint[]> {
-    return this.http.get<{ points: CollectionPoint[] }>(this.base).pipe(map((response) => response.points));
+    return this.http
+      .get<{ points: CollectionPoint[] }>(this.base)
+      .pipe(map((response) => response.points));
   }
 
   get(id: number): Observable<CollectionPoint> {

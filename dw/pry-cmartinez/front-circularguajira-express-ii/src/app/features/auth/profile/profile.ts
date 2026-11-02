@@ -27,7 +27,9 @@ export class Profile {
 
   /** Permissions ordered by path and method, as the backend catalog reads. */
   readonly permissions = computed(() =>
-    [...this.session.permissions()].sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method)),
+    [...this.session.permissions()].sort(
+      (a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method),
+    ),
   );
 
   readonly methodSeverity: Record<string, 'success' | 'info' | 'warn' | 'danger' | 'secondary'> = {

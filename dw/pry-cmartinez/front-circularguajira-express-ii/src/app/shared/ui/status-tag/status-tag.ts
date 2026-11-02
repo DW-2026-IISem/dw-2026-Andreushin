@@ -14,5 +14,7 @@ export class StatusTag {
   readonly status = input.required<Status>();
 
   readonly label = computed(() => (this.status() === 'active' ? 'Activo' : 'Inactivo'));
-  readonly severity = computed<'success' | 'danger'>(() => (this.status() === 'active' ? 'success' : 'danger'));
+  readonly severity = computed<'success' | 'danger'>(() =>
+    this.status() === 'active' ? 'success' : 'danger',
+  );
 }

@@ -11,8 +11,25 @@ import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const COLLECTIONS: Collection[] = [
-  { id: 7, recyclerId: 4, routeId: 5, collectedOn: '2026-10-14', totalNetKg: 204.17, totalAmount: 363249.7, status: 'active', weighings: [] },
-  { id: 3, recyclerId: 9, routeId: 1, collectedOn: '2026-10-02', totalNetKg: '50.00', totalAmount: '32500.00', status: 'active' },
+  {
+    id: 7,
+    recyclerId: 4,
+    routeId: 5,
+    collectedOn: '2026-10-14',
+    totalNetKg: 204.17,
+    totalAmount: 363249.7,
+    status: 'active',
+    weighings: [],
+  },
+  {
+    id: 3,
+    recyclerId: 9,
+    routeId: 1,
+    collectedOn: '2026-10-02',
+    totalNetKg: '50.00',
+    totalAmount: '32500.00',
+    status: 'active',
+  },
 ];
 
 describe('CollectionList', () => {
@@ -21,7 +38,13 @@ describe('CollectionList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CollectionList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -33,11 +56,21 @@ describe('CollectionList', () => {
   async function createList() {
     const fixture = TestBed.createComponent(CollectionList);
     http.expectOne(`${API}/collections`).flush({ collections: COLLECTIONS });
-    http.expectOne(`${API}/recyclers`).flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez', status: 'active' }] });
-    http.expectOne(`${API}/routes`).flush({ routes: [{ id: 5, name: 'Manaure Salinas', status: 'active' }] });
-    http.expectOne(`${API}/materials`).flush({ materials: [{ id: 1, name: 'PET', description: null, status: 'active' }] });
+    http
+      .expectOne(`${API}/recyclers`)
+      .flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez', status: 'active' }] });
+    http
+      .expectOne(`${API}/routes`)
+      .flush({ routes: [{ id: 5, name: 'Manaure Salinas', status: 'active' }] });
+    http
+      .expectOne(`${API}/materials`)
+      .flush({ materials: [{ id: 1, name: 'PET', description: null, status: 'active' }] });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should resolve recycler and route names and fall back to the id', async () => {
@@ -63,7 +96,10 @@ describe('CollectionList', () => {
 
     list.deactivate(COLLECTIONS[1]);
     http.expectOne(`${API}/collections/3/deactivate`).flush(
-      { message: 'La recolección 3 está liquidada (liquidación 1); anula la liquidación para modificarla' },
+      {
+        message:
+          'La recolección 3 está liquidada (liquidación 1); anula la liquidación para modificarla',
+      },
       { status: 409, statusText: 'Conflict' },
     );
 

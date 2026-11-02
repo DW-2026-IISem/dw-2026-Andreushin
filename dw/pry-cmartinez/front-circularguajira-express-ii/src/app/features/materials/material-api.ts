@@ -13,7 +13,9 @@ export class MaterialApi {
   private readonly base = `${environment.apiUrl}/materials`;
 
   list(): Observable<Material[]> {
-    return this.http.get<{ materials: Material[] }>(this.base).pipe(map((response) => response.materials));
+    return this.http
+      .get<{ materials: Material[] }>(this.base)
+      .pipe(map((response) => response.materials));
   }
 
   get(id: number): Observable<Material> {

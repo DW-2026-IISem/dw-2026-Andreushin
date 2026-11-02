@@ -30,7 +30,12 @@
       <div class="flex flex-wrap gap-2">
         <p-button label="+100" (onClick)="changeRate(100)" />
         <p-button label="-100" severity="secondary" (onClick)="changeRate(-100)" />
-        <p-button label="Cambiar estado" icon="pi pi-sync" severity="contrast" (onClick)="toggleStatus()" />
+        <p-button
+          label="Cambiar estado"
+          icon="pi pi-sync"
+          severity="contrast"
+          (onClick)="toggleStatus()"
+        />
         <p-button label="Reiniciar" icon="pi pi-refresh" [text]="true" (onClick)="reset()" />
       </div>
 
@@ -60,7 +65,8 @@
         El tema Aura de PrimeNG pinta los componentes; las utilidades Tailwind ordenan el espacio.
       </p>
       <div class="example-scope mt-4 text-sm text-slate-700">
-        Esta caja usa <code>.example-scope</code> de <code>example.css</code>: solo afecta a este componente.
+        Esta caja usa <code>.example-scope</code> de <code>example.css</code>: solo afecta a este
+        componente.
       </div>
     </p-card>
   </div>

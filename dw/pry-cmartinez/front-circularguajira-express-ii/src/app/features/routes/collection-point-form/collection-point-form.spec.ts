@@ -1,5 +1,8 @@
 import { TestBed } from '@angular/core/testing';
-import { CollectionPoint, CollectionPointPayload } from '../../../core/models/collection-point.model';
+import {
+  CollectionPoint,
+  CollectionPointPayload,
+} from '../../../core/models/collection-point.model';
 import { Route } from '../../../core/models/route.model';
 import { CollectionPointForm } from './collection-point-form';
 
@@ -7,7 +10,14 @@ const ROUTES: Route[] = [
   { id: 1, name: 'Ruta Centro', municipality: 'Riohacha', description: null, status: 'active' },
   { id: 3, name: 'Ruta Maicao', municipality: 'Maicao', description: null, status: 'active' },
 ];
-const POINT: CollectionPoint = { id: 9, routeId: 3, name: 'Bodega La 15', address: 'Calle 15 # 4-20', visitOrder: 2, status: 'active' };
+const POINT: CollectionPoint = {
+  id: 9,
+  routeId: 3,
+  name: 'Bodega La 15',
+  address: 'Calle 15 # 4-20',
+  visitOrder: 2,
+  status: 'active',
+};
 
 describe('CollectionPointForm', () => {
   async function createForm(point: CollectionPoint | null = null) {
@@ -22,7 +32,13 @@ describe('CollectionPointForm', () => {
 
   it('should start without route, with visit order 1 and active', async () => {
     const { form } = await createForm();
-    expect(form.form.getRawValue()).toEqual({ routeId: null, name: '', address: '', visitOrder: 1, status: 'active' });
+    expect(form.form.getRawValue()).toEqual({
+      routeId: null,
+      name: '',
+      address: '',
+      visitOrder: 1,
+      status: 'active',
+    });
   });
 
   it('should block the submit while no route is chosen', async () => {
@@ -46,9 +62,16 @@ describe('CollectionPointForm', () => {
 
   it('should emit routeId as the numeric id of the chosen route', async () => {
     const { form, saved } = await createForm();
-    form.form.patchValue({ routeId: 3, name: ' Tienda Nueva ', address: ' Calle 9 ', visitOrder: 4 });
+    form.form.patchValue({
+      routeId: 3,
+      name: ' Tienda Nueva ',
+      address: ' Calle 9 ',
+      visitOrder: 4,
+    });
     form.submit();
-    expect(saved).toEqual([{ routeId: 3, name: 'Tienda Nueva', address: 'Calle 9', visitOrder: 4, status: 'active' }]);
+    expect(saved).toEqual([
+      { routeId: 3, name: 'Tienda Nueva', address: 'Calle 9', visitOrder: 4, status: 'active' },
+    ]);
     expect(typeof saved[0].routeId).toBe('number');
   });
 
@@ -57,7 +80,9 @@ describe('CollectionPointForm', () => {
     expect(form.form.controls.routeId.value).toBe(3);
     expect(form.form.controls.status.disabled).toBe(true);
     form.submit();
-    expect(saved).toEqual([{ routeId: 3, name: 'Bodega La 15', address: 'Calle 15 # 4-20', visitOrder: 2 }]);
+    expect(saved).toEqual([
+      { routeId: 3, name: 'Bodega La 15', address: 'Calle 15 # 4-20', visitOrder: 2 },
+    ]);
   });
 
   it('should give the route combobox an accessible name from its label', async () => {

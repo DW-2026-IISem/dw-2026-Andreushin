@@ -15,7 +15,14 @@ import { Material, MaterialPayload } from '../../../core/models/material.model';
 @Component({
   host: { class: 'block' },
   selector: 'app-material-form',
-  imports: [MessageModule, ReactiveFormsModule, ButtonModule, InputTextModule, SelectModule, TextareaModule],
+  imports: [
+    MessageModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './material-form.html',
   styleUrl: './material-form.css',
 })

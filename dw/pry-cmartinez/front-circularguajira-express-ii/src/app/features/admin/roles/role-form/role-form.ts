@@ -18,7 +18,14 @@ export const ROLE_NAME_PATTERN = /^[A-Za-z][A-Za-z_]{1,79}$/;
 @Component({
   host: { class: 'block' },
   selector: 'app-role-form',
-  imports: [ReactiveFormsModule, ButtonModule, InputTextModule, MessageModule, SelectModule, TextareaModule],
+  imports: [
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    MessageModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './role-form.html',
   styleUrl: './role-form.css',
 })
@@ -47,7 +54,11 @@ export class RoleForm {
     effect(() => {
       const current = this.role();
       this.resetKey();
-      this.form.reset({ name: current?.name ?? '', description: current?.description ?? '', status: current?.status ?? 'active' });
+      this.form.reset({
+        name: current?.name ?? '',
+        description: current?.description ?? '',
+        status: current?.status ?? 'active',
+      });
       if (current) {
         this.form.controls.status.disable();
       } else {
@@ -62,7 +73,10 @@ export class RoleForm {
       return;
     }
     const value = this.form.getRawValue();
-    const payload: RolePayload = { name: value.name.trim().toUpperCase(), description: value.description.trim() || null };
+    const payload: RolePayload = {
+      name: value.name.trim().toUpperCase(),
+      description: value.description.trim() || null,
+    };
     this.saved.emit(this.role() ? payload : { ...payload, status: value.status });
   }
 }

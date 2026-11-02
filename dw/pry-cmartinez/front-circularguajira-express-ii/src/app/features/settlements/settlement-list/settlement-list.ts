@@ -100,7 +100,9 @@ export class SettlementList {
     })),
   );
 
-  readonly settledAmount = computed(() => round2(this.rows().reduce((sum, row) => sum + toNumber(row.totalAmount), 0)));
+  readonly settledAmount = computed(() =>
+    round2(this.rows().reduce((sum, row) => sum + toNumber(row.totalAmount), 0)),
+  );
 
   readonly visibleRows = computed(() =>
     filterRows(this.rows(), this.filter(), (settlement) => [
@@ -114,7 +116,9 @@ export class SettlementList {
   readonly dialogVisible = signal(false);
   readonly editing = signal<Settlement | null>(null);
   readonly resetKey = signal(0);
-  readonly title = computed(() => (this.editing() ? `Notas de la liquidación #${this.editing()?.id}` : 'Liquidar recolección'));
+  readonly title = computed(() =>
+    this.editing() ? `Notas de la liquidación #${this.editing()?.id}` : 'Liquidar recolección',
+  );
 
   readonly verification = signal<Verification | null>(null);
   readonly verifyVisible = signal(false);
@@ -130,8 +134,12 @@ export class SettlementList {
     forkJoin({
       settlements: this.api.list(),
       collections: this.collectionsApi.list(),
-      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
-      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () =>
+        this.recyclersApi.list(),
+      ),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () =>
+        this.materialsApi.list(),
+      ),
     }).subscribe({
       next: ({ settlements, collections, recyclers, materials }) => {
         this.rows.set(settlements);
@@ -164,7 +172,9 @@ export class SettlementList {
   save(value: SettlementCreatePayload): void {
     const current = this.editing();
     this.saving.set(true);
-    const request = current ? this.api.updateNotes(current.id, { notes: value.notes }) : this.api.create(value);
+    const request = current
+      ? this.api.updateNotes(current.id, { notes: value.notes })
+      : this.api.create(value);
 
     request.subscribe({
       next: (settlement) => {
@@ -172,13 +182,18 @@ export class SettlementList {
         this.dialogVisible.set(false);
         this.notify.success(
           current ? 'Notas actualizadas' : `Liquidación #${settlement.id} emitida`,
-          current ? undefined : 'Totales congelados con la tarifa vigente en la fecha de la recolección.',
+          current
+            ? undefined
+            : 'Totales congelados con la tarifa vigente en la fecha de la recolección.',
         );
         this.load();
       },
       error: (error: unknown) => {
         this.saving.set(false);
-        this.notify.error(current ? 'No se pudieron guardar las notas' : 'No se pudo liquidar', toApiMessage(error));
+        this.notify.error(
+          current ? 'No se pudieron guardar las notas' : 'No se pudo liquidar',
+          toApiMessage(error),
+        );
       },
     });
   }
@@ -210,7 +225,10 @@ export class SettlementList {
       accept: () => {
         this.api.void(settlement.id).subscribe({
           next: () => {
-            this.notify.warn(`Liquidación #${settlement.id} anulada`, `La recolección #${settlement.collectionId} quedó pendiente.`);
+            this.notify.warn(
+              `Liquidación #${settlement.id} anulada`,
+              `La recolección #${settlement.collectionId} quedó pendiente.`,
+            );
             this.load();
           },
           error: (error: unknown) => this.notify.error('No se pudo anular', toApiMessage(error)),

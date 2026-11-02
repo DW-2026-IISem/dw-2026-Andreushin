@@ -1,6 +1,13 @@
-<app-page-header title="Liquidaciones" subtitle="Lo que se paga a cada reciclador por una recolección. Los valores quedan congelados; una liquidación errada se anula y se emite de nuevo.">
+<app-page-header
+  title="Liquidaciones"
+  subtitle="Lo que se paga a cada reciclador por una recolección. Los valores quedan congelados; una liquidación errada se anula y se emite de nuevo."
+>
   <p-tag [value]="rows().length + ' emitidas'" severity="info" [rounded]="true" />
-  <p-tag [value]="pending().length + ' por liquidar'" [severity]="pending().length > 0 ? 'warn' : 'success'" [rounded]="true" />
+  <p-tag
+    [value]="pending().length + ' por liquidar'"
+    [severity]="pending().length > 0 ? 'warn' : 'success'"
+    [rounded]="true"
+  />
   <ng-container *appHasPermission="'POST /api/settlements'">
     <button pButton type="button" [disabled]="pending().length === 0" (click)="openCreate()">
       <i pButtonIcon class="pi pi-wallet"></i>
@@ -14,21 +21,43 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
     <ng-template #caption>
       <div class="flex flex-wrap items-center gap-2">
         <i class="pi pi-search text-slate-400"></i>
-        <input pInputText type="search" aria-label="Buscar liquidaciones" placeholder="Buscar por número, recolección, reciclador o notas…" [value]="filter()" (input)="filter.set($any($event.target).value)" class="min-w-0 flex-1" />
-        <span class="text-sm text-slate-500">Total liquidado: <strong>{{ settledAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</strong></span>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar liquidaciones"
+          placeholder="Buscar por número, recolección, reciclador o notas…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="min-w-0 flex-1"
+        />
+        <span class="text-sm text-slate-500"
+          >Total liquidado:
+          <strong>{{ settledAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</strong></span
+        >
       </div>
       @if (filter()) {
-        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
       }
     </ng-template>
 
     <ng-template #header>
       <tr>
-        <th pSortableColumn="id"><div class="flex items-center gap-1"># <p-sort-icon field="id" /></div></th>
+        <th pSortableColumn="id">
+          <div class="flex items-center gap-1"># <p-sort-icon field="id" /></div>
+        </th>
         <th>Recolección y reciclador</th>
         <th class="text-right">Neto</th>
         <th class="text-right">Total</th>
@@ -51,22 +80,52 @@
           <p class="text-sm">{{ settlement.totalNetKg | number: '1.2-2' }} kg</p>
           <p class="text-xs text-slate-400">{{ settlement.lineCount }} pesajes</p>
         </td>
-        <td class="text-right font-medium">{{ settlement.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
+        <td class="text-right font-medium">
+          {{ settlement.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+        </td>
         <td class="max-w-48 text-sm text-slate-600">{{ settlement.notes || '—' }}</td>
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'GET /api/settlements/:id/verify'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Verificar liquidación" pTooltip="Verificar" [loading]="verifying() === settlement.id" (click)="verify(settlement)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Verificar liquidación"
+                pTooltip="Verificar"
+                [loading]="verifying() === settlement.id"
+                (click)="verify(settlement)"
+              >
                 <i pButtonIcon class="pi pi-verified"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/settlements/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar notas de la liquidación" pTooltip="Notas" (click)="openNotes(settlement)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar notas de la liquidación"
+                pTooltip="Notas"
+                (click)="openNotes(settlement)"
+              >
                 <i pButtonIcon class="pi pi-pencil"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/settlements/:id/void'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Anular liquidación" pTooltip="Anular" (click)="voidSettlement(settlement)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Anular liquidación"
+                pTooltip="Anular"
+                (click)="voidSettlement(settlement)"
+              >
                 <i pButtonIcon class="pi pi-undo"></i>
               </button>
             </ng-container>
@@ -79,9 +138,17 @@
       <tr>
         <td colspan="6">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ninguna liquidación coincide con la búsqueda." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ninguna liquidación coincide con la búsqueda."
+            />
           } @else {
-            <app-empty-state icon="pi pi-wallet" title="Sin liquidaciones emitidas" message="Liquida una recolección con «Liquidar recolección»." />
+            <app-empty-state
+              icon="pi pi-wallet"
+              title="Sin liquidaciones emitidas"
+              message="Liquida una recolección con «Liquidar recolección»."
+            />
           }
         </td>
       </tr>
@@ -89,11 +156,36 @@
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" [header]="title()" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-xl mx-4">
-  <app-settlement-form [settlement]="editing()" [pending]="pending()" [pendingOptions]="pendingOptions()" [saving]="saving()" [resetKey]="resetKey()" (saved)="save($event)" (cancelled)="dialogVisible.set(false)" />
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-xl mx-4"
+>
+  <app-settlement-form
+    [settlement]="editing()"
+    [pending]="pending()"
+    [pendingOptions]="pendingOptions()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
 </p-dialog>
 
-<p-dialog [visible]="verifyVisible()" (visibleChange)="verifyVisible.set($event)" [header]="'Verificación de la liquidación #' + (verification()?.settlementId ?? '')" [modal]="true" [draggable]="false" [dismissableMask]="true" styleClass="w-full max-w-3xl mx-4">
+<p-dialog
+  [visible]="verifyVisible()"
+  (visibleChange)="verifyVisible.set($event)"
+  [header]="'Verificación de la liquidación #' + (verification()?.settlementId ?? '')"
+  [modal]="true"
+  [draggable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-3xl mx-4"
+>
   @if (verification(); as report) {
     <app-settlement-verification [report]="report" [materials]="materials()" />
   }

@@ -31,6 +31,9 @@ export class Login {
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
 
+  /** The interceptor sends `reason=expired` when the refresh token no longer works. */
+  readonly expired = this.route.snapshot.queryParamMap.get('reason') === 'expired';
+
   readonly form = this.fb.group({
     identifier: ['', [Validators.required, Validators.maxLength(150)]],
     password: ['', [Validators.required, Validators.maxLength(200)]],
@@ -47,7 +50,10 @@ export class Login {
     const { identifier, password } = this.form.getRawValue();
     // `identifier` accepts username or email; the backend reads device info from the User-Agent.
     this.auth.login({ identifier: identifier.trim(), password }).subscribe({
-      next: () => void this.router.navigateByUrl(safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl'))),
+      next: () =>
+        void this.router.navigateByUrl(
+          safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        ),
       error: (error: unknown) => {
         this.loading.set(false);
         this.error.set(toApiMessage(error));
@@ -58,7 +64,12 @@ export class Login {
 
 /** Only internal paths: `//evil.com` or `https://…` would be an open redirect. */
 export function safeReturnUrl(requested: string | null): string {
-  if (!requested || !requested.startsWith('/') || requested.startsWith('//') || requested.startsWith('/login')) {
+  if (
+    !requested ||
+    !requested.startsWith('/') ||
+    requested.startsWith('//') ||
+    requested.startsWith('/login')
+  ) {
     return '/dashboard';
   }
   return requested;

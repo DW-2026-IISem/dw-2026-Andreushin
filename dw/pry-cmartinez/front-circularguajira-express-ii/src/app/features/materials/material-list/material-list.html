@@ -1,4 +1,7 @@
-<app-page-header title="Materiales" subtitle="Catálogo de materiales reciclables. Las tarifas por kg se gestionan aparte.">
+<app-page-header
+  title="Materiales"
+  subtitle="Catálogo de materiales reciclables. Las tarifas por kg se gestionan aparte."
+>
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/materials'">
     <button pButton type="button" (click)="openCreate()">
@@ -65,17 +68,44 @@
         <td>
           <div class="flex justify-end gap-1">
             <ng-container *appHasPermission="'PATCH /api/materials/:id'">
-              <button pButton type="button" text rounded severity="secondary" aria-label="Editar material" pTooltip="Editar" (click)="openEdit(material)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="secondary"
+                aria-label="Editar material"
+                pTooltip="Editar"
+                (click)="openEdit(material)"
+              >
                 <i pButtonIcon class="pi pi-pencil"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'PATCH /api/materials/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al material" pTooltip="Baja lógica" (click)="deactivate(material)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Dar de baja al material"
+                pTooltip="Baja lógica"
+                (click)="deactivate(material)"
+              >
                 <i pButtonIcon class="pi pi-ban"></i>
               </button>
             </ng-container>
             <ng-container *appHasPermission="'DELETE /api/materials/:id'">
-              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar material" pTooltip="Eliminar" (click)="remove(material)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="danger"
+                aria-label="Eliminar material"
+                pTooltip="Eliminar"
+                (click)="remove(material)"
+              >
                 <i pButtonIcon class="pi pi-trash"></i>
               </button>
             </ng-container>
@@ -88,9 +118,17 @@
       <tr>
         <td colspan="4">
           @if (filter()) {
-            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún material coincide con la búsqueda. Borra el filtro para ver todos." />
+            <app-empty-state
+              icon="pi pi-search"
+              title="Sin coincidencias"
+              message="Ningún material coincide con la búsqueda. Borra el filtro para ver todos."
+            />
           } @else {
-            <app-empty-state icon="pi pi-tags" title="Sin materiales activos" message="Crea el primero con el botón «Nuevo material» o ejecuta el seeder del backend." />
+            <app-empty-state
+              icon="pi pi-tags"
+              title="Sin materiales activos"
+              message="Crea el primero con el botón «Nuevo material» o ejecuta el seeder del backend."
+            />
           }
         </td>
       </tr>

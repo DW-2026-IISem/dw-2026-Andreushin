@@ -10,8 +10,30 @@ import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const WEIGHINGS: Weighing[] = [
-  { id: 19, collectionId: 7, materialId: 3, rateId: 9, pricePerKg: 650, grossKg: 79.79, tareKg: 0.96, netKg: 78.83, amount: 51239.5, status: 'active' },
-  { id: 5, collectionId: 2, materialId: 1, rateId: 2, pricePerKg: 1290, grossKg: 40, tareKg: 1, netKg: 39, amount: 50310, status: 'active' },
+  {
+    id: 19,
+    collectionId: 7,
+    materialId: 3,
+    rateId: 9,
+    pricePerKg: 650,
+    grossKg: 79.79,
+    tareKg: 0.96,
+    netKg: 78.83,
+    amount: 51239.5,
+    status: 'active',
+  },
+  {
+    id: 5,
+    collectionId: 2,
+    materialId: 1,
+    rateId: 2,
+    pricePerKg: 1290,
+    grossKg: 40,
+    tareKg: 1,
+    netKg: 39,
+    amount: 50310,
+    status: 'active',
+  },
 ];
 
 describe('WeighingList', () => {
@@ -20,7 +42,12 @@ describe('WeighingList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [WeighingList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -34,8 +61,24 @@ describe('WeighingList', () => {
     http.expectOne(`${API}/weighings`).flush({ weighings: WEIGHINGS });
     http.expectOne(`${API}/collections`).flush({
       collections: [
-        { id: 7, recyclerId: 4, routeId: 5, collectedOn: '2026-10-14', totalNetKg: 0, totalAmount: 0, status: 'active' },
-        { id: 2, recyclerId: 9, routeId: 5, collectedOn: '2026-09-26', totalNetKg: 0, totalAmount: 0, status: 'active' },
+        {
+          id: 7,
+          recyclerId: 4,
+          routeId: 5,
+          collectedOn: '2026-10-14',
+          totalNetKg: 0,
+          totalAmount: 0,
+          status: 'active',
+        },
+        {
+          id: 2,
+          recyclerId: 9,
+          routeId: 5,
+          collectedOn: '2026-09-26',
+          totalNetKg: 0,
+          totalAmount: 0,
+          status: 'active',
+        },
       ],
     });
     http.expectOne(`${API}/materials`).flush({
@@ -45,7 +88,11 @@ describe('WeighingList', () => {
       ],
     });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should list the lines with collection and material resolved', async () => {
@@ -75,7 +122,12 @@ describe('WeighingList', () => {
     list.save({ collectionId: 7, materialId: 1, grossKg: 12, tareKg: 0.4 });
     const create = http.expectOne(`${API}/weighings`);
     expect(create.request.method).toBe('POST');
-    expect(create.request.body).toEqual({ collectionId: 7, materialId: 1, grossKg: 12, tareKg: 0.4 });
+    expect(create.request.body).toEqual({
+      collectionId: 7,
+      materialId: 1,
+      grossKg: 12,
+      tareKg: 0.4,
+    });
     create.flush({ ...WEIGHINGS[0], id: 30 });
     http.expectOne(`${API}/weighings`).flush({ weighings: WEIGHINGS });
     http.expectOne(`${API}/collections`).flush({ collections: [] });
@@ -88,7 +140,10 @@ describe('WeighingList', () => {
     list.openEdit(WEIGHINGS[1]);
     list.save({ collectionId: 2, materialId: 1, grossKg: 41, tareKg: 1 });
     http.expectOne(`${API}/weighings/5`).flush(
-      { message: 'La recolección 2 está liquidada (liquidación 4); anula la liquidación para modificarla' },
+      {
+        message:
+          'La recolección 2 está liquidada (liquidación 4); anula la liquidación para modificarla',
+      },
       { status: 409, statusText: 'Conflict' },
     );
     expect(list.dialogVisible()).toBe(true);

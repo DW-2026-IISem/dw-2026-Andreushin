@@ -1,4 +1,7 @@
-<app-page-header title="Nueva recolección" subtitle="Arma el borrador de pesajes; el backend calcula importes y guarda todo en una sola transacción.">
+<app-page-header
+  title="Nueva recolección"
+  subtitle="Arma el borrador de pesajes; el backend calcula importes y guarda todo en una sola transacción."
+>
   <a pButton routerLink="/collections" severity="secondary" outlined>
     <i pButtonIcon class="pi pi-arrow-left"></i>
     <span pButtonLabel>Volver</span>
@@ -14,7 +17,11 @@
     <p-card header="Recolección">
       <div class="grid gap-4 md:grid-cols-3">
         <div>
-          <label id="collection-recycler-label" for="collection-recycler" class="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            id="collection-recycler-label"
+            for="collection-recycler"
+            class="mb-1 block text-sm font-medium text-slate-700"
+          >
             Reciclador <span class="text-red-500">*</span>
           </label>
           <p-select
@@ -32,7 +39,11 @@
           />
         </div>
         <div>
-          <label id="collection-route-label" for="collection-route" class="mb-1 block text-sm font-medium text-slate-700">
+          <label
+            id="collection-route-label"
+            for="collection-route"
+            class="mb-1 block text-sm font-medium text-slate-700"
+          >
             Ruta <span class="text-red-500">*</span>
           </label>
           <p-select
@@ -53,7 +64,15 @@
           <label for="collection-date" class="mb-1 block text-sm font-medium text-slate-700">
             Fecha <span class="text-red-500">*</span>
           </label>
-          <input id="collection-date" pInputText type="date" [max]="today" [ngModel]="collectedOn()" (ngModelChange)="changeDate($event)" class="w-full" />
+          <input
+            id="collection-date"
+            pInputText
+            type="date"
+            [max]="today"
+            [ngModel]="collectedOn()"
+            (ngModelChange)="changeDate($event)"
+            class="w-full"
+          />
         </div>
       </div>
     </p-card>
@@ -61,7 +80,12 @@
     <p-card header="Pesajes">
       <div class="grid items-end gap-4 lg:grid-cols-[1fr_8rem_8rem_auto]">
         <div>
-          <label id="weighing-material-label" for="weighing-material" class="mb-1 block text-sm font-medium text-slate-700">Material</label>
+          <label
+            id="weighing-material-label"
+            for="weighing-material"
+            class="mb-1 block text-sm font-medium text-slate-700"
+            >Material</label
+          >
           <p-select
             [fluid]="true"
             inputId="weighing-material"
@@ -76,12 +100,34 @@
           />
         </div>
         <div>
-          <label for="weighing-gross" class="mb-1 block text-sm font-medium text-slate-700">Bruto (kg)</label>
-          <p-inputnumber [fluid]="true" inputId="weighing-gross" [ngModel]="grossKg()" (ngModelChange)="grossKg.set($event)" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" [min]="0" />
+          <label for="weighing-gross" class="mb-1 block text-sm font-medium text-slate-700"
+            >Bruto (kg)</label
+          >
+          <p-inputnumber
+            [fluid]="true"
+            inputId="weighing-gross"
+            [ngModel]="grossKg()"
+            (ngModelChange)="grossKg.set($event)"
+            mode="decimal"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [min]="0"
+          />
         </div>
         <div>
-          <label for="weighing-tare" class="mb-1 block text-sm font-medium text-slate-700">Tara (kg)</label>
-          <p-inputnumber [fluid]="true" inputId="weighing-tare" [ngModel]="tareKg()" (ngModelChange)="tareKg.set($event)" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2" [min]="0" />
+          <label for="weighing-tare" class="mb-1 block text-sm font-medium text-slate-700"
+            >Tara (kg)</label
+          >
+          <p-inputnumber
+            [fluid]="true"
+            inputId="weighing-tare"
+            [ngModel]="tareKg()"
+            (ngModelChange)="tareKg.set($event)"
+            mode="decimal"
+            [minFractionDigits]="0"
+            [maxFractionDigits]="2"
+            [min]="0"
+          />
         </div>
         <button pButton type="button" [loading]="checkingRate()" (click)="addLine()">
           <i pButtonIcon class="pi pi-plus"></i>
@@ -107,7 +153,9 @@
               <td>{{ materialName(line.materialId) }}</td>
               <td class="text-right">{{ line.grossKg | number: '1.0-2' }}</td>
               <td class="text-right">{{ line.tareKg | number: '1.0-2' }}</td>
-              <td class="text-right font-medium">{{ previews()[index].netKg | number: '1.2-2' }} kg</td>
+              <td class="text-right font-medium">
+                {{ previews()[index].netKg | number: '1.2-2' }} kg
+              </td>
               <td class="text-right">
                 @if (rateOf(line.materialId); as rate) {
                   {{ rate.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg
@@ -115,9 +163,19 @@
                   <span class="text-xs text-slate-400">consultando…</span>
                 }
               </td>
-              <td class="text-right">{{ previews()[index].amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
               <td class="text-right">
-                <button pButton type="button" text rounded severity="danger" aria-label="Quitar pesaje" (click)="removeLine(index)">
+                {{ previews()[index].amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+              </td>
+              <td class="text-right">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="danger"
+                  aria-label="Quitar pesaje"
+                  (click)="removeLine(index)"
+                >
                   <i pButtonIcon class="pi pi-times"></i>
                 </button>
               </td>
@@ -125,7 +183,9 @@
           </ng-template>
           <ng-template #emptymessage>
             <tr>
-              <td colspan="7" class="py-6 text-center text-sm text-slate-500">Todavía no hay pesajes en el borrador.</td>
+              <td colspan="7" class="py-6 text-center text-sm text-slate-500">
+                Todavía no hay pesajes en el borrador.
+              </td>
             </tr>
           </ng-template>
         </p-table>
@@ -145,13 +205,22 @@
       </div>
       <div class="flex justify-between border-t border-slate-200 pt-2 text-base">
         <dt class="font-semibold">Total estimado</dt>
-        <dd class="font-semibold">{{ totals().amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+        <dd class="font-semibold">
+          {{ totals().amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}
+        </dd>
       </div>
     </dl>
     <p class="mt-3 text-xs text-slate-500">
       El backend recalcula cada importe con la tarifa vigente el {{ collectedOn() }}.
     </p>
-    <button pButton type="button" class="mt-4 w-full" [loading]="saving()" [disabled]="lines().length === 0" (click)="save()">
+    <button
+      pButton
+      type="button"
+      class="mt-4 w-full"
+      [loading]="saving()"
+      [disabled]="lines().length === 0"
+      (click)="save()"
+    >
       <i pButtonIcon class="pi pi-check"></i>
       <span pButtonLabel>Registrar recolección</span>
     </button>

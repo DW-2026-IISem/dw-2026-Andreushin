@@ -55,7 +55,9 @@ describe('RecyclerForm', () => {
 
     expect(saved).toEqual([]);
     expect(form.form.controls.name.touched).toBe(true);
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('El nombre es obligatorio');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'El nombre es obligatorio',
+    );
   });
 
   it('should reject document and phone numbers that the backend would reject', async () => {
@@ -115,8 +117,8 @@ describe('RecyclerForm', () => {
     let cancelled = 0;
     form.cancelled.subscribe(() => cancelled++);
 
-    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find((item) =>
-      item.textContent?.includes('Cancelar'),
+    const button = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button')].find(
+      (item) => item.textContent?.includes('Cancelar'),
     ) as HTMLButtonElement;
     button.click();
 

@@ -17,7 +17,12 @@ import { HasPermission } from '../../../../shared/directives/has-permission';
 import { EmptyState } from '../../../../shared/ui/empty-state/empty-state';
 import { PageHeader } from '../../../../shared/ui/page-header/page-header';
 import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
-import { HTTP_METHODS, HttpMethod, Resource, ResourcePayload } from '../../../../core/models/resource.model';
+import {
+  HTTP_METHODS,
+  HttpMethod,
+  Resource,
+  ResourcePayload,
+} from '../../../../core/models/resource.model';
 import { ResourceApi } from '../resource-api';
 import { ResourceForm } from '../resource-form/resource-form';
 
@@ -28,7 +33,22 @@ import { ResourceForm } from '../resource-form/resource-form';
 @Component({
   host: { class: 'block' },
   selector: 'app-resource-list',
-  imports: [HasPermission, ButtonModule, DialogModule, EmptyState, FormsModule, InputTextModule, MessageModule, PageHeader, ResourceForm, SelectModule, StatusTag, TableModule, TagModule, TooltipModule],
+  imports: [
+    HasPermission,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    FormsModule,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    ResourceForm,
+    SelectModule,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
+  ],
   templateUrl: './resource-list.html',
   styleUrl: './resource-list.css',
 })
@@ -39,7 +59,10 @@ export class ResourceList {
 
   readonly methodSeverity = methodSeverity;
   readonly methods = HTTP_METHODS;
-  readonly methodOptions = [{ label: 'Todos los métodos', value: null }, ...HTTP_METHODS.map((method) => ({ label: method, value: method }))];
+  readonly methodOptions = [
+    { label: 'Todos los métodos', value: null },
+    ...HTTP_METHODS.map((method) => ({ label: method, value: method })),
+  ];
 
   readonly rows = signal<Resource[]>([]);
   readonly loading = signal(true);
@@ -62,7 +85,11 @@ export class ResourceList {
 
   readonly visibleRows = computed(() => {
     const method = this.methodFilter();
-    const filtered = filterRows(this.rows(), this.filter(), (row) => [row.path, row.description, row.method]);
+    const filtered = filterRows(this.rows(), this.filter(), (row) => [
+      row.path,
+      row.description,
+      row.method,
+    ]);
     return method ? filtered.filter((row) => row.method === method) : filtered;
   });
 
@@ -132,7 +159,8 @@ export class ResourceList {
             this.notify.warn('Recurso desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

@@ -1,12 +1,17 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
   <div>
-    <label id="point-route-label" for="point-route" class="mb-1 block text-sm font-medium text-slate-700">
+    <label
+      id="point-route-label"
+      for="point-route"
+      class="mb-1 block text-sm font-medium text-slate-700"
+    >
       Ruta <span class="text-red-500">*</span>
     </label>
     <!-- optionValue="id": the control stores the route id (a number), which is what `routeId` expects. -->
     <p-select
       [fluid]="true"
-      inputId="point-route" ariaLabelledBy="point-route-label"
+      inputId="point-route"
+      ariaLabelledBy="point-route-label"
       formControlName="routeId"
       [options]="routes()"
       optionLabel="name"
@@ -16,7 +21,9 @@
       filterBy="name,municipality"
     />
     @if (form.controls.routeId.touched && form.controls.routeId.invalid) {
-      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Elige una ruta activa.</p-message>
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+        >Elige una ruta activa.</p-message
+      >
     }
   </div>
 
@@ -25,7 +32,13 @@
       <label for="point-name" class="mb-1 block text-sm font-medium text-slate-700">
         Nombre <span class="text-red-500">*</span>
       </label>
-      <input id="point-name" pInputText formControlName="name" placeholder="Tienda El Progreso" class="w-full" />
+      <input
+        id="point-name"
+        pInputText
+        formControlName="name"
+        placeholder="Tienda El Progreso"
+        class="w-full"
+      />
       @if (form.controls.name.touched && form.controls.name.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           El nombre es obligatorio (máximo 100 caracteres).
@@ -34,12 +47,26 @@
     </div>
 
     <div>
-      <label id="point-order-label" for="point-order" class="mb-1 block text-sm font-medium text-slate-700">
+      <label
+        id="point-order-label"
+        for="point-order"
+        class="mb-1 block text-sm font-medium text-slate-700"
+      >
         Orden <span class="text-red-500">*</span>
       </label>
-      <p-inputnumber [fluid]="true" inputId="point-order" ariaLabelledBy="point-order-label" formControlName="visitOrder" [min]="1" [max]="999" [useGrouping]="false" />
+      <p-inputnumber
+        [fluid]="true"
+        inputId="point-order"
+        ariaLabelledBy="point-order-label"
+        formControlName="visitOrder"
+        [min]="1"
+        [max]="999"
+        [useGrouping]="false"
+      />
       @if (form.controls.visitOrder.touched && form.controls.visitOrder.invalid) {
-        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Entero de 1 a 999.</p-message>
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+          >Entero de 1 a 999.</p-message
+        >
       }
     </div>
   </div>
@@ -48,7 +75,13 @@
     <label for="point-address" class="mb-1 block text-sm font-medium text-slate-700">
       Dirección <span class="text-red-500">*</span>
     </label>
-    <input id="point-address" pInputText formControlName="address" placeholder="Calle 2 # 7-15, Riohacha" class="w-full" />
+    <input
+      id="point-address"
+      pInputText
+      formControlName="address"
+      placeholder="Calle 2 # 7-15, Riohacha"
+      class="w-full"
+    />
     @if (form.controls.address.touched && form.controls.address.invalid) {
       <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
         La dirección es obligatoria (máximo 200 caracteres).
@@ -57,10 +90,25 @@
   </div>
 
   <div>
-    <label id="point-status-label" for="point-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select [fluid]="true" inputId="point-status" ariaLabelledBy="point-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" />
+    <label
+      id="point-status-label"
+      for="point-status"
+      class="mb-1 block text-sm font-medium text-slate-700"
+      >Estado</label
+    >
+    <p-select
+      [fluid]="true"
+      inputId="point-status"
+      ariaLabelledBy="point-status-label"
+      formControlName="status"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
     @if (point()) {
-      <p class="mt-1 text-xs text-slate-500">El estado de un punto existente solo cambia con la baja lógica.</p>
+      <p class="mt-1 text-xs text-slate-500">
+        El estado de un punto existente solo cambia con la baja lógica.
+      </p>
     }
   </div>
 

@@ -8,7 +8,10 @@ import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { forkJoin } from 'rxjs';
-import { CollectionPoint, CollectionPointPayload } from '../../../core/models/collection-point.model';
+import {
+  CollectionPoint,
+  CollectionPointPayload,
+} from '../../../core/models/collection-point.model';
 import { Route } from '../../../core/models/route.model';
 import { NotificationService } from '../../../core/services/notification';
 import { toApiMessage } from '../../../core/utils/api-error';
@@ -84,14 +87,20 @@ export class CollectionPointList {
   });
 
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (point) => [point.name, point.address, this.routeName()(point.routeId)]),
+    filterRows(this.rows(), this.filter(), (point) => [
+      point.name,
+      point.address,
+      this.routeName()(point.routeId),
+    ]),
   );
 
   readonly dialogVisible = signal(false);
   readonly editing = signal<CollectionPoint | null>(null);
   readonly resetKey = signal(0);
 
-  readonly title = computed(() => (this.editing() ? 'Editar punto de recolección' : 'Nuevo punto de recolección'));
+  readonly title = computed(() =>
+    this.editing() ? 'Editar punto de recolección' : 'Nuevo punto de recolección',
+  );
 
   constructor() {
     this.load();

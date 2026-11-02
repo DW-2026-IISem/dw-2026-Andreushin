@@ -8,7 +8,12 @@ describe('Forbidden', () => {
       imports: [Forbidden],
       providers: [
         provideRouter([]),
-        { provide: ActivatedRoute, useValue: { snapshot: { queryParamMap: convertToParamMap({ permission: 'GET /api/recyclers' }) } } },
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: convertToParamMap({ permission: 'GET /api/recyclers' }) },
+          },
+        },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(Forbidden);

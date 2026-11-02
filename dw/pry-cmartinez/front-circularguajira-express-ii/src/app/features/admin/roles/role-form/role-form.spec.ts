@@ -10,9 +10,17 @@ describe('RoleForm', () => {
     const emitted: RolePayload[] = [];
     fixture.componentInstance.saved.subscribe((payload) => emitted.push(payload));
 
-    fixture.componentInstance.form.setValue({ name: 'auditoria', description: ' Revisa liquidaciones ', status: 'active' });
+    fixture.componentInstance.form.setValue({
+      name: 'auditoria',
+      description: ' Revisa liquidaciones ',
+      status: 'active',
+    });
     fixture.componentInstance.submit();
-    expect(emitted[0]).toEqual({ name: 'AUDITORIA', description: 'Revisa liquidaciones', status: 'active' });
+    expect(emitted[0]).toEqual({
+      name: 'AUDITORIA',
+      description: 'Revisa liquidaciones',
+      status: 'active',
+    });
 
     fixture.componentInstance.form.patchValue({ name: '1malo' });
     fixture.componentInstance.submit();

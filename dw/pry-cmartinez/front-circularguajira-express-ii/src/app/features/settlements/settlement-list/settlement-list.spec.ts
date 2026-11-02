@@ -10,13 +10,58 @@ import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const SETTLEMENTS: Settlement[] = [
-  { id: 4, collectionId: 2, recyclerId: 9, settledAt: '2026-10-14T18:09:05.000Z', totalNetKg: 178.76, totalAmount: '80582.90', lineCount: 3, status: 'issued', notes: null },
-  { id: 1, collectionId: 3, recyclerId: 9, settledAt: '2026-10-14T18:09:05.000Z', totalNetKg: 135.64, totalAmount: 1349673.8, lineCount: 3, status: 'issued', notes: 'Pago en bodega' },
+  {
+    id: 4,
+    collectionId: 2,
+    recyclerId: 9,
+    settledAt: '2026-10-14T18:09:05.000Z',
+    totalNetKg: 178.76,
+    totalAmount: '80582.90',
+    lineCount: 3,
+    status: 'issued',
+    notes: null,
+  },
+  {
+    id: 1,
+    collectionId: 3,
+    recyclerId: 9,
+    settledAt: '2026-10-14T18:09:05.000Z',
+    totalNetKg: 135.64,
+    totalAmount: 1349673.8,
+    lineCount: 3,
+    status: 'issued',
+    notes: 'Pago en bodega',
+  },
 ];
 const COLLECTIONS = [
-  { id: 7, recyclerId: 4, routeId: 5, collectedOn: '2026-10-14', totalNetKg: 204.17, totalAmount: 363249.7, status: 'active', weighings: [] },
-  { id: 3, recyclerId: 9, routeId: 1, collectedOn: '2026-09-20', totalNetKg: 135.64, totalAmount: 1349673.8, status: 'active' },
-  { id: 2, recyclerId: 9, routeId: 5, collectedOn: '2026-09-26', totalNetKg: 178.76, totalAmount: 80582.9, status: 'active' },
+  {
+    id: 7,
+    recyclerId: 4,
+    routeId: 5,
+    collectedOn: '2026-10-14',
+    totalNetKg: 204.17,
+    totalAmount: 363249.7,
+    status: 'active',
+    weighings: [],
+  },
+  {
+    id: 3,
+    recyclerId: 9,
+    routeId: 1,
+    collectedOn: '2026-09-20',
+    totalNetKg: 135.64,
+    totalAmount: 1349673.8,
+    status: 'active',
+  },
+  {
+    id: 2,
+    recyclerId: 9,
+    routeId: 5,
+    collectedOn: '2026-09-26',
+    totalNetKg: 178.76,
+    totalAmount: 80582.9,
+    status: 'active',
+  },
 ];
 
 describe('SettlementList', () => {
@@ -25,7 +70,12 @@ describe('SettlementList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SettlementList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -37,7 +87,12 @@ describe('SettlementList', () => {
   function flushLoad(settlements = SETTLEMENTS): void {
     http.expectOne(`${API}/settlements`).flush({ settlements });
     http.expectOne(`${API}/collections`).flush({ collections: COLLECTIONS });
-    http.expectOne(`${API}/recyclers`).flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez' }, { id: 9, name: 'Asociación Hinojosa' }] });
+    http.expectOne(`${API}/recyclers`).flush({
+      recyclers: [
+        { id: 4, name: 'Teodoro Valadez' },
+        { id: 9, name: 'Asociación Hinojosa' },
+      ],
+    });
     http.expectOne(`${API}/materials`).flush({ materials: [{ id: 3, name: 'Archivo' }] });
   }
 
@@ -45,7 +100,11 @@ describe('SettlementList', () => {
     const fixture = TestBed.createComponent(SettlementList);
     flushLoad();
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should list the issued settlements and add their totals as numbers', async () => {
@@ -90,19 +149,30 @@ describe('SettlementList', () => {
     const add = vi.spyOn(TestBed.inject(MessageService), 'add');
     list.openCreate();
     list.save({ collectionId: 3, notes: null });
-    http.expectOne(`${API}/settlements`).flush(
-      { message: 'La recolección 3 ya está liquidada (liquidación 1)' },
-      { status: 409, statusText: 'Conflict' },
-    );
+    http
+      .expectOne(`${API}/settlements`)
+      .flush(
+        { message: 'La recolección 3 ya está liquidada (liquidación 1)' },
+        { status: 409, statusText: 'Conflict' },
+      );
     expect(list.dialogVisible()).toBe(true);
-    expect(add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'No se pudo liquidar', detail: 'La recolección 3 ya está liquidada (liquidación 1)' }));
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        summary: 'No se pudo liquidar',
+        detail: 'La recolección 3 ya está liquidada (liquidación 1)',
+      }),
+    );
   });
 
   it('should open the verification report', async () => {
     const { list } = await createList();
     list.verify(SETTLEMENTS[1]);
     http.expectOne(`${API}/settlements/1/verify`).flush({
-      settlementId: 1, status: 'issued', collectionId: 3, collectedOn: '2026-09-20', consistent: true,
+      settlementId: 1,
+      status: 'issued',
+      collectionId: 3,
+      collectedOn: '2026-09-20',
+      consistent: true,
       stored: { totalNetKg: 135.64, totalAmount: 1349673.8, lineCount: 3 },
       recomputed: { totalNetKg: 135.64, totalAmount: 1349673.8, lineCount: 3 },
       lines: [],
@@ -129,7 +199,9 @@ describe('SettlementList', () => {
   it('should ask for confirmation when the row button «Anular liquidación» is clicked', async () => {
     const { element } = await createList();
     const confirm = vi.spyOn(TestBed.inject(ConfirmationService), 'confirm');
-    const button = element.querySelector('tbody tr button[aria-label="Anular liquidación"]') as HTMLButtonElement;
+    const button = element.querySelector(
+      'tbody tr button[aria-label="Anular liquidación"]',
+    ) as HTMLButtonElement;
     button.click();
     // `void(...)` in a template is the JS operator, not the method: the click must reach voidSettlement.
     expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ header: 'Anular liquidación' }));

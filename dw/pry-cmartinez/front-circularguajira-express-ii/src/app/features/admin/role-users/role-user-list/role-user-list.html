@@ -1,7 +1,12 @@
-<app-page-header title="Asignaciones" subtitle="Qué rol tiene cada usuario. Un usuario puede tener varios; sus permisos son la suma.">
+<app-page-header
+  title="Asignaciones"
+  subtitle="Qué rol tiene cada usuario. Un usuario puede tener varios; sus permisos son la suma."
+>
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/role-users'">
-    <button pButton type="button" (click)="openAssign()"><i pButtonIcon class="pi pi-user-plus"></i><span pButtonLabel>Asignar rol</span></button>
+    <button pButton type="button" (click)="openAssign()">
+      <i pButtonIcon class="pi pi-user-plus"></i><span pButtonLabel>Asignar rol</span>
+    </button>
   </ng-container>
 </app-page-header>
 
@@ -10,33 +15,86 @@
 }
 
 <div class="rounded-xl border border-slate-200 bg-white">
-  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-2xl">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-2xl"
+  >
     <ng-template #caption>
       <div class="grid gap-2 sm:grid-cols-2">
-        <p-select ariaLabel="Filtrar por usuario" [options]="users()" optionLabel="username" [filter]="true" filterBy="username,email" [showClear]="true" placeholder="Todos los usuarios" [ngModel]="userFilter()" (ngModelChange)="userFilter.set($event)" [fluid]="true" />
-        <p-select ariaLabel="Filtrar por rol" [options]="roles()" optionLabel="name" [showClear]="true" placeholder="Todos los roles" [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)" [fluid]="true" />
+        <p-select
+          ariaLabel="Filtrar por usuario"
+          [options]="users()"
+          optionLabel="username"
+          [filter]="true"
+          filterBy="username,email"
+          [showClear]="true"
+          placeholder="Todos los usuarios"
+          [ngModel]="userFilter()"
+          (ngModelChange)="userFilter.set($event)"
+          [fluid]="true"
+        />
+        <p-select
+          ariaLabel="Filtrar por rol"
+          [options]="roles()"
+          optionLabel="name"
+          [showClear]="true"
+          placeholder="Todos los roles"
+          [ngModel]="roleFilter()"
+          (ngModelChange)="roleFilter.set($event)"
+          [fluid]="true"
+        />
       </div>
     </ng-template>
     <ng-template #header>
-      <tr><th>Usuario</th><th>Rol</th><th>Desde</th><th class="w-24 text-right">Acciones</th></tr>
+      <tr>
+        <th>Usuario</th>
+        <th>Rol</th>
+        <th>Desde</th>
+        <th class="w-24 text-right">Acciones</th>
+      </tr>
     </ng-template>
     <ng-template #body let-row>
       <tr>
         <td>
           <div class="flex items-center gap-2">
-            <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700">{{ (row.user?.username ?? '?').slice(0, 2).toUpperCase() }}</span>
+            <span
+              class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-semibold text-emerald-700"
+              >{{ (row.user?.username ?? '?').slice(0, 2).toUpperCase() }}</span
+            >
             <div class="min-w-0">
-              <p class="font-medium text-slate-800">{{ row.user?.username ?? 'Usuario #' + row.userId }}</p>
+              <p class="font-medium text-slate-800">
+                {{ row.user?.username ?? 'Usuario #' + row.userId }}
+              </p>
               <p class="text-xs text-slate-400">{{ row.user?.email }}</p>
             </div>
           </div>
         </td>
-        <td><p-tag [value]="row.role?.name ?? 'Rol #' + row.roleId" severity="info" [rounded]="true" /></td>
+        <td>
+          <p-tag
+            [value]="row.role?.name ?? 'Rol #' + row.roleId"
+            severity="info"
+            [rounded]="true"
+          />
+        </td>
         <td class="text-sm text-slate-500">{{ row.createdAt | date: 'dd/MM/yyyy' }}</td>
         <td>
           <div class="flex justify-end">
             <ng-container *appHasPermission="'PATCH /api/role-users/:id/deactivate'">
-              <button pButton type="button" text rounded severity="warn" aria-label="Retirar rol" [pTooltip]="isSelf(row) ? 'No puedes retirarte un rol a ti mismo' : 'Retirar'" [disabled]="isSelf(row)" (click)="retire(row)">
+              <button
+                pButton
+                type="button"
+                text
+                rounded
+                severity="warn"
+                aria-label="Retirar rol"
+                [pTooltip]="isSelf(row) ? 'No puedes retirarte un rol a ti mismo' : 'Retirar'"
+                [disabled]="isSelf(row)"
+                (click)="retire(row)"
+              >
                 <i pButtonIcon class="pi pi-user-minus"></i>
               </button>
             </ng-container>
@@ -45,27 +103,88 @@
       </tr>
     </ng-template>
     <ng-template #emptymessage>
-      <tr><td colspan="4"><app-empty-state icon="pi pi-link" title="Sin asignaciones" message="Ninguna asignación activa coincide con los filtros." /></td></tr>
+      <tr>
+        <td colspan="4">
+          <app-empty-state
+            icon="pi pi-link"
+            title="Sin asignaciones"
+            message="Ninguna asignación activa coincide con los filtros."
+          />
+        </td>
+      </tr>
     </ng-template>
   </p-table>
 </div>
 
-<p-dialog [visible]="dialogVisible()" (visibleChange)="dialogVisible.set($event)" header="Asignar rol" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" styleClass="w-full max-w-lg mx-4">
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  header="Asignar rol"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-lg mx-4"
+>
   <div class="space-y-4">
     <div>
-      <label id="assign-user-label" for="assign-user" class="mb-1 block text-sm font-medium text-slate-700">Usuario <span class="text-red-500">*</span></label>
-      <p-select inputId="assign-user" ariaLabelledBy="assign-user-label" [options]="users()" optionLabel="username" [filter]="true" filterBy="username,email" placeholder="Elige un usuario" appendTo="body" [ngModel]="selectedUser()" (ngModelChange)="selectedUser.set($event)" [fluid]="true" />
+      <label
+        id="assign-user-label"
+        for="assign-user"
+        class="mb-1 block text-sm font-medium text-slate-700"
+        >Usuario <span class="text-red-500">*</span></label
+      >
+      <p-select
+        inputId="assign-user"
+        ariaLabelledBy="assign-user-label"
+        [options]="users()"
+        optionLabel="username"
+        [filter]="true"
+        filterBy="username,email"
+        placeholder="Elige un usuario"
+        appendTo="body"
+        [ngModel]="selectedUser()"
+        (ngModelChange)="selectedUser.set($event)"
+        [fluid]="true"
+      />
     </div>
     <div>
-      <label id="assign-role-label" for="assign-role" class="mb-1 block text-sm font-medium text-slate-700">Rol <span class="text-red-500">*</span></label>
-      <p-select inputId="assign-role" ariaLabelledBy="assign-role-label" [options]="roles()" optionLabel="name" placeholder="Elige un rol" appendTo="body" [ngModel]="selectedRole()" (ngModelChange)="selectedRole.set($event)" [fluid]="true" />
+      <label
+        id="assign-role-label"
+        for="assign-role"
+        class="mb-1 block text-sm font-medium text-slate-700"
+        >Rol <span class="text-red-500">*</span></label
+      >
+      <p-select
+        inputId="assign-role"
+        ariaLabelledBy="assign-role-label"
+        [options]="roles()"
+        optionLabel="name"
+        placeholder="Elige un rol"
+        appendTo="body"
+        [ngModel]="selectedRole()"
+        (ngModelChange)="selectedRole.set($event)"
+        [fluid]="true"
+      />
     </div>
     @if (alreadyAssigned()) {
-      <p-message severity="warn" styleClass="w-full">{{ selectedUser()?.username }} ya tiene el rol {{ selectedRole()?.name }}.</p-message>
+      <p-message severity="warn" styleClass="w-full"
+        >{{ selectedUser()?.username }} ya tiene el rol {{ selectedRole()?.name }}.</p-message
+      >
     }
     <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-      <button pButton type="button" severity="secondary" outlined (click)="dialogVisible.set(false)"><span pButtonLabel>Cancelar</span></button>
-      <button pButton type="button" [disabled]="!canSave()" [loading]="saving()" (click)="assign()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Asignar</span></button>
+      <button
+        pButton
+        type="button"
+        severity="secondary"
+        outlined
+        (click)="dialogVisible.set(false)"
+      >
+        <span pButtonLabel>Cancelar</span>
+      </button>
+      <button pButton type="button" [disabled]="!canSave()" [loading]="saving()" (click)="assign()">
+        <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Asignar</span>
+      </button>
     </div>
   </div>
 </p-dialog>

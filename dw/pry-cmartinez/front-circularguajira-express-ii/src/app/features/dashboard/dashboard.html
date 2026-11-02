@@ -1,5 +1,15 @@
-<app-page-header title="Panel de operación" subtitle="Indicadores derivados de los listados del backend: una carga, cuatro peticiones en paralelo.">
-  <button pButton type="button" severity="secondary" outlined [loading]="loading()" (click)="load()">
+<app-page-header
+  title="Panel de operación"
+  subtitle="Indicadores derivados de los listados del backend: una carga, cuatro peticiones en paralelo."
+>
+  <button
+    pButton
+    type="button"
+    severity="secondary"
+    outlined
+    [loading]="loading()"
+    (click)="load()"
+  >
     <i pButtonIcon class="pi pi-refresh"></i>
     <span pButtonLabel>Recargar</span>
   </button>
@@ -20,22 +30,32 @@
     <ng-container *appHasPermission="'GET /api/recyclers'">
       <p-card>
         <p class="text-sm text-slate-500">Recicladores activos</p>
-        <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="recyclers">{{ recyclers().length }}</p>
+        <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="recyclers">
+          {{ recyclers().length }}
+        </p>
       </p-card>
     </ng-container>
     <p-card>
       <p class="text-sm text-slate-500">Materiales activos</p>
-      <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="materials">{{ materials().length }}</p>
+      <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="materials">
+        {{ materials().length }}
+      </p>
     </p-card>
     <p-card>
       <p class="text-sm text-slate-500">Recolecciones activas</p>
-      <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="collections">{{ collections().length }}</p>
+      <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="collections">
+        {{ collections().length }}
+      </p>
       <p class="text-xs text-slate-400">{{ collectedKg() | number: '1.2-2' }} kg netos</p>
     </p-card>
     <p-card>
       <p class="text-sm text-slate-500">Valor recolectado</p>
-      <p class="mt-1 text-2xl font-semibold text-slate-900" data-kpi="amount">{{ collectedAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
-      <p *appHasPermission="'GET /api/settlements'" class="text-xs text-slate-400">{{ pendingAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} sin liquidar</p>
+      <p class="mt-1 text-2xl font-semibold text-slate-900" data-kpi="amount">
+        {{ collectedAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+      </p>
+      <p *appHasPermission="'GET /api/settlements'" class="text-xs text-slate-400">
+        {{ pendingAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} sin liquidar
+      </p>
     </p-card>
   </div>
 
@@ -43,7 +63,11 @@
     <!-- Without the settlements list "pending" cannot be computed: the card is hidden. -->
     <p-card *appHasPermission="'GET /api/settlements'" header="Recolecciones sin liquidar">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <p-tag [value]="unsettled().length + ' pendientes'" [severity]="unsettled().length > 0 ? 'warn' : 'success'" [rounded]="true" />
+        <p-tag
+          [value]="unsettled().length + ' pendientes'"
+          [severity]="unsettled().length > 0 ? 'warn' : 'success'"
+          [rounded]="true"
+        />
         <a pButton routerLink="/settlements" text severity="secondary">
           <span pButtonLabel>Liquidar</span>
           <i pButtonIcon class="pi pi-arrow-right"></i>
@@ -64,11 +88,17 @@
               <td class="font-medium">#{{ collection.id }}</td>
               <td class="text-sm">{{ collection.collectedOn | date: 'dd/MM/yyyy' : 'UTC' }}</td>
               <td class="text-sm">{{ recyclerName()(collection.recyclerId) }}</td>
-              <td class="text-right font-medium">{{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="text-right font-medium">
+                {{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              </td>
             </tr>
           </ng-template>
           <ng-template #emptymessage>
-            <tr><td colspan="4" class="py-4 text-center text-sm text-slate-500">Todas las recolecciones están liquidadas.</td></tr>
+            <tr>
+              <td colspan="4" class="py-4 text-center text-sm text-slate-500">
+                Todas las recolecciones están liquidadas.
+              </td>
+            </tr>
           </ng-template>
         </p-table>
       </div>
@@ -96,7 +126,9 @@
               <td class="text-sm">{{ collection.collectedOn | date: 'dd/MM/yyyy' : 'UTC' }}</td>
               <td class="text-sm">{{ recyclerName()(collection.recyclerId) }}</td>
               <td class="text-right text-sm">{{ collection.totalNetKg | number: '1.2-2' }} kg</td>
-              <td class="text-right font-medium">{{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</td>
+              <td class="text-right font-medium">
+                {{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}
+              </td>
             </tr>
           </ng-template>
         </p-table>

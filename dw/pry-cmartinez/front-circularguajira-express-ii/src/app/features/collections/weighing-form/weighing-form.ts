@@ -41,7 +41,10 @@ export class WeighingForm {
   readonly form = this.fb.group({
     collectionId: [null as number | null, [Validators.required]],
     materialId: [null as number | null, [Validators.required]],
-    grossKg: [null as number | null, [Validators.required, Validators.min(0.01), Validators.max(100_000)]],
+    grossKg: [
+      null as number | null,
+      [Validators.required, Validators.min(0.01), Validators.max(100_000)],
+    ],
     tareKg: [0 as number | null, [Validators.min(0), Validators.max(100_000)]],
   });
 
@@ -74,7 +77,12 @@ export class WeighingForm {
 
   submit(): void {
     const value = this.form.getRawValue();
-    if (this.form.invalid || value.collectionId === null || value.materialId === null || !this.netIsPositive()) {
+    if (
+      this.form.invalid ||
+      value.collectionId === null ||
+      value.materialId === null ||
+      !this.netIsPositive()
+    ) {
       this.form.markAllAsTouched();
       return;
     }

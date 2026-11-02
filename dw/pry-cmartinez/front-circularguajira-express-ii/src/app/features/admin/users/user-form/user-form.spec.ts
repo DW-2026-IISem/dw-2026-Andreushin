@@ -2,7 +2,13 @@ import { TestBed } from '@angular/core/testing';
 import { User } from '../../../../core/models/user.model';
 import { UserForm, UserFormPayload } from './user-form';
 
-const USER: User = { id: 7, username: 'planta', email: 'planta@circularguajira.co', avatar: null, status: 'active' };
+const USER: User = {
+  id: 7,
+  username: 'planta',
+  email: 'planta@circularguajira.co',
+  avatar: null,
+  status: 'active',
+};
 
 describe('UserForm', () => {
   async function create(user: User | null) {
@@ -17,9 +23,21 @@ describe('UserForm', () => {
 
   it('should send password and status only on create', async () => {
     const { form, emitted } = await create(null);
-    form.form.setValue({ username: 'operador', email: 'op@cg.co', password: 'Clave2026', avatar: '', status: 'active' });
+    form.form.setValue({
+      username: 'operador',
+      email: 'op@cg.co',
+      password: 'Clave2026',
+      avatar: '',
+      status: 'active',
+    });
     form.submit();
-    expect(emitted[0]).toEqual({ username: 'operador', email: 'op@cg.co', avatar: null, password: 'Clave2026', status: 'active' });
+    expect(emitted[0]).toEqual({
+      username: 'operador',
+      email: 'op@cg.co',
+      avatar: null,
+      password: 'Clave2026',
+      status: 'active',
+    });
   });
 
   it('should require a password with a letter and a number on create', async () => {
@@ -36,6 +54,10 @@ describe('UserForm', () => {
     expect(form.form.controls.status.disabled).toBe(true);
     form.form.patchValue({ email: 'planta2@circularguajira.co' });
     form.submit();
-    expect(emitted[0]).toEqual({ username: 'planta', email: 'planta2@circularguajira.co', avatar: null });
+    expect(emitted[0]).toEqual({
+      username: 'planta',
+      email: 'planta2@circularguajira.co',
+      avatar: null,
+    });
   });
 });

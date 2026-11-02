@@ -2,12 +2,24 @@ import { TestBed } from '@angular/core/testing';
 import { Settlement, SettlementCreatePayload } from '../../../core/models/settlement.model';
 import { SettlementForm } from './settlement-form';
 
-const ISSUED: Settlement = { id: 1, collectionId: 3, recyclerId: 9, settledAt: '2026-10-14', totalNetKg: 1, totalAmount: 1, lineCount: 1, status: 'issued', notes: 'Pago en bodega' };
+const ISSUED: Settlement = {
+  id: 1,
+  collectionId: 3,
+  recyclerId: 9,
+  settledAt: '2026-10-14',
+  totalNetKg: 1,
+  totalAmount: 1,
+  lineCount: 1,
+  status: 'issued',
+  notes: 'Pago en bodega',
+};
 
 describe('SettlementForm', () => {
   async function createForm(settlement: Settlement | null = null) {
     const fixture = TestBed.createComponent(SettlementForm);
-    fixture.componentRef.setInput('pendingOptions', [{ id: 7, label: '#7 · 2026-10-14 · Teodoro' }]);
+    fixture.componentRef.setInput('pendingOptions', [
+      { id: 7, label: '#7 · 2026-10-14 · Teodoro' },
+    ]);
     fixture.componentRef.setInput('settlement', settlement);
     await fixture.whenStable();
     const saved: SettlementCreatePayload[] = [];

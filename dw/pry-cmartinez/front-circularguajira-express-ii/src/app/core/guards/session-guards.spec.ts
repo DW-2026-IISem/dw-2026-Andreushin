@@ -1,5 +1,11 @@
 import { TestBed } from '@angular/core/testing';
-import { ActivatedRouteSnapshot, Router, RouterStateSnapshot, UrlTree, provideRouter } from '@angular/router';
+import {
+  ActivatedRouteSnapshot,
+  Router,
+  RouterStateSnapshot,
+  UrlTree,
+  provideRouter,
+} from '@angular/router';
 import { SessionStore } from '../services/session-store';
 import { TOKENS } from '../testing/session-fixtures';
 import { authGuard } from './auth-guard';
@@ -37,17 +43,22 @@ describe('session guards', () => {
     expect(serialize(run(() => guestGuard(route, state('/login'))))).toBe('/dashboard');
   });
 
-  const withPermission = (permission?: string) => ({ data: permission ? { permission } : {} }) as unknown as ActivatedRouteSnapshot;
+  const withPermission = (permission?: string) =>
+    ({ data: permission ? { permission } : {} }) as unknown as ActivatedRouteSnapshot;
 
   it('permissionGuard should open a screen whose grant the role has', () => {
     signInAs('PLANTA');
-    expect(run(() => permissionGuard(withPermission('GET /api/materials'), state('/materials')))).toBe(true);
+    expect(
+      run(() => permissionGuard(withPermission('GET /api/materials'), state('/materials'))),
+    ).toBe(true);
     expect(run(() => permissionGuard(withPermission(), state('/profile')))).toBe(true);
   });
 
   it('permissionGuard should send to /forbidden with the missing grant (deny by default)', () => {
     signInAs('PLANTA');
-    const result = run(() => permissionGuard(withPermission('GET /api/recyclers'), state('/recyclers')));
+    const result = run(() =>
+      permissionGuard(withPermission('GET /api/recyclers'), state('/recyclers')),
+    );
     expect(serialize(result)).toBe('/forbidden?permission=GET%20%2Fapi%2Frecyclers');
   });
 

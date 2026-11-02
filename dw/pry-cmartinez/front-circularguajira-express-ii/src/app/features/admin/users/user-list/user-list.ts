@@ -65,7 +65,9 @@ export class UserList {
   readonly error = signal<string | null>(null);
   readonly filter = signal('');
 
-  readonly visibleRows = computed(() => filterRows(this.rows(), this.filter(), (user) => [user.username, user.email]));
+  readonly visibleRows = computed(() =>
+    filterRows(this.rows(), this.filter(), (user) => [user.username, user.email]),
+  );
 
   readonly dialogVisible = signal(false);
   readonly editing = signal<User | null>(null);
@@ -118,12 +120,17 @@ export class UserList {
   save(payload: UserFormPayload): void {
     const current = this.editing();
     this.saving.set(true);
-    const request = current ? this.api.update(current.id, payload) : this.api.create(payload as UserCreatePayload);
+    const request = current
+      ? this.api.update(current.id, payload)
+      : this.api.create(payload as UserCreatePayload);
     request.subscribe({
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success(current ? 'Usuario actualizado' : 'Usuario creado', current ? undefined : 'Asígnale un rol en «Asignaciones».');
+        this.notify.success(
+          current ? 'Usuario actualizado' : 'Usuario creado',
+          current ? undefined : 'Asígnale un rol en «Asignaciones».',
+        );
         this.load();
       },
       error: (error: unknown) => {
@@ -144,12 +151,20 @@ export class UserList {
     this.accessLoading.set(true);
     forkJoin({
       permissions: this.api.permissions(user.id),
-      assignments: readIf<RoleUser>(this.session.canPermission('GET /api/role-users'), () => this.roleUsersApi.list()),
+      assignments: readIf<RoleUser>(this.session.canPermission('GET /api/role-users'), () =>
+        this.roleUsersApi.list(),
+      ),
     }).subscribe({
       next: ({ permissions, assignments }) => {
-        this.access.set([...permissions].sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method)));
+        this.access.set(
+          [...permissions].sort(
+            (a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method),
+          ),
+        );
         this.accessRoles.set(
-          assignments.filter((row) => row.userId === user.id).map((row) => row.role?.name ?? `Rol #${row.roleId}`),
+          assignments
+            .filter((row) => row.userId === user.id)
+            .map((row) => row.role?.name ?? `Rol #${row.roleId}`),
         );
         this.accessLoading.set(false);
       },
@@ -178,7 +193,8 @@ export class UserList {
             this.notify.warn('Usuario desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

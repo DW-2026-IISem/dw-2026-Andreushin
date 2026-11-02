@@ -18,7 +18,9 @@ describe('PageHeader and EmptyState', () => {
   it('should render the title, subtitle and projected actions', async () => {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();
-    const header = (fixture.nativeElement as HTMLElement).querySelector('app-page-header') as HTMLElement;
+    const header = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-page-header',
+    ) as HTMLElement;
 
     expect(header.querySelector('h1')?.textContent).toContain('Recicladores');
     expect(header.textContent).toContain('Alta, edición y baja.');
@@ -28,7 +30,9 @@ describe('PageHeader and EmptyState', () => {
   it('should render the empty state with its default title', async () => {
     const fixture = TestBed.createComponent(Host);
     await fixture.whenStable();
-    const empty = (fixture.nativeElement as HTMLElement).querySelector('app-empty-state') as HTMLElement;
+    const empty = (fixture.nativeElement as HTMLElement).querySelector(
+      'app-empty-state',
+    ) as HTMLElement;
 
     expect(empty.textContent).toContain('Sin registros');
     expect(empty.textContent).toContain('No hay recicladores activos.');

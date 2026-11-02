@@ -6,7 +6,10 @@ import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
 import { SelectModule } from 'primeng/select';
 import { Status } from '../../../core/models/api.model';
-import { CollectionPoint, CollectionPointPayload } from '../../../core/models/collection-point.model';
+import {
+  CollectionPoint,
+  CollectionPointPayload,
+} from '../../../core/models/collection-point.model';
 import { Route } from '../../../core/models/route.model';
 
 /**
@@ -18,7 +21,14 @@ import { Route } from '../../../core/models/route.model';
 @Component({
   host: { class: 'block' },
   selector: 'app-collection-point-form',
-  imports: [MessageModule, ReactiveFormsModule, ButtonModule, InputNumberModule, InputTextModule, SelectModule],
+  imports: [
+    MessageModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputNumberModule,
+    InputTextModule,
+    SelectModule,
+  ],
   templateUrl: './collection-point-form.html',
   styleUrl: './collection-point-form.css',
 })

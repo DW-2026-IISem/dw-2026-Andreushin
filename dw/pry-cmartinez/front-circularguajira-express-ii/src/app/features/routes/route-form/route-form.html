@@ -4,7 +4,13 @@
       <label for="route-name" class="mb-1 block text-sm font-medium text-slate-700">
         Nombre <span class="text-red-500">*</span>
       </label>
-      <input id="route-name" pInputText formControlName="name" placeholder="Ruta Centro Riohacha" class="w-full" />
+      <input
+        id="route-name"
+        pInputText
+        formControlName="name"
+        placeholder="Ruta Centro Riohacha"
+        class="w-full"
+      />
       @if (form.controls.name.touched && form.controls.name.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           El nombre es obligatorio (máximo 80 caracteres).
@@ -16,7 +22,13 @@
       <label for="route-municipality" class="mb-1 block text-sm font-medium text-slate-700">
         Municipio <span class="text-red-500">*</span>
       </label>
-      <input id="route-municipality" pInputText formControlName="municipality" placeholder="Riohacha" class="w-full" />
+      <input
+        id="route-municipality"
+        pInputText
+        formControlName="municipality"
+        placeholder="Riohacha"
+        class="w-full"
+      />
       @if (form.controls.municipality.touched && form.controls.municipality.invalid) {
         <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
           El municipio es obligatorio (máximo 60 caracteres).
@@ -26,18 +38,44 @@
   </div>
 
   <div>
-    <label for="route-description" class="mb-1 block text-sm font-medium text-slate-700">Descripción</label>
-    <textarea id="route-description" pTextarea formControlName="description" rows="3" placeholder="Barrios del centro y zona comercial" class="w-full"></textarea>
+    <label for="route-description" class="mb-1 block text-sm font-medium text-slate-700"
+      >Descripción</label
+    >
+    <textarea
+      id="route-description"
+      pTextarea
+      formControlName="description"
+      rows="3"
+      placeholder="Barrios del centro y zona comercial"
+      class="w-full"
+    ></textarea>
     @if (form.controls.description.touched && form.controls.description.invalid) {
-      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Máximo 255 caracteres.</p-message>
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+        >Máximo 255 caracteres.</p-message
+      >
     }
   </div>
 
   <div>
-    <label id="route-status-label" for="route-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select [fluid]="true" inputId="route-status" ariaLabelledBy="route-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" />
+    <label
+      id="route-status-label"
+      for="route-status"
+      class="mb-1 block text-sm font-medium text-slate-700"
+      >Estado</label
+    >
+    <p-select
+      [fluid]="true"
+      inputId="route-status"
+      ariaLabelledBy="route-status-label"
+      formControlName="status"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+    />
     @if (route()) {
-      <p class="mt-1 text-xs text-slate-500">El estado de una ruta existente solo cambia con la baja lógica.</p>
+      <p class="mt-1 text-xs text-slate-500">
+        El estado de una ruta existente solo cambia con la baja lógica.
+      </p>
     }
   </div>
 

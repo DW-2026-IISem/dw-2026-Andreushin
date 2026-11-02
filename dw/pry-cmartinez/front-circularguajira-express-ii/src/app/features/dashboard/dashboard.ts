@@ -70,17 +70,23 @@ export class Dashboard {
 
   /** Value of the active collections, as stored by the backend (DECIMAL normalized). */
   readonly collectedAmount = computed(() =>
-    round2(this.collections().reduce((sum, collection) => sum + toNumber(collection.totalAmount), 0)),
+    round2(
+      this.collections().reduce((sum, collection) => sum + toNumber(collection.totalAmount), 0),
+    ),
   );
 
   readonly collectedKg = computed(() =>
-    round2(this.collections().reduce((sum, collection) => sum + toNumber(collection.totalNetKg), 0)),
+    round2(
+      this.collections().reduce((sum, collection) => sum + toNumber(collection.totalNetKg), 0),
+    ),
   );
 
   /** Active collections without an issued settlement: what finance still has to pay. */
   readonly unsettled = computed(() => {
     const settled = new Set(
-      this.settlements().filter((settlement) => settlement.status === 'issued').map((settlement) => settlement.collectionId),
+      this.settlements()
+        .filter((settlement) => settlement.status === 'issued')
+        .map((settlement) => settlement.collectionId),
     );
     return this.collections().filter((collection) => !settled.has(collection.id));
   });
@@ -104,10 +110,16 @@ export class Dashboard {
     this.error.set(null);
     forkJoin({
       // Each card reads only what the role may read (the route already requires collections).
-      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
-      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () =>
+        this.recyclersApi.list(),
+      ),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () =>
+        this.materialsApi.list(),
+      ),
       collections: this.collectionsApi.list(),
-      settlements: readIf(this.session.canPermission('GET /api/settlements'), () => this.settlementsApi.list()),
+      settlements: readIf(this.session.canPermission('GET /api/settlements'), () =>
+        this.settlementsApi.list(),
+      ),
     }).subscribe({
       next: ({ recyclers, materials, collections, settlements }) => {
         this.recyclers.set(recyclers);

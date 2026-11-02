@@ -25,7 +25,20 @@ import { RoleForm } from '../role-form/role-form';
 @Component({
   host: { class: 'block' },
   selector: 'app-role-list',
-  imports: [HasPermission, ButtonModule, DialogModule, EmptyState, InputTextModule, MessageModule, PageHeader, RoleForm, StatusTag, TableModule, TagModule, TooltipModule],
+  imports: [
+    HasPermission,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    RoleForm,
+    StatusTag,
+    TableModule,
+    TagModule,
+    TooltipModule,
+  ],
   templateUrl: './role-list.html',
   styleUrl: './role-list.css',
 })
@@ -43,7 +56,9 @@ export class RoleList {
   readonly editing = signal<Role | null>(null);
   readonly resetKey = signal(0);
 
-  readonly visibleRows = computed(() => filterRows(this.rows(), this.filter(), (role) => [role.name, role.description]));
+  readonly visibleRows = computed(() =>
+    filterRows(this.rows(), this.filter(), (role) => [role.name, role.description]),
+  );
   readonly title = computed(() => (this.editing() ? 'Editar rol' : 'Nuevo rol'));
 
   constructor() {
@@ -110,7 +125,8 @@ export class RoleList {
             this.notify.warn('Rol desactivado');
             this.load();
           },
-          error: (error: unknown) => this.notify.error('No se pudo desactivar', toApiMessage(error)),
+          error: (error: unknown) =>
+            this.notify.error('No se pudo desactivar', toApiMessage(error)),
         }),
     });
   }

@@ -39,7 +39,8 @@ describe('Pivot APIs', () => {
       .subscribe((grants) => (result = grants));
 
     const request = http.expectOne(
-      (req) => req.url === `${environment.apiUrl}/resource-roles` && req.params.get('roleId') === '2',
+      (req) =>
+        req.url === `${environment.apiUrl}/resource-roles` && req.params.get('roleId') === '2',
     );
     expect(request.request.params.get('resourceId')).toBe('3');
     request.flush({ grants: [grant] });

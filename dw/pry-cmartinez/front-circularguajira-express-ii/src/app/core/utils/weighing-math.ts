@@ -14,7 +14,11 @@ export interface LinePreview {
   amount: number;
 }
 
-export function previewLine(grossKg: number, tareKg: number, pricePerKg: Money | null | undefined): LinePreview {
+export function previewLine(
+  grossKg: number,
+  tareKg: number,
+  pricePerKg: Money | null | undefined,
+): LinePreview {
   const netKg = round2(grossKg - tareKg);
   return { netKg, amount: round2(netKg * toNumber(pricePerKg)) };
 }

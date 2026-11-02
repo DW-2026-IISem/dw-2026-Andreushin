@@ -27,7 +27,8 @@ export class SettlementVerification {
   });
 
   /** Lines where the net weight, the amount or the rate do not match. */
-  readonly failedLines = computed(() =>
-    this.report().lines.filter((line) => !line.netOk || !line.amountOk || !line.rateOk).length,
+  readonly failedLines = computed(
+    () =>
+      this.report().lines.filter((line) => !line.netOk || !line.amountOk || !line.rateOk).length,
   );
 }

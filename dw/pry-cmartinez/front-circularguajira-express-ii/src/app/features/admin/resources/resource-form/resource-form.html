@@ -1,28 +1,79 @@
 <form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
   <div class="grid gap-4 sm:grid-cols-[10rem_1fr]">
     <div>
-      <label id="resource-method-label" for="resource-method" class="mb-1 block text-sm font-medium text-slate-700">Método <span class="text-red-500">*</span></label>
-      <p-select inputId="resource-method" ariaLabelledBy="resource-method-label" formControlName="method" [options]="methodOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+      <label
+        id="resource-method-label"
+        for="resource-method"
+        class="mb-1 block text-sm font-medium text-slate-700"
+        >Método <span class="text-red-500">*</span></label
+      >
+      <p-select
+        inputId="resource-method"
+        ariaLabelledBy="resource-method-label"
+        formControlName="method"
+        [options]="methodOptions"
+        optionLabel="label"
+        optionValue="value"
+        [fluid]="true"
+      />
     </div>
     <div>
-      <label for="resource-path" class="mb-1 block text-sm font-medium text-slate-700">Ruta <span class="text-red-500">*</span></label>
-      <input id="resource-path" pInputText formControlName="path" placeholder="/api/collections/:id" class="w-full font-mono" />
+      <label for="resource-path" class="mb-1 block text-sm font-medium text-slate-700"
+        >Ruta <span class="text-red-500">*</span></label
+      >
+      <input
+        id="resource-path"
+        pInputText
+        formControlName="path"
+        placeholder="/api/collections/:id"
+        class="w-full font-mono"
+      />
       @if (form.controls.path.touched && form.controls.path.invalid) {
-        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Debe empezar por /api, con segmentos en minúscula o :parametro (p. ej. /api/collections/:id).</p-message>
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1"
+          >Debe empezar por /api, con segmentos en minúscula o :parametro (p. ej.
+          /api/collections/:id).</p-message
+        >
       }
     </div>
   </div>
   <div>
-    <label for="resource-description" class="mb-1 block text-sm font-medium text-slate-700">Descripción</label>
-    <textarea id="resource-description" pTextarea formControlName="description" rows="2" class="w-full"></textarea>
+    <label for="resource-description" class="mb-1 block text-sm font-medium text-slate-700"
+      >Descripción</label
+    >
+    <textarea
+      id="resource-description"
+      pTextarea
+      formControlName="description"
+      rows="2"
+      class="w-full"
+    ></textarea>
   </div>
   <div>
-    <label id="resource-status-label" for="resource-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select inputId="resource-status" ariaLabelledBy="resource-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
-    <p class="mt-1 text-xs text-slate-500">Crear un recurso no crea pantallas: solo deja conceder esa ruta a un rol.</p>
+    <label
+      id="resource-status-label"
+      for="resource-status"
+      class="mb-1 block text-sm font-medium text-slate-700"
+      >Estado</label
+    >
+    <p-select
+      inputId="resource-status"
+      ariaLabelledBy="resource-status-label"
+      formControlName="status"
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [fluid]="true"
+    />
+    <p class="mt-1 text-xs text-slate-500">
+      Crear un recurso no crea pantallas: solo deja conceder esa ruta a un rol.
+    </p>
   </div>
   <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
-    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()"><span pButtonLabel>Cancelar</span></button>
-    <button pButton type="submit" [loading]="saving()"><i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span></button>
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i><span pButtonLabel>Guardar</span>
+    </button>
   </div>
 </form>

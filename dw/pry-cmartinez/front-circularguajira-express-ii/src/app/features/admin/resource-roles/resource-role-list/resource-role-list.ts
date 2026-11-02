@@ -36,7 +36,20 @@ const ADMIN_PATH = /^\/api\/(users|roles|resources|role-users|resource-roles)(\/
 @Component({
   host: { class: 'block' },
   selector: 'app-resource-role-list',
-  imports: [HasPermission, ButtonModule, DialogModule, EmptyState, FormsModule, InputTextModule, MessageModule, PageHeader, SelectModule, TableModule, TagModule, TooltipModule],
+  imports: [
+    HasPermission,
+    ButtonModule,
+    DialogModule,
+    EmptyState,
+    FormsModule,
+    InputTextModule,
+    MessageModule,
+    PageHeader,
+    SelectModule,
+    TableModule,
+    TagModule,
+    TooltipModule,
+  ],
   templateUrl: './resource-role-list.html',
   styleUrl: './resource-role-list.css',
 })
@@ -62,13 +75,21 @@ export class ResourceRoleList {
 
   /** Active grants per role, for the header counters. */
   readonly countsByRole = computed(() =>
-    this.roles().map((role) => ({ name: role.name, count: this.rows().filter((row) => row.roleId === role.id).length })),
+    this.roles().map((role) => ({
+      name: role.name,
+      count: this.rows().filter((row) => row.roleId === role.id).length,
+    })),
   );
 
   readonly visibleRows = computed(() => {
     const role = this.roleFilter();
     const byRole = role ? this.rows().filter((row) => row.roleId === role.id) : this.rows();
-    return filterRows(byRole, this.filter(), (row) => [row.resource?.path, row.resource?.method, row.role?.name, row.resource?.description]);
+    return filterRows(byRole, this.filter(), (row) => [
+      row.resource?.path,
+      row.resource?.method,
+      row.role?.name,
+      row.resource?.description,
+    ]);
   });
 
   readonly dialogVisible = signal(false);
@@ -78,10 +99,16 @@ export class ResourceRoleList {
   readonly alreadyGranted = computed(() => {
     const role = this.selectedRole();
     const resource = this.selectedResource();
-    return Boolean(role && resource && this.rows().some((row) => row.roleId === role.id && row.resourceId === resource.id));
+    return Boolean(
+      role &&
+      resource &&
+      this.rows().some((row) => row.roleId === role.id && row.resourceId === resource.id),
+    );
   });
 
-  readonly canSave = computed(() => Boolean(this.selectedRole() && this.selectedResource()) && !this.alreadyGranted());
+  readonly canSave = computed(
+    () => Boolean(this.selectedRole() && this.selectedResource()) && !this.alreadyGranted(),
+  );
 
   constructor() {
     this.load();
@@ -90,7 +117,11 @@ export class ResourceRoleList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
-    forkJoin({ rows: this.api.list(), roles: this.rolesApi.list(), resources: this.resourcesApi.list() }).subscribe({
+    forkJoin({
+      rows: this.api.list(),
+      roles: this.rolesApi.list(),
+      resources: this.resourcesApi.list(),
+    }).subscribe({
       next: ({ rows, roles, resources }) => {
         this.rows.set(rows);
         this.roles.set(roles);
@@ -127,7 +158,10 @@ export class ResourceRoleList {
       next: () => {
         this.saving.set(false);
         this.dialogVisible.set(false);
-        this.notify.success('Permiso concedido', `${role.name} puede ${resource.method} ${resource.path}.`);
+        this.notify.success(
+          'Permiso concedido',
+          `${role.name} puede ${resource.method} ${resource.path}.`,
+        );
         this.load();
       },
       error: (error: unknown) => {

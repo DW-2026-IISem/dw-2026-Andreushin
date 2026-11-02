@@ -27,7 +27,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const isApiCall = req.url.startsWith(environment.apiUrl);
   const isPublicSessionCall = PUBLIC_SESSION_CALLS.some((path) => req.url.includes(path));
   const withBearer = (token: string | null) =>
-    token && isApiCall && !isPublicSessionCall ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : req;
+    token && isApiCall && !isPublicSessionCall
+      ? req.clone({ setHeaders: { Authorization: `Bearer ${token}` } })
+      : req;
 
   return next(withBearer(session.accessToken())).pipe(
     catchError((error: unknown) => {
@@ -64,9 +66,13 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   );
 };
 
+/**
+ * Ends the session in a controlled way. `reason=expired` lets the login explain why it is
+ * shown (a toast would die with the Shell, which is destroyed when leaving it).
+ */
 function redirectToLogin(session: SessionStore, router: Router): void {
   session.clear();
   const current = router.url;
   const returnUrl = current.startsWith('/login') ? '/dashboard' : current;
-  void router.navigate(['/login'], { queryParams: { returnUrl } });
+  void router.navigate(['/login'], { queryParams: { returnUrl, reason: 'expired' } });
 }

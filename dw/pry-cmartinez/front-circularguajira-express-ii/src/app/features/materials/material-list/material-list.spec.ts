@@ -22,7 +22,12 @@ describe('MaterialList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [MaterialList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -35,7 +40,11 @@ describe('MaterialList', () => {
     const fixture = TestBed.createComponent(MaterialList);
     http.expectOne(BASE).flush({ materials: rows });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   function acceptConfirmation(): void {
@@ -63,7 +72,9 @@ describe('MaterialList', () => {
 
   it('should show the load error in p-message with an empty table', async () => {
     const fixture = TestBed.createComponent(MaterialList);
-    http.expectOne(BASE).flush({ message: 'Falta el token de acceso' }, { status: 401, statusText: 'Unauthorized' });
+    http
+      .expectOne(BASE)
+      .flush({ message: 'Falta el token de acceso' }, { status: 401, statusText: 'Unauthorized' });
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('p-message')?.textContent).toContain('Falta el token de acceso');
@@ -95,7 +106,9 @@ describe('MaterialList', () => {
     const create = http.expectOne(BASE);
     expect(create.request.method).toBe('POST');
     create.flush({ id: 4, name: 'Chatarra', description: null, status: 'active' });
-    http.expectOne(BASE).flush({ materials: [...MATERIALS, { id: 4, name: 'Chatarra', description: null, status: 'active' }] });
+    http.expectOne(BASE).flush({
+      materials: [...MATERIALS, { id: 4, name: 'Chatarra', description: null, status: 'active' }],
+    });
 
     expect(list.dialogVisible()).toBe(false);
     expect(list.rows()).toHaveLength(4);
@@ -119,10 +132,20 @@ describe('MaterialList', () => {
     const add = vi.spyOn(TestBed.inject(MessageService), 'add');
     list.openCreate();
     list.save({ name: 'Cartón', description: null, status: 'active' });
-    http.expectOne(BASE).flush({ message: 'Ya existe un registro con esos datos únicos' }, { status: 409, statusText: 'Conflict' });
+    http
+      .expectOne(BASE)
+      .flush(
+        { message: 'Ya existe un registro con esos datos únicos' },
+        { status: 409, statusText: 'Conflict' },
+      );
 
     expect(list.dialogVisible()).toBe(true);
-    expect(add).toHaveBeenCalledWith(expect.objectContaining({ severity: 'error', detail: 'Ya existe un registro con esos datos únicos' }));
+    expect(add).toHaveBeenCalledWith(
+      expect.objectContaining({
+        severity: 'error',
+        detail: 'Ya existe un registro con esos datos únicos',
+      }),
+    );
   });
 
   it('should deactivate after the confirmation and hide the material', async () => {

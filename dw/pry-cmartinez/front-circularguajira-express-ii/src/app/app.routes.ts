@@ -59,7 +59,8 @@ export const routes: Routes = [
         title: 'Rutas · CircularGuajira',
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/routes' },
-        loadComponent: () => import('./features/routes/route-list/route-list').then((m) => m.RouteList),
+        loadComponent: () =>
+          import('./features/routes/route-list/route-list').then((m) => m.RouteList),
       },
       {
         path: 'collection-points',
@@ -77,7 +78,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/collections' },
         loadComponent: () =>
-          import('./features/collections/collection-list/collection-list').then((m) => m.CollectionList),
+          import('./features/collections/collection-list/collection-list').then(
+            (m) => m.CollectionList,
+          ),
       },
       {
         path: 'collections/new',
@@ -85,7 +88,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'POST /api/collections' },
         loadComponent: () =>
-          import('./features/collections/collection-form/collection-form').then((m) => m.CollectionForm),
+          import('./features/collections/collection-form/collection-form').then(
+            (m) => m.CollectionForm,
+          ),
       },
       {
         path: 'weighings',
@@ -101,7 +106,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/settlements' },
         loadComponent: () =>
-          import('./features/settlements/settlement-list/settlement-list').then((m) => m.SettlementList),
+          import('./features/settlements/settlement-list/settlement-list').then(
+            (m) => m.SettlementList,
+          ),
       },
       // ISS-10: RBAC administration. Only with a session (authOnlyGuard) and with the grant.
       {
@@ -109,35 +116,46 @@ export const routes: Routes = [
         title: 'Usuarios · CircularGuajira',
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/users' },
-        loadComponent: () => import('./features/admin/users/user-list/user-list').then((m) => m.UserList),
+        loadComponent: () =>
+          import('./features/admin/users/user-list/user-list').then((m) => m.UserList),
       },
       {
         path: 'admin/roles',
         title: 'Roles · CircularGuajira',
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/roles' },
-        loadComponent: () => import('./features/admin/roles/role-list/role-list').then((m) => m.RoleList),
+        loadComponent: () =>
+          import('./features/admin/roles/role-list/role-list').then((m) => m.RoleList),
       },
       {
         path: 'admin/resources',
         title: 'Recursos · CircularGuajira',
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/resources' },
-        loadComponent: () => import('./features/admin/resources/resource-list/resource-list').then((m) => m.ResourceList),
+        loadComponent: () =>
+          import('./features/admin/resources/resource-list/resource-list').then(
+            (m) => m.ResourceList,
+          ),
       },
       {
         path: 'admin/role-users',
         title: 'Asignaciones · CircularGuajira',
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/role-users' },
-        loadComponent: () => import('./features/admin/role-users/role-user-list/role-user-list').then((m) => m.RoleUserList),
+        loadComponent: () =>
+          import('./features/admin/role-users/role-user-list/role-user-list').then(
+            (m) => m.RoleUserList,
+          ),
       },
       {
         path: 'admin/resource-roles',
         title: 'Concesiones · CircularGuajira',
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/resource-roles' },
-        loadComponent: () => import('./features/admin/resource-roles/resource-role-list/resource-role-list').then((m) => m.ResourceRoleList),
+        loadComponent: () =>
+          import('./features/admin/resource-roles/resource-role-list/resource-role-list').then(
+            (m) => m.ResourceRoleList,
+          ),
       },
       {
         path: 'profile',

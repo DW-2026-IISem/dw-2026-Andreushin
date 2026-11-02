@@ -22,7 +22,14 @@ const PHONE_PATTERN = /^\+?\d{7,15}$/;
 @Component({
   host: { class: 'block' },
   selector: 'app-recycler-form',
-  imports: [MessageModule, ReactiveFormsModule, ButtonModule, InputTextModule, SelectModule, TextareaModule],
+  imports: [
+    MessageModule,
+    ReactiveFormsModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    TextareaModule,
+  ],
   templateUrl: './recycler-form.html',
   styleUrl: './recycler-form.css',
 })

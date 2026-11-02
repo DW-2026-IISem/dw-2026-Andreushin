@@ -15,7 +15,11 @@ describe('Profile', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Profile],
-      providers: [provideRouter([]), MessageService, { provide: AuthService, useValue: { me, logout } }],
+      providers: [
+        provideRouter([]),
+        MessageService,
+        { provide: AuthService, useValue: { me, logout } },
+      ],
     }).compileComponents();
     const session = TestBed.inject(SessionStore);
     session.setTokens(TOKENS);

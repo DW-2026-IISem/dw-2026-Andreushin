@@ -23,9 +23,24 @@ export const NAV: NavGroup[] = [
     label: 'Operación',
     icon: 'pi pi-briefcase',
     items: [
-      { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard', permission: 'GET /api/collections' },
-      { label: 'Recicladores', icon: 'pi pi-users', routerLink: '/recyclers', permission: 'GET /api/recyclers' },
-      { label: 'Materiales', icon: 'pi pi-tags', routerLink: '/materials', permission: 'GET /api/materials' },
+      {
+        label: 'Panel',
+        icon: 'pi pi-chart-bar',
+        routerLink: '/dashboard',
+        permission: 'GET /api/collections',
+      },
+      {
+        label: 'Recicladores',
+        icon: 'pi pi-users',
+        routerLink: '/recyclers',
+        permission: 'GET /api/recyclers',
+      },
+      {
+        label: 'Materiales',
+        icon: 'pi pi-tags',
+        routerLink: '/materials',
+        permission: 'GET /api/materials',
+      },
       { label: 'Rutas', icon: 'pi pi-map', routerLink: '/routes', permission: 'GET /api/routes' },
       {
         label: 'Puntos de recolección',
@@ -33,9 +48,24 @@ export const NAV: NavGroup[] = [
         routerLink: '/collection-points',
         permission: 'GET /api/collection-points',
       },
-      { label: 'Recolecciones', icon: 'pi pi-truck', routerLink: '/collections', permission: 'GET /api/collections' },
-      { label: 'Pesajes', icon: 'pi pi-gauge', routerLink: '/weighings', permission: 'GET /api/weighings' },
-      { label: 'Liquidaciones', icon: 'pi pi-wallet', routerLink: '/settlements', permission: 'GET /api/settlements' },
+      {
+        label: 'Recolecciones',
+        icon: 'pi pi-truck',
+        routerLink: '/collections',
+        permission: 'GET /api/collections',
+      },
+      {
+        label: 'Pesajes',
+        icon: 'pi pi-gauge',
+        routerLink: '/weighings',
+        permission: 'GET /api/weighings',
+      },
+      {
+        label: 'Liquidaciones',
+        icon: 'pi pi-wallet',
+        routerLink: '/settlements',
+        permission: 'GET /api/settlements',
+      },
     ],
   },
   {
@@ -43,11 +73,36 @@ export const NAV: NavGroup[] = [
     icon: 'pi pi-shield',
     authOnly: true,
     items: [
-      { label: 'Usuarios', icon: 'pi pi-user', routerLink: '/admin/users', permission: 'GET /api/users' },
-      { label: 'Roles', icon: 'pi pi-id-card', routerLink: '/admin/roles', permission: 'GET /api/roles' },
-      { label: 'Recursos', icon: 'pi pi-sitemap', routerLink: '/admin/resources', permission: 'GET /api/resources' },
-      { label: 'Asignaciones', icon: 'pi pi-link', routerLink: '/admin/role-users', permission: 'GET /api/role-users' },
-      { label: 'Concesiones', icon: 'pi pi-shield', routerLink: '/admin/resource-roles', permission: 'GET /api/resource-roles' },
+      {
+        label: 'Usuarios',
+        icon: 'pi pi-user',
+        routerLink: '/admin/users',
+        permission: 'GET /api/users',
+      },
+      {
+        label: 'Roles',
+        icon: 'pi pi-id-card',
+        routerLink: '/admin/roles',
+        permission: 'GET /api/roles',
+      },
+      {
+        label: 'Recursos',
+        icon: 'pi pi-sitemap',
+        routerLink: '/admin/resources',
+        permission: 'GET /api/resources',
+      },
+      {
+        label: 'Asignaciones',
+        icon: 'pi pi-link',
+        routerLink: '/admin/role-users',
+        permission: 'GET /api/role-users',
+      },
+      {
+        label: 'Concesiones',
+        icon: 'pi pi-shield',
+        routerLink: '/admin/resource-roles',
+        permission: 'GET /api/resource-roles',
+      },
     ],
   },
   {

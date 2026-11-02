@@ -10,7 +10,13 @@ import { UserList } from './user-list';
 
 const API = environment.apiUrl;
 const USERS: User[] = [
-  { id: PROFILE.id, username: 'admin', email: 'admin@circularguajira.co', avatar: null, status: 'active' },
+  {
+    id: PROFILE.id,
+    username: 'admin',
+    email: 'admin@circularguajira.co',
+    avatar: null,
+    status: 'active',
+  },
   { id: 4, username: 'planta', email: 'planta@circularguajira.co', avatar: null, status: 'active' },
 ];
 
@@ -20,7 +26,12 @@ describe('UserList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UserList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
@@ -32,15 +43,26 @@ describe('UserList', () => {
     const fixture = TestBed.createComponent(UserList);
     http.expectOne(`${API}/users`).flush({ users: USERS });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   it('should not let the session user deactivate or delete itself', async () => {
     const { element } = await createList();
     const [own, other] = [...element.querySelectorAll('tbody tr')] as HTMLElement[];
-    expect((own.querySelector('button[aria-label="Eliminar usuario"]') as HTMLButtonElement).disabled).toBe(true);
-    expect((own.querySelector('button[aria-label="Dar de baja al usuario"]') as HTMLButtonElement).disabled).toBe(true);
-    expect((other.querySelector('button[aria-label="Eliminar usuario"]') as HTMLButtonElement).disabled).toBe(false);
+    expect(
+      (own.querySelector('button[aria-label="Eliminar usuario"]') as HTMLButtonElement).disabled,
+    ).toBe(true);
+    expect(
+      (own.querySelector('button[aria-label="Dar de baja al usuario"]') as HTMLButtonElement)
+        .disabled,
+    ).toBe(true);
+    expect(
+      (other.querySelector('button[aria-label="Eliminar usuario"]') as HTMLButtonElement).disabled,
+    ).toBe(false);
   });
 
   it('should show the effective permissions and the active roles of a user', async () => {
@@ -70,7 +92,13 @@ describe('UserList', () => {
   it('should POST a new user and PATCH an edited one', async () => {
     const { list } = await createList();
     list.openCreate();
-    list.save({ username: 'nuevo', email: 'n@cg.co', avatar: null, password: 'Clave2026', status: 'active' });
+    list.save({
+      username: 'nuevo',
+      email: 'n@cg.co',
+      avatar: null,
+      password: 'Clave2026',
+      status: 'active',
+    });
     const post = http.expectOne(`${API}/users`);
     expect(post.request.method).toBe('POST');
     post.flush({ ...USERS[1], id: 9 });

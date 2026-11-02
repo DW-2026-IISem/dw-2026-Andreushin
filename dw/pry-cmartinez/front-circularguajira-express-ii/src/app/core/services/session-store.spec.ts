@@ -22,7 +22,12 @@ describe('SessionStore', () => {
     store.setAccess({ user: PROFILE, permissions: PERMISSIONS });
 
     const saved = JSON.parse(localStorage.getItem(KEY) ?? '{}');
-    expect(saved).toEqual({ accessToken: 'access-1', refreshToken: 'refresh-1', user: PROFILE, permissions: PERMISSIONS });
+    expect(saved).toEqual({
+      accessToken: 'access-1',
+      refreshToken: 'refresh-1',
+      user: PROFILE,
+      permissions: PERMISSIONS,
+    });
     expect(store.isAuthenticated()).toBe(true);
     expect(store.roleNames()).toEqual(['ADMIN']);
     expect(store.initials()).toBe('AD');
@@ -30,7 +35,15 @@ describe('SessionStore', () => {
   });
 
   it('should restore a saved session when it is created', () => {
-    localStorage.setItem(KEY, JSON.stringify({ accessToken: 'a', refreshToken: 'r', user: PROFILE, permissions: PERMISSIONS }));
+    localStorage.setItem(
+      KEY,
+      JSON.stringify({
+        accessToken: 'a',
+        refreshToken: 'r',
+        user: PROFILE,
+        permissions: PERMISSIONS,
+      }),
+    );
     const store = create();
     expect(store.accessToken()).toBe('a');
     expect(store.user()?.username).toBe('admin');

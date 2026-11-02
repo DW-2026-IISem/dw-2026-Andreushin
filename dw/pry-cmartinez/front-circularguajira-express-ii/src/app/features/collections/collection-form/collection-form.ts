@@ -17,7 +17,12 @@ import { Route } from '../../../core/models/route.model';
 import { WeighingLineInput } from '../../../core/models/weighing.model';
 import { NotificationService } from '../../../core/services/notification';
 import { toApiMessage } from '../../../core/utils/api-error';
-import { LinePreview, previewLine, sumPreviews, todayInColombia } from '../../../core/utils/weighing-math';
+import {
+  LinePreview,
+  previewLine,
+  sumPreviews,
+  todayInColombia,
+} from '../../../core/utils/weighing-math';
 import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { MaterialApi } from '../../materials/material-api';
 import { RecyclerApi } from '../../recyclers/recycler-api';
@@ -87,7 +92,9 @@ export class CollectionForm {
   /** Rate in force on `collectedOn` per material, read only to preview amounts. */
   readonly rates = signal(new Map<number, MaterialRate>());
 
-  readonly materialById = computed(() => new Map(this.materials().map((material) => [material.id, material])));
+  readonly materialById = computed(
+    () => new Map(this.materials().map((material) => [material.id, material])),
+  );
 
   readonly previews = computed<LinePreview[]>(() =>
     this.lines().map((line) =>
@@ -236,7 +243,10 @@ export class CollectionForm {
       .subscribe({
         next: (collection) => {
           this.saving.set(false);
-          this.notify.success(`Recolección #${collection.id} registrada`, 'Pesajes y totales calculados por el backend.');
+          this.notify.success(
+            `Recolección #${collection.id} registrada`,
+            'Pesajes y totales calculados por el backend.',
+          );
           void this.router.navigate(['/collections']);
         },
         error: (error: unknown) => {

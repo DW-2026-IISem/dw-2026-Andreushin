@@ -23,7 +23,11 @@ function stubDesktopMedia(matches: boolean): () => void {
       }) as unknown as MediaQueryList,
   });
   return () => {
-    Object.defineProperty(window, 'matchMedia', { configurable: true, writable: true, value: original });
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      writable: true,
+      value: original,
+    });
   };
 }
 
@@ -32,7 +36,13 @@ describe('Shell', () => {
     localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Shell],
-      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideRouter([]),
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     signInAs('ADMIN');
   });
@@ -63,7 +73,9 @@ describe('Shell', () => {
 
   it('should render real links in the menu', async () => {
     const { compiled } = await createShell();
-    const hrefs = [...compiled.querySelectorAll('aside a')].map((link) => link.getAttribute('href'));
+    const hrefs = [...compiled.querySelectorAll('aside a')].map((link) =>
+      link.getAttribute('href'),
+    );
 
     expect(hrefs).toContain('/recyclers');
     expect(hrefs).toContain('/materials');
@@ -115,7 +127,9 @@ describe('Shell', () => {
 
     expect(compiled.querySelector('app-header')?.textContent).toContain('admin');
     expect(compiled.querySelector('app-header')?.textContent).toContain('ADMIN');
-    expect(compiled.querySelector('aside app-aside')?.textContent).toContain(`${ROLE_PERMISSIONS.ADMIN.length} permisos`);
+    expect(compiled.querySelector('aside app-aside')?.textContent).toContain(
+      `${ROLE_PERMISSIONS.ADMIN.length} permisos`,
+    );
     expect(compiled.querySelector('aside button[aria-label="Cerrar sesión"]')).toBeTruthy();
   });
 
@@ -123,7 +137,9 @@ describe('Shell', () => {
     signInAs('PLANTA');
     const { compiled } = await createShell();
     // Group headers are anchors without href; only the options link to a screen.
-    const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) => link.getAttribute('href'));
+    const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) =>
+      link.getAttribute('href'),
+    );
 
     expect(hrefs).toEqual(['/dashboard', '/materials', '/collections', '/weighings', '/prototype']);
   });
@@ -136,7 +152,10 @@ describe('Shell', () => {
     const session = TestBed.inject(SessionStore);
     session.setAccess({
       user: session.user()!,
-      permissions: [...session.permissions(), { resourceId: 999, method: 'GET', path: '/api/settlements' }],
+      permissions: [
+        ...session.permissions(),
+        { resourceId: 999, method: 'GET', path: '/api/settlements' },
+      ],
     });
     fixture.detectChanges();
     await fixture.whenStable();
@@ -146,8 +165,18 @@ describe('Shell', () => {
 
   it('should add the Security group with the five admin screens for ADMIN only', async () => {
     const { compiled } = await createShell();
-    const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) => link.getAttribute('href'));
-    expect(hrefs).toEqual(expect.arrayContaining(['/admin/users', '/admin/roles', '/admin/resources', '/admin/role-users', '/admin/resource-roles']));
+    const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) =>
+      link.getAttribute('href'),
+    );
+    expect(hrefs).toEqual(
+      expect.arrayContaining([
+        '/admin/users',
+        '/admin/roles',
+        '/admin/resources',
+        '/admin/role-users',
+        '/admin/resource-roles',
+      ]),
+    );
     expect(compiled.querySelector('aside')?.textContent).toContain('Seguridad');
   });
 });

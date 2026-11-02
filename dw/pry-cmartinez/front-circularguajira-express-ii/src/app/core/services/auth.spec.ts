@@ -15,7 +15,9 @@ describe('AuthService', () => {
 
   beforeEach(() => {
     localStorage.clear();
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     auth = TestBed.inject(AuthService);
     session = TestBed.inject(SessionStore);
     http = TestBed.inject(HttpTestingController);
@@ -50,7 +52,9 @@ describe('AuthService', () => {
     auth.login({ identifier: 'admin', password: 'x' }).subscribe({ error: () => (failed = true) });
     http.expectOne(`${BASE}/login`).flush(TOKENS);
     http.expectOne(`${BASE}/profile`).flush(PROFILE);
-    http.expectOne(`${BASE}/permissions`).flush({ message: 'boom' }, { status: 500, statusText: 'Error' });
+    http
+      .expectOne(`${BASE}/permissions`)
+      .flush({ message: 'boom' }, { status: 500, statusText: 'Error' });
 
     expect(failed).toBe(true);
     expect(session.isAuthenticated()).toBe(false);
@@ -69,7 +73,9 @@ describe('AuthService', () => {
   it('should clear the local session on logout even if the backend fails', () => {
     session.setTokens(TOKENS);
     let clearedBeforeComplete = false;
-    auth.logout().subscribe({ complete: () => (clearedBeforeComplete = session.isAuthenticated() === false) });
+    auth
+      .logout()
+      .subscribe({ complete: () => (clearedBeforeComplete = session.isAuthenticated() === false) });
     const request = http.expectOne(`${BASE}/logout`);
     expect(request.request.body).toEqual({ refreshToken: 'refresh-1' });
     request.flush({ message: 'caído' }, { status: 500, statusText: 'Error' });

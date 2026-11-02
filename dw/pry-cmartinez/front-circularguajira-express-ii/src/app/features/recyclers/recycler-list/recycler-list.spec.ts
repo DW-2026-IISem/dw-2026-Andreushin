@@ -11,9 +11,36 @@ import { signInAs } from '../../../core/testing/session-fixtures';
 const BASE = `${environment.apiUrl}/recyclers`;
 
 const RECYCLERS: Recycler[] = [
-  { id: 1, name: 'Asociación Wayuu Recicla', documentNumber: '900123456-7', recyclerType: 'organization', phone: '3001112233', email: 'wayuu@correo.co', address: 'Riohacha', status: 'active' },
-  { id: 2, name: 'Juan Epieyú', documentNumber: '1122334455', recyclerType: 'independent', phone: '3104445566', email: null, address: 'Maicao', status: 'active' },
-  { id: 3, name: 'Recicladora del Sur', documentNumber: '800765432', recyclerType: 'organization', phone: '3157778899', email: null, address: 'Barrio Sur, Uribia', status: 'active' },
+  {
+    id: 1,
+    name: 'Asociación Wayuu Recicla',
+    documentNumber: '900123456-7',
+    recyclerType: 'organization',
+    phone: '3001112233',
+    email: 'wayuu@correo.co',
+    address: 'Riohacha',
+    status: 'active',
+  },
+  {
+    id: 2,
+    name: 'Juan Epieyú',
+    documentNumber: '1122334455',
+    recyclerType: 'independent',
+    phone: '3104445566',
+    email: null,
+    address: 'Maicao',
+    status: 'active',
+  },
+  {
+    id: 3,
+    name: 'Recicladora del Sur',
+    documentNumber: '800765432',
+    recyclerType: 'organization',
+    phone: '3157778899',
+    email: null,
+    address: 'Barrio Sur, Uribia',
+    status: 'active',
+  },
 ];
 
 describe('RecyclerList', () => {
@@ -22,7 +49,12 @@ describe('RecyclerList', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [RecyclerList],
-      providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        MessageService,
+        ConfirmationService,
+      ],
     }).compileComponents();
     // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
     signInAs('ADMIN');
@@ -35,7 +67,11 @@ describe('RecyclerList', () => {
     const fixture = TestBed.createComponent(RecyclerList);
     http.expectOne(BASE).flush({ recyclers: rows });
     await fixture.whenStable();
-    return { fixture, list: fixture.componentInstance, element: fixture.nativeElement as HTMLElement };
+    return {
+      fixture,
+      list: fixture.componentInstance,
+      element: fixture.nativeElement as HTMLElement,
+    };
   }
 
   /** Spy that runs `accept()` right away; `confirm` returns the service because it chains. */
@@ -67,7 +103,10 @@ describe('RecyclerList', () => {
     const fixture = TestBed.createComponent(RecyclerList);
     http
       .expectOne(BASE)
-      .flush({ message: 'Falta el token de acceso (Authorization: Bearer <token>)' }, { status: 401, statusText: 'Unauthorized' });
+      .flush(
+        { message: 'Falta el token de acceso (Authorization: Bearer <token>)' },
+        { status: 401, statusText: 'Unauthorized' },
+      );
     await fixture.whenStable();
 
     const element = fixture.nativeElement as HTMLElement;
@@ -99,7 +138,13 @@ describe('RecyclerList', () => {
   it('should POST a new recycler, close the dialog and reload', async () => {
     const { list } = await createList();
     list.openCreate();
-    list.save({ name: 'Cooperativa Cabo de la Vela', documentNumber: '901555666', recyclerType: 'organization', phone: '3009990000', status: 'active' });
+    list.save({
+      name: 'Cooperativa Cabo de la Vela',
+      documentNumber: '901555666',
+      recyclerType: 'organization',
+      phone: '3009990000',
+      status: 'active',
+    });
 
     const create = http.expectOne(BASE);
     expect(create.request.method).toBe('POST');
@@ -114,7 +159,12 @@ describe('RecyclerList', () => {
     const { list } = await createList();
     list.openEdit(RECYCLERS[1]);
     expect(list.title()).toBe('Editar reciclador');
-    list.save({ name: 'Juan Epieyú', documentNumber: '1122334455', recyclerType: 'independent', phone: '3200000000' });
+    list.save({
+      name: 'Juan Epieyú',
+      documentNumber: '1122334455',
+      recyclerType: 'independent',
+      phone: '3200000000',
+    });
 
     const update = http.expectOne(`${BASE}/2`);
     expect(update.request.method).toBe('PATCH');
@@ -128,13 +178,28 @@ describe('RecyclerList', () => {
     const messages = TestBed.inject(MessageService);
     const add = vi.spyOn(messages, 'add');
     list.openCreate();
-    list.save({ name: 'Duplicado', documentNumber: '900123456-7', recyclerType: 'organization', phone: '3001112233', status: 'active' });
+    list.save({
+      name: 'Duplicado',
+      documentNumber: '900123456-7',
+      recyclerType: 'organization',
+      phone: '3001112233',
+      status: 'active',
+    });
 
-    http.expectOne(BASE).flush({ message: 'Ya existe un reciclador con ese documento' }, { status: 409, statusText: 'Conflict' });
+    http
+      .expectOne(BASE)
+      .flush(
+        { message: 'Ya existe un reciclador con ese documento' },
+        { status: 409, statusText: 'Conflict' },
+      );
 
     expect(list.dialogVisible()).toBe(true);
     expect(add).toHaveBeenCalledWith(
-      expect.objectContaining({ severity: 'error', summary: 'No se pudo guardar', detail: 'Ya existe un reciclador con ese documento' }),
+      expect.objectContaining({
+        severity: 'error',
+        summary: 'No se pudo guardar',
+        detail: 'Ya existe un reciclador con ese documento',
+      }),
     );
   });
 

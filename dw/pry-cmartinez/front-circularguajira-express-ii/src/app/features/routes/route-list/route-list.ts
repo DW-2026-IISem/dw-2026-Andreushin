@@ -55,7 +55,11 @@ export class RouteList {
   readonly filter = signal('');
 
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (route) => [route.name, route.municipality, route.description]),
+    filterRows(this.rows(), this.filter(), (route) => [
+      route.name,
+      route.municipality,
+      route.description,
+    ]),
   );
 
   readonly dialogVisible = signal(false);

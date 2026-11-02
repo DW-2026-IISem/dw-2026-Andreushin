@@ -7,15 +7,28 @@ import { MaterialRate } from '../../core/models/material-rate.model';
 import { MaterialApi } from './material-api';
 
 const BASE = `${environment.apiUrl}/materials`;
-const MATERIAL: Material = { id: 1, name: 'PET transparente', description: 'Botellas', status: 'active' };
-const RATE: MaterialRate = { id: 3, materialId: 1, pricePerKg: 1800, validFrom: '2026-01-01', validTo: null };
+const MATERIAL: Material = {
+  id: 1,
+  name: 'PET transparente',
+  description: 'Botellas',
+  status: 'active',
+};
+const RATE: MaterialRate = {
+  id: 3,
+  materialId: 1,
+  pricePerKg: 1800,
+  validFrom: '2026-01-01',
+  validTo: null,
+};
 
 describe('MaterialApi', () => {
   let api: MaterialApi;
   let http: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting()],
+    });
     api = TestBed.inject(MaterialApi);
     http = TestBed.inject(HttpTestingController);
   });

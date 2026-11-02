@@ -13,7 +13,9 @@ export class RecyclerApi {
 
   /** GET /api/recyclers → `{ recyclers }`, unwrapped here. */
   list(): Observable<Recycler[]> {
-    return this.http.get<{ recyclers: Recycler[] }>(this.base).pipe(map((response) => response.recyclers));
+    return this.http
+      .get<{ recyclers: Recycler[] }>(this.base)
+      .pipe(map((response) => response.recyclers));
   }
 
   /** GET /api/recyclers/:id → the recycler itself (single items come unwrapped). */

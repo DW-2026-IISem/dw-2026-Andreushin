@@ -9,7 +9,13 @@ import { MaterialRate } from '../../../core/models/material-rate.model';
 import { CollectionForm } from './collection-form';
 
 const API = environment.apiUrl;
-const RATE_PET: MaterialRate = { id: 3, materialId: 1, pricePerKg: 1800, validFrom: '2026-10-01', validTo: null };
+const RATE_PET: MaterialRate = {
+  id: 3,
+  materialId: 1,
+  pricePerKg: 1800,
+  validFrom: '2026-10-01',
+  validTo: null,
+};
 
 describe('CollectionForm', () => {
   let http: HttpTestingController;
@@ -17,7 +23,12 @@ describe('CollectionForm', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [CollectionForm],
-      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), MessageService],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        MessageService,
+      ],
     }).compileComponents();
     http = TestBed.inject(HttpTestingController);
   });
@@ -26,8 +37,12 @@ describe('CollectionForm', () => {
 
   async function createForm() {
     const fixture = TestBed.createComponent(CollectionForm);
-    http.expectOne(`${API}/recyclers`).flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez', status: 'active' }] });
-    http.expectOne(`${API}/routes`).flush({ routes: [{ id: 5, name: 'Manaure Salinas', status: 'active' }] });
+    http
+      .expectOne(`${API}/recyclers`)
+      .flush({ recyclers: [{ id: 4, name: 'Teodoro Valadez', status: 'active' }] });
+    http
+      .expectOne(`${API}/routes`)
+      .flush({ routes: [{ id: 5, name: 'Manaure Salinas', status: 'active' }] });
     http.expectOne(`${API}/materials`).flush({
       materials: [
         { id: 1, name: 'PET', description: null, status: 'active' },
@@ -135,7 +150,15 @@ describe('CollectionForm', () => {
       collectedOn: form.collectedOn(),
       weighings: [{ materialId: 1, grossKg: 10.5, tareKg: 0.5 }],
     });
-    create.flush({ id: 9, recyclerId: 4, routeId: 5, collectedOn: form.collectedOn(), totalNetKg: 10, totalAmount: 18000, status: 'active' });
+    create.flush({
+      id: 9,
+      recyclerId: 4,
+      routeId: 5,
+      collectedOn: form.collectedOn(),
+      totalNetKg: 10,
+      totalAmount: 18000,
+      status: 'active',
+    });
 
     expect(navigate).toHaveBeenCalledWith(['/collections']);
   });
@@ -152,7 +175,10 @@ describe('CollectionForm', () => {
     form.save();
     http
       .expectOne(`${API}/collections`)
-      .flush({ message: 'No hay tarifa vigente para el material 1 en 2026-11-02' }, { status: 404, statusText: 'Not Found' });
+      .flush(
+        { message: 'No hay tarifa vigente para el material 1 en 2026-11-02' },
+        { status: 404, statusText: 'Not Found' },
+      );
 
     expect(form.error()).toContain('No hay tarifa vigente');
     expect(form.lines()).toHaveLength(1);
