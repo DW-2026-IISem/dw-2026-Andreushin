@@ -20,20 +20,27 @@ Dejar el equipo listo para construir el frontend: Node, npm, Angular CLI, navega
 
 El backend ya está en su estado final (Fase II): las rutas de negocio exigen JWT + RBAC. Login, refresh y logout son OPEN; `GET /api/session/profile` y `GET /api/session/permissions` son JWT. El login devuelve solo el par de tokens; el perfil y los permisos se piden aparte. Usuarios del seeder: `admin`, `logistica`, `bascula`, `planta` y `finanzas` (contraseña `<Rol>2026!`), con 87, 30, 21, 13 y 18 permisos.
 
+WSL ejecuta Node, Angular CLI, el backend y MySQL (Docker); el navegador de Windows abre `http://localhost:<puerto>` porque WSL2 reenvía localhost.
+
 Criterios de aceptación (ISS-00)
 
-- [x] `node -v` ≥ 22 y `npm -v` ≥ 10
-- [x] `npx @angular/cli@22 version` muestra Angular CLI 22.x
-- [x] `npm run db:seed && npm run dev` del backend deja el puerto 4000 escuchando
-- [x] `POST /api/session/login` con `admin` devuelve `accessToken` y `refreshToken`
+- [x] `node -v` cumple los `engines` de `@angular/cli` y `npm -v` responde
+- [x] `ng version` identifica Angular CLI 22.x y `command -v ng` apunta a la instalación npm
+- [x] `npm run db:seed` termina sin error y `npm run dev` deja el puerto 4000 escuchando
+- [x] `POST /api/session/login` con `admin` / `Admin2026!` devuelve `accessToken` y `refreshToken`
 - [x] `GET /api/session/permissions` con ese token devuelve `permissions` (87 para admin)
-- [x] La carpeta `front-circularguajira-express-ii` existe y está vacía (solo `docs/`)
+- [x] `logistica`, `bascula`, `planta` y `finanzas` inician sesión y reciben 30, 21, 13 y 18 permisos
+- [x] DevTools con Console y Network disponibles para revisar cada petición
+- [x] La carpeta del frontend existe y está vacía de código: sin `src/` ni `package.json`; solo `docs/`
+- [x] `curl -i http://localhost:4000/api/recyclers` responde 401 (backend final)
 
 ### Pasos
 
 ```bash
-node -v && npm -v
-npx @angular/cli@22 version
+node --version && npm --version
+npm view @angular/cli version engines --json
+npm install -g @angular/cli
+command -v ng && ng version
 cd ~/ia-lab/projects/dw/pry-cmartinez/app-circularguajira-express-ii
 npm run db:migrate && npm run db:seed && npm run dev
 mkdir -p ~/ia-lab/projects/dw/pry-cmartinez/front-circularguajira-express-ii
@@ -42,8 +49,13 @@ mkdir -p ~/ia-lab/projects/dw/pry-cmartinez/front-circularguajira-express-ii
 ### Verificación del ISS
 
 ```bash
+# 1. Versiones
+node -v && npm -v && ng version
+
+# 2. Backend vivo (401 = protegido)
 curl -s -o /dev/null -w "HTTP %{http_code}\n" http://localhost:4000/api/recyclers
 
+# 3. Login + permisos de admin
 TOKEN=$(curl -s -X POST http://localhost:4000/api/session/login \
   -H "Content-Type: application/json" \
   -d '{"identifier":"admin","password":"Admin2026!"}' \
@@ -51,21 +63,31 @@ TOKEN=$(curl -s -X POST http://localhost:4000/api/session/login \
 
 curl -s http://localhost:4000/api/session/permissions \
   -H "Authorization: Bearer $TOKEN" | head -c 300
+
+# 4. Permisos de los demás roles
+for u in logistica bascula planta finanzas; do
+  B='{"identifier":"'$u'","password":"'${u^}'2026!"}'
+  T=$(curl -s -X POST http://localhost:4000/api/session/login \
+    -H "Content-Type: application/json" -d "$B" \
+    | grep -o '"accessToken":"[^"]*' | cut -d'"' -f4)
+  curl -s http://localhost:4000/api/session/permissions \
+    -H "Authorization: Bearer $T" | grep -o '"resourceId"' | wc -l
+done
 ```
 
-**Verificación:** versiones correctas, backend protegido en el puerto 4000 (401 sin token) y login con permisos efectivos del admin.
+**Verificación:** versiones correctas, backend protegido en el puerto 4000 (401 sin token), login y permisos efectivos de los cinco roles.
 
 #### Evidencias
 
-**Ev1 — Node y npm:** `node -v && npm -v` devuelve v24.20.0 y 11.19.0.
+**Ev1 — Node y npm:** `node -v && npm -v` devuelve v24.20.0 y 11.19.0; `npm view @angular/cli` pide `node ^22.22.3 || ^24.15.0 || >=26.0.0` y `npm >=8.0.0`.
 
 ![Ev1 ISS-00](images/Ev1-ISS-00.png)
 
-**Ev2 — Angular CLI:** `npx @angular/cli@22 version`, fuera de un proyecto Angular, reporta Angular CLI 22.2.3 sobre Node 24.20.0.
+**Ev2 — Angular CLI:** `command -v ng` apunta a `~/.nvm/.../bin/ng`, enlace a `@angular/cli/bin/ng.js`; `ng version` reporta Angular CLI 22.2.3.
 
 ![Ev2 ISS-00](images/Ev2-ISS-00.png)
 
-**Ev3 — Backend:** `npm run db:migrate && npm run db:seed` concilia 5 roles y 87 recursos, `npm run dev` levanta en el puerto 4000; `/health` responde 200, `/api/recyclers` responde 401 sin token y el puerto 4000 está en LISTEN.
+**Ev3 — Backend:** `npm run db:migrate && npm run db:seed` concilia 5 roles y 87 recursos; `npm run dev` levanta en el puerto 4000, `/health` responde 200 y el puerto está en LISTEN.
 
 ![Ev3 ISS-00](images/Ev3-ISS-00.png)
 
@@ -73,13 +95,25 @@ curl -s http://localhost:4000/api/session/permissions \
 
 ![Ev4 ISS-00](images/Ev4-ISS-00.png)
 
-**Ev5 — Permisos:** con el token del admin, `GET /api/session/permissions` devuelve filas `{ resourceId, method, path }`, 87 en total.
+**Ev5 — Permisos admin:** con ese token, `GET /api/session/permissions` devuelve filas `{ resourceId, method, path }`, 87 en total.
 
 ![Ev5 ISS-00](images/Ev5-ISS-00.png)
 
-**Ev6 — Carpeta del frontend:** en el commit `820bc53` de este ISS, `git ls-tree` muestra que `front-circularguajira-express-ii` solo contiene `docs/`.
+**Ev6 — Demás roles:** el ciclo de login + permisos da logistica 30, bascula 21, planta 13 y finanzas 18.
 
 ![Ev6 ISS-00](images/Ev6-ISS-00.png)
+
+**Ev7 — DevTools:** Network muestra `login` y `permissions` con 200 y Console imprime `GET /api/session/permissions -> 200, 87 permisos`.
+
+![Ev7 ISS-00](images/Ev7-ISS-00.png)
+
+**Ev8 — Carpeta del frontend:** en el commit `820bc53` de este ISS, `git ls-tree` muestra solo `docs` y ningún `src/` ni `package.json`.
+
+![Ev8 ISS-00](images/Ev8-ISS-00.png)
+
+**Ev9 — Backend protegido:** `curl -i http://localhost:4000/api/recyclers` responde `401 Unauthorized` con "Falta el token de acceso".
+
+![Ev9 ISS-00](images/Ev9-ISS-00.png)
 
 ### Commit
 
@@ -91,3 +125,15 @@ git push origin main
 ```
 
 Commit: [`820bc53`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/820bc535796b844270434257844df1f83bbb63ad)
+
+Capturas reales de evidencias: [`2b8fc5b`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/2b8fc5b964c31496944f6bbd8cd001e5b4afebe3)
+
+Criterios consolidados de la guía:
+
+```bash
+git add docs/PROCESO.md docs/images/Ev1-ISS-00.png docs/images/Ev2-ISS-00.png docs/images/Ev3-ISS-00.png \
+  docs/images/Ev4-ISS-00.png docs/images/Ev5-ISS-00.png docs/images/Ev6-ISS-00.png docs/images/Ev7-ISS-00.png \
+  docs/images/Ev8-ISS-00.png docs/images/Ev9-ISS-00.png
+git commit -m "FRONT-ISS-00: Criterios consolidados de requisitos previos"
+git push origin main
+```
