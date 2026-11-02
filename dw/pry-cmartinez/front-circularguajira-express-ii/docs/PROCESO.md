@@ -1020,3 +1020,105 @@ git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell
 git commit -m "FRONT-ISS-05: CRUD de rutas, puntos de recolección y su relación"
 git push origin main
 ```
+
+Commit: [`deb594a`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/deb594a1dc68248b816fad3f425ec2e2b856b20f)
+
+### ISS-06 — Recolecciones transaccionales con sus pesajes
+
+Equivale a «ventas con detalle» de la guía: una recolección (cabecera: reciclador, ruta y fecha) con sus pesajes (material, peso bruto y tara) se registra en **una sola petición** `POST /api/collections`. Express, dentro de una transacción, valida reciclador, ruta y materiales activos, comprueba bruto > tara, busca la tarifa vigente en `collectedOn` para cada material, calcula neto, importe y totales, guarda cabecera y pesajes, y si una línea falla no guarda nada. La UI no envía precios ni totales.
+
+`CollectionForm` arma el borrador con signals (sin `FormGroup`): las líneas son un arreglo dinámico y los totales son `computed`. Agregar un pesaje solo lee la tarifa vigente (`GET /api/materials/:id/rates/current?date=`) para estimar el importe con la misma fórmula del backend (`core/utils/weighing-math.ts`); el servidor no cambia hasta confirmar. La tarifa vigente cumple el papel del stock de la guía: se valida en el cliente para dar aviso inmediato y el backend la vuelve a validar en la transacción. Cada pesaje es una lectura de báscula, así que el mismo material puede repetirse (no se agrupan como las líneas de producto). Una recolección liquidada no se cancela ni se elimina (409).
+
+Criterios de aceptación (ISS-06)
+
+- [x] `CollectionForm` y `CollectionList` existen; el borrador usa signals, `previews`/`totals` son `computed` y los catálogos se cargan con `forkJoin`
+- [x] El formulario carga recicladores, rutas y materiales activos y muestra el borrador con neto, tarifa vigente e importe estimado
+- [x] No se agregan pesajes sin material, con bruto ≤ tara o sin tarifa vigente en la fecha
+- [x] Agregar pesajes no escribe en el servidor; al confirmar se envía un único `POST` sin precios ni totales y la app navega a `/collections`
+- [x] Los totales se actualizan al agregar o quitar pesajes y al cambiar la fecha (tarifa de esa fecha)
+- [x] La recolección nueva aparece con los totales calculados por el backend, iguales al estimado
+- [x] Si la transacción falla, se muestra el error, el borrador se conserva y no se crea ningún registro
+- [x] Cancelar (baja lógica) funciona y una recolección liquidada no se cancela ni se elimina (409)
+- [x] Un fallo de carga se muestra en `p-message`
+- [x] Las rutas `/collections` y `/collections/new` están en `Shell` y el menú, y los CSS no tienen reglas
+- [x] `ng build` termina con código 0 y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/collections/collection-list --skip-tests --defaults
+ng generate component features/collections/collection-form --skip-tests --defaults
+# core/utils/weighing-math.ts (+ spec), collection-form.ts/html/spec, collection-list.ts/html/spec,
+# rutas `collections` y `collections/new` hijas de Shell y entrada «Recolecciones» en el menú
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -i http://localhost:4000/api/collections | sed -n '1p;$p'
+grep -n "previews = computed\|totals = computed\|forkJoin({" src/app/features/collections/collection-form/collection-form.ts
+grep -n -A3 "No prices or totals" src/app/features/collections/collection-form/collection-form.ts
+grep -n "collections'\|collections/new'" src/app/app.routes.ts src/app/layout/shell/shell.ts
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** el borrador vive en memoria hasta confirmar, la recolección se registra en una sola transacción con los importes del backend y cualquier fallo de una línea deja la base sin cambios.
+
+#### Evidencias
+
+**Ev1 — Estructura:** `collections/` con servicios, formulario y lista; el borrador declara `lines` y `rates` como signals, `previews` y `totals` como `computed` y carga catálogos con `forkJoin`; `weighing-math.ts` replica `round2`, la fórmula de línea y la fecha de Colombia.
+
+![Ev1 ISS-06](images/Ev1-ISS-06.png)
+
+**Ev2 — Borrador:** reciclador, ruta y fecha; dos pesajes (PET 10.5/0.5 kg y Archivo 25/1.2 kg) con neto, tarifa vigente ($1,190 y $650 por kg) e importe estimado; resumen con 33.80 kg y $27,370.00.
+
+![Ev2 ISS-06](images/Ev2-ISS-06.png)
+
+**Ev3 — Validaciones:** sin material «Selecciona un material.»; bruto 5 y tara 5 «El peso bruto (5) debe ser mayor que la tara (5).»; con fecha 2026-07-15 el backend responde 404 «No hay tarifa vigente para el material 3 en 2026-07-15» y el borrador sigue vacío.
+
+![Ev3 ISS-06](images/Ev3-ISS-06.png)
+
+**Ev4 — Borrador sin escritura y POST único:** agregar los pesajes solo hace `GET .../rates/current`; el servidor sigue con 8 recolecciones; «Registrar recolección» envía un único `POST /api/collections` con `recyclerId`, `routeId`, `collectedOn` y `weighings` (bruto/tara, sin precios), responde 201, navega a `/collections` y el servidor pasa a 9.
+
+![Ev4 ISS-06](images/Ev4-ISS-06.png)
+
+**Ev5 — Totales y fecha:** con un pesaje de PET el total es $11,900.00 (tarifa $1,190); al cambiar la fecha a 2026-09-15 se vuelve a leer la tarifa de esa fecha ($1,290) y el total pasa a $12,900.00.
+
+![Ev5 ISS-06](images/Ev5-ISS-06.png)
+
+**Ev6 — Recolección registrada:** la #9 aparece primera (orden por fecha) con 33.80 kg, 2 pesajes y $27,370.00, el mismo valor que estimó el borrador; 9 activas.
+
+![Ev6 ISS-06](images/Ev6-ISS-06.png)
+
+**Ev7 — Rollback:** con el borrador listo se desactiva PET en el backend; el `POST` responde 400 «El material PET debe estar activo», el `p-message` y el toast lo muestran, la página no navega, el borrador conserva sus 2 pesajes y el servidor sigue con 9 recolecciones.
+
+![Ev7 ISS-06](images/Ev7-ISS-06.png)
+
+**Ev8 — Cancelar y eliminar:** la #7 se cancela con `PATCH /deactivate` (8 → 7 activas); cancelar la #3 y eliminar la #2, que están liquidadas, responden 409 y el toast explica el motivo.
+
+![Ev8 ISS-06](images/Ev8-ISS-06.png)
+
+**Ev9 — Error de carga:** contra el backend real `/collections` recibe 401, `forkJoin` cancela las demás peticiones y la pantalla muestra «Falta el token de acceso…» y «Sin recolecciones activas».
+
+![Ev9 ISS-06](images/Ev9-ISS-06.png)
+
+**Ev10 — Payload, rutas y menú:** el `POST` solo lleva `recyclerId`, `routeId`, `collectedOn` y `weighings`; la tarifa se lee con `currentRate(materialId, collectedOn)`; rutas `collections` y `collections/new` en `app.routes.ts` y el menú; CSS sin reglas.
+
+![Ev10 ISS-06](images/Ev10-ISS-06.png)
+
+**Ev11 — Build y pruebas:** `ng build` código 0 (Initial total 571.18 kB; `collection-form` 11.86 kB y `collection-list` 7.76 kB diferidos); las 8 pruebas del formulario pasan y la suite queda en 24 archivos y 120 pruebas.
+
+![Ev11 ISS-06](images/Ev11-ISS-06.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell/shell.spec.ts \
+  src/app/core/utils/weighing-math.ts src/app/core/utils/weighing-math.spec.ts \
+  src/app/features/collections/collection-list src/app/features/collections/collection-form \
+  docs/PROCESO.md docs/images/Ev*-ISS-06.png
+git commit -m "FRONT-ISS-06: Recolecciones transaccionales con sus pesajes"
+git push origin main
+```

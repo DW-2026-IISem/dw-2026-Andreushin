@@ -42,6 +42,18 @@ export const routes: Routes = [
             (m) => m.CollectionPointList,
           ),
       },
+      {
+        path: 'collections',
+        title: 'Recolecciones · CircularGuajira',
+        loadComponent: () =>
+          import('./features/collections/collection-list/collection-list').then((m) => m.CollectionList),
+      },
+      {
+        path: 'collections/new',
+        title: 'Nueva recolección · CircularGuajira',
+        loadComponent: () =>
+          import('./features/collections/collection-form/collection-form').then((m) => m.CollectionForm),
+      },
     ],
   },
   { path: '**', redirectTo: 'prototype' },

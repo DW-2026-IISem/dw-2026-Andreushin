@@ -1,0 +1,85 @@
+<app-page-header title="Recolecciones" subtitle="Cada recolección guarda sus pesajes y los importes que calculó el backend con la tarifa vigente.">
+  <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
+  <p-tag [value]="(totalAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0') + ' en total'" severity="secondary" [rounded]="true" />
+  <a pButton routerLink="/collections/new">
+    <i pButtonIcon class="pi pi-plus"></i>
+    <span pButtonLabel>Nueva recolección</span>
+  </a>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table [value]="visibleRows()" [loading]="loading()" [paginator]="visibleRows().length > 10" [rows]="10" dataKey="id" tableStyleClass="min-w-3xl">
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar recolecciones"
+          placeholder="Buscar por número, fecha, reciclador o ruta…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
+      </div>
+      @if (filter()) {
+        <p class="mt-2 text-xs text-slate-500">{{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».</p>
+      }
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="id"><div class="flex items-center gap-1"># <p-sort-icon field="id" /></div></th>
+        <th pSortableColumn="collectedOn"><div class="flex items-center gap-1">Fecha <p-sort-icon field="collectedOn" /></div></th>
+        <th>Reciclador y ruta</th>
+        <th class="text-right">Neto</th>
+        <th class="text-right">Total</th>
+        <th>Estado</th>
+        <th class="w-28 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-collection>
+      <tr>
+        <td class="font-medium text-slate-800">#{{ collection.id }}</td>
+        <td class="text-sm">{{ collection.collectedOn | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+        <td>
+          <p class="text-sm text-slate-700">{{ recyclerName()(collection.recyclerId) }}</p>
+          <p-tag [value]="routeName()(collection.routeId)" severity="secondary" [rounded]="true" styleClass="mt-1" />
+        </td>
+        <td class="text-right">
+          <p class="text-sm">{{ collection.totalNetKg | number: '1.2-2' }} kg</p>
+          <p class="text-xs text-slate-400">{{ weighingCount(collection) }} pesajes</p>
+        </td>
+        <td class="text-right font-medium">{{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
+        <td><app-status-tag [status]="collection.status" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="warn" aria-label="Cancelar recolección" pTooltip="Cancelar (baja lógica)" (click)="deactivate(collection)">
+              <i pButtonIcon class="pi pi-ban"></i>
+            </button>
+            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar recolección" pTooltip="Eliminar" (click)="remove(collection)">
+              <i pButtonIcon class="pi pi-trash"></i>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="7">
+          @if (filter()) {
+            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ninguna recolección coincide con la búsqueda." />
+          } @else {
+            <app-empty-state icon="pi pi-truck" title="Sin recolecciones activas" message="Registra la primera con «Nueva recolección»." />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
