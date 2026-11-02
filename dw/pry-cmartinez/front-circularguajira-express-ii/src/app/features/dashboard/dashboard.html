@@ -39,7 +39,13 @@
 
   <div class="mt-6 grid gap-6 2xl:grid-cols-2">
     <p-card header="Recolecciones sin liquidar">
-      <p-tag [value]="unsettled().length + ' pendientes'" [severity]="unsettled().length > 0 ? 'warn' : 'success'" [rounded]="true" />
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p-tag [value]="unsettled().length + ' pendientes'" [severity]="unsettled().length > 0 ? 'warn' : 'success'" [rounded]="true" />
+        <a pButton routerLink="/settlements" text severity="secondary">
+          <span pButtonLabel>Liquidar</span>
+          <i pButtonIcon class="pi pi-arrow-right"></i>
+        </a>
+      </div>
       <div class="mt-3 overflow-x-auto">
         <p-table [value]="unsettled()" tableStyleClass="min-w-xl">
           <ng-template #header>

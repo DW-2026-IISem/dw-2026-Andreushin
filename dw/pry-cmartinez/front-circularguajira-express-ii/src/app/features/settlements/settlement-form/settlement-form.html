@@ -1,0 +1,60 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div>
+    <label id="settlement-collection-label" for="settlement-collection" class="mb-1 block text-sm font-medium text-slate-700">
+      Recolección <span class="text-red-500">*</span>
+    </label>
+    <p-select
+      [fluid]="true"
+      inputId="settlement-collection"
+      ariaLabelledBy="settlement-collection-label"
+      formControlName="collectionId"
+      [options]="pendingOptions()"
+      optionLabel="label"
+      optionValue="id"
+      [filter]="true"
+      placeholder="Selecciona una recolección sin liquidar"
+    />
+    @if (form.controls.collectionId.touched && form.controls.collectionId.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Elige una recolección sin liquidar.</p-message>
+    }
+  </div>
+
+  @if (!settlement() && previewOf(form.controls.collectionId.value); as collection) {
+    <dl class="grid gap-2 rounded-lg bg-slate-50 p-3 text-sm sm:grid-cols-3">
+      <div>
+        <dt class="text-slate-500">Pesajes</dt>
+        <dd class="font-medium">{{ collection.weighings?.length ?? 0 }}</dd>
+      </div>
+      <div>
+        <dt class="text-slate-500">Neto</dt>
+        <dd class="font-medium">{{ collection.totalNetKg | number: '1.2-2' }} kg</dd>
+      </div>
+      <div>
+        <dt class="text-slate-500">Total actual</dt>
+        <dd class="font-medium">{{ collection.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+      </div>
+    </dl>
+    <p class="text-xs text-slate-500">El backend confirma la tarifa vigente de cada pesaje en la fecha de la recolección y congela los totales.</p>
+  }
+
+  <div>
+    <label for="settlement-notes" class="mb-1 block text-sm font-medium text-slate-700">Notas</label>
+    <textarea id="settlement-notes" pTextarea formControlName="notes" rows="3" placeholder="Pago en efectivo en la bodega" class="w-full"></textarea>
+    @if (form.controls.notes.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">Máximo 255 caracteres.</p-message>
+    }
+    @if (settlement()) {
+      <p class="mt-1 text-xs text-slate-500">Solo se modifican las notas: los valores liquidados no cambian. Si están mal, anula y liquida de nuevo.</p>
+    }
+  </div>
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>{{ settlement() ? 'Guardar notas' : 'Emitir liquidación' }}</span>
+    </button>
+  </div>
+</form>

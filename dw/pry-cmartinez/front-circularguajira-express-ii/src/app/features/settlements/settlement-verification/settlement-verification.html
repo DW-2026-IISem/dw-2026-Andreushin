@@ -1,0 +1,49 @@
+@if (report().consistent) {
+  <p-message severity="success" styleClass="w-full">
+    Liquidación consistente: los {{ report().lines.length }} pesajes coinciden con la tarifa vigente el {{ report().collectedOn }}.
+  </p-message>
+} @else {
+  <p-message severity="error" styleClass="w-full">
+    Liquidación inconsistente: {{ failedLines() }} pesaje(s) no coinciden con el recálculo.
+  </p-message>
+}
+
+<dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+  <div class="rounded-lg bg-slate-50 p-3">
+    <dt class="text-slate-500">Guardado</dt>
+    <dd class="font-medium">{{ report().stored.totalNetKg | number: '1.2-2' }} kg · {{ report().stored.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+  </div>
+  <div class="rounded-lg bg-slate-50 p-3">
+    <dt class="text-slate-500">Recalculado</dt>
+    <dd class="font-medium">{{ report().recomputed.totalNetKg | number: '1.2-2' }} kg · {{ report().recomputed.totalAmount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</dd>
+  </div>
+</dl>
+
+<div class="mt-4 overflow-x-auto">
+  <p-table [value]="report().lines" tableStyleClass="min-w-2xl">
+    <ng-template #header>
+      <tr>
+        <th>Material</th>
+        <th class="text-right">Neto</th>
+        <th class="text-right">Tarifa</th>
+        <th class="text-right">Importe</th>
+        <th class="text-center">Neto · importe · tarifa</th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-line>
+      <tr>
+        <td>{{ materialName()(line.materialId) }}</td>
+        <td class="text-right">{{ line.netKg | number: '1.2-2' }} kg</td>
+        <td class="text-right">{{ line.pricePerKg | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}/kg</td>
+        <td class="text-right">{{ line.amount | currency: 'COP' : 'symbol-narrow' : '1.2-2' }}</td>
+        <td class="text-center">
+          <span class="inline-flex gap-1">
+            <p-tag [value]="line.netOk ? 'OK' : 'Error'" [severity]="line.netOk ? 'success' : 'danger'" />
+            <p-tag [value]="line.amountOk ? 'OK' : 'Error'" [severity]="line.amountOk ? 'success' : 'danger'" />
+            <p-tag [value]="line.rateOk ? 'OK' : 'Error'" [severity]="line.rateOk ? 'success' : 'danger'" />
+          </span>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>

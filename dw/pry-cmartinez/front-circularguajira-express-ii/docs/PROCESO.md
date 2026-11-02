@@ -1241,3 +1241,113 @@ git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell
 git commit -m "FRONT-ISS-07: Pesajes, detalle de recolección, panel y cierre de la Fase I"
 git push origin main
 ```
+
+Commit: [`fb522ea`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/fb522ea45c06b503a80191e67bdd8390cb96a1b4)
+
+### ISS-07B — Liquidaciones
+
+La guía de StoreLab no tiene equivalente (allí la venta ya es el cierre contable), pero en CircularGuajira la **liquidación** es el paso central del negocio: lo que se le paga al reciclador por una recolección. Este ISS completa la Fase I con `/settlements` antes de abrir la sesión.
+
+Reglas del backend que respeta la pantalla: liquidar (`POST`) solo envía `collectionId` y `notes`; exige una recolección activa, sin liquidación emitida (409) y con pesajes activos (400); en la transacción Express confirma la tarifa vigente de cada pesaje en la fecha de la recolección y **congela** los totales. Una liquidación emitida bloquea su recolección (los pesajes responden 409). Las notas son lo único editable (`PATCH { notes }`). Anular (`PATCH /void`) la deja como histórico y **reabre** la recolección; como el listado solo trae las emitidas, la pantalla no ofrece el borrado físico (que el backend solo permite sobre anuladas). La verificación (`GET /:id/verify`) recalcula cada línea y compara lo guardado con lo recalculado.
+
+`SettlementList` carga liquidaciones, recolecciones, recicladores y materiales en paralelo; `pending` (`computed`) son las recolecciones sin liquidación emitida, que alimentan el `p-select` del formulario y el contador «por liquidar». `SettlementVerification` es presentacional (`input.required`). El panel enlaza a esta pantalla desde «Recolecciones sin liquidar».
+
+Al probar el flujo se encontró un error real: el método se llamaba `void`, y en una plantilla `(click)="void(settlement)"` es el **operador** `void` de JavaScript, no una llamada; el botón no hacía nada. Se renombró a `voidSettlement` y se añadió una prueba que pulsa el botón de la fila.
+
+Criterios de aceptación (ISS-07B)
+
+- [x] `/settlements` lista las liquidaciones emitidas con recolección, reciclador, neto, total y notas
+- [x] El formulario solo ofrece recolecciones sin liquidar y muestra qué se va a liquidar
+- [x] Liquidar envía solo `collectionId` y `notes`, emite la liquidación y bloquea la recolección (sus pesajes responden 409)
+- [x] Editar una liquidación solo cambia las notas
+- [x] La verificación compara lo guardado con el recálculo línea por línea
+- [x] Liquidar una recolección ya liquidada responde 409 y se muestra
+- [x] Liquidar una recolección sin pesajes activos responde 400 y se muestra
+- [x] Anular deja la recolección pendiente y desbloquea sus pesajes
+- [x] Un fallo de carga se muestra en `p-message`
+- [x] La pantalla está en las rutas, el menú y el panel; `pending` y la verificación usan `computed`
+- [x] Las pruebas pasan
+- [x] `ng build` termina con código 0
+
+### Pasos
+
+```bash
+ng generate component features/settlements/settlement-list --skip-tests --defaults
+ng generate component features/settlements/settlement-form --skip-tests --defaults
+ng generate component features/settlements/settlement-verification --skip-tests --defaults
+# settlement-list/form/verification con sus pruebas, ruta `settlements`, menú «Liquidaciones»
+# y enlace «Liquidar» en el panel
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -i http://localhost:4000/api/settlements | sed -n '1p;$p'
+grep -n "pending = computed\|updateNotes(current.id, { notes: value.notes })\|voidSettlement" \
+  src/app/features/settlements/settlement-list/settlement-list.ts
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** se liquida una recolección pendiente, la liquidación congela sus valores y la bloquea, la verificación confirma la consistencia, y anularla la reabre; cada regla del backend llega al usuario.
+
+#### Evidencias
+
+**Ev1 — Listado:** 4 liquidaciones emitidas del seeder con recolección, reciclador, neto, pesajes, total y notas; «4 emitidas», «4 por liquidar» y total liquidado.
+
+![Ev1 ISS-07B](images/Ev1-ISS-07B.png)
+
+**Ev2 — Formulario:** «Liquidar recolección» ofrece la #7 (pendiente) y muestra 3 pesajes, 204.17 kg y $363,249.70 antes de emitir.
+
+![Ev2 ISS-07B](images/Ev2-ISS-07B.png)
+
+**Ev3 — Liquidar:** `POST /api/settlements` con `{"collectionId":7,"notes":"…"}` responde 201, «Liquidación #5 emitida» y los contadores pasan a 5 emitidas y 3 por liquidar; corregir un pesaje de la #7 responde 409.
+
+![Ev3 ISS-07B](images/Ev3-ISS-07B.png)
+
+**Ev4 — Notas:** el formulario bloquea la recolección; «Guardar notas» hace `PATCH /api/settlements/5` con solo `{"notes":…}` y la fila muestra la nota nueva.
+
+![Ev4 ISS-07B](images/Ev4-ISS-07B.png)
+
+**Ev5 — Verificación:** la liquidación #1 es consistente: guardado y recalculado coinciden (135.64 kg · $1,349,673.80) y sus 3 pesajes dan OK en neto, importe y tarifa.
+
+![Ev5 ISS-07B](images/Ev5-ISS-07B.png)
+
+**Ev6 — Doble liquidación:** con el formulario abierto en la #1, otra sesión la liquida; «Emitir liquidación» responde 409 «La recolección 1 ya está liquidada (liquidación 6)» y el diálogo sigue abierto.
+
+![Ev6 ISS-07B](images/Ev6-ISS-07B.png)
+
+**Ev7 — Sin pesajes:** se desactivan los 3 pesajes de la #4; liquidarla responde 400 «La recolección 4 no tiene pesajes activos para liquidar».
+
+![Ev7 ISS-07B](images/Ev7-ISS-07B.png)
+
+**Ev8 — Anular:** antes, el pesaje 19 de la #7 responde 409; «Confirmar anulación» hace `PATCH /api/settlements/5/void`, «La recolección #7 quedó pendiente» (5 emitidas, 3 por liquidar) y el mismo pesaje ya responde 200.
+
+![Ev8 ISS-07B](images/Ev8-ISS-07B.png)
+
+**Ev9 — Error de carga:** contra el backend real `/settlements` recibe 401 (sin `Authorization`), `forkJoin` cancela el resto y se muestra «Falta el token de acceso…» y «Sin liquidaciones emitidas».
+
+![Ev9 ISS-07B](images/Ev9-ISS-07B.png)
+
+**Ev10 — Código:** `settlements/` con servicio y tres componentes; `pending = computed(...)`, `forkJoin`, edición con solo `notes`, `voidSettlement`; la verificación usa `input.required` y `failedLines = computed(...)`; ruta y menú «Liquidaciones».
+
+![Ev10 ISS-07B](images/Ev10-ISS-07B.png)
+
+**Ev11 — Pruebas:** las 13 pruebas de liquidaciones pasan (incluida la del botón «Anular liquidación») y la suite queda en 31 archivos y 147 pruebas.
+
+![Ev11 ISS-07B](images/Ev11-ISS-07B.png)
+
+**Ev12 — Build:** `ng build` código 0 (Initial total 572.36 kB; `settlement-list` 18.22 kB diferido).
+
+![Ev12 ISS-07B](images/Ev12-ISS-07B.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell/shell.spec.ts \
+  src/app/features/settlements src/app/features/dashboard/dashboard.html \
+  docs/PROCESO.md docs/images/Ev*-ISS-07B.png
+git commit -m "FRONT-ISS-07B: Liquidaciones"
+git push origin main
+```

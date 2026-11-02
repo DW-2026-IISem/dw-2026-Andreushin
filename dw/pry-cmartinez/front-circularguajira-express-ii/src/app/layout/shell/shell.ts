@@ -48,6 +48,7 @@ export class Shell {
     { label: 'Puntos de recolección', icon: 'pi pi-map-marker', routerLink: '/collection-points' },
     { label: 'Recolecciones', icon: 'pi pi-truck', routerLink: '/collections' },
     { label: 'Pesajes', icon: 'pi pi-gauge', routerLink: '/weighings' },
+    { label: 'Liquidaciones', icon: 'pi pi-wallet', routerLink: '/settlements' },
     { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/prototype' },
   ];
 

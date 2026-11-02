@@ -65,6 +65,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/collections/weighing-list/weighing-list').then((m) => m.WeighingList),
       },
+      {
+        path: 'settlements',
+        title: 'Liquidaciones · CircularGuajira',
+        loadComponent: () =>
+          import('./features/settlements/settlement-list/settlement-list').then((m) => m.SettlementList),
+      },
     ],
   },
   { path: '**', redirectTo: 'prototype' },
