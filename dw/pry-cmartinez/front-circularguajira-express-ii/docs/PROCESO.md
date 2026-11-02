@@ -61,23 +61,23 @@ curl -s http://localhost:4000/api/session/permissions \
 
 ![Ev1 ISS-00](images/Ev1-ISS-00.png)
 
-**Ev2 — Angular CLI:** `npx @angular/cli@22 version` reporta Angular CLI 22.2.3.
+**Ev2 — Angular CLI:** `npx @angular/cli@22 version`, fuera de un proyecto Angular, reporta Angular CLI 22.2.3 sobre Node 24.20.0.
 
 ![Ev2 ISS-00](images/Ev2-ISS-00.png)
 
-**Ev3 — Backend:** `/health` responde 200, `/api/recyclers` responde 401 sin token y el puerto 4000 está en LISTEN.
+**Ev3 — Backend:** `npm run db:migrate && npm run db:seed` concilia 5 roles y 87 recursos, `npm run dev` levanta en el puerto 4000; `/health` responde 200, `/api/recyclers` responde 401 sin token y el puerto 4000 está en LISTEN.
 
 ![Ev3 ISS-00](images/Ev3-ISS-00.png)
 
-**Ev4 — Login:** `POST /api/session/login` con `admin` devuelve `accessToken`, `tokenType: Bearer`, `expiresIn: 900` y `refreshToken`.
+**Ev4 — Login:** `POST /api/session/login` con `admin` devuelve `accessToken`, `tokenType: Bearer`, `expiresIn: 900`, `refreshToken` y `refreshExpiresIn`.
 
 ![Ev4 ISS-00](images/Ev4-ISS-00.png)
 
-**Ev5 — Permisos:** `GET /api/session/permissions` devuelve filas `{ resourceId, method, path }`, 87 en total para admin.
+**Ev5 — Permisos:** con el token del admin, `GET /api/session/permissions` devuelve filas `{ resourceId, method, path }`, 87 en total.
 
 ![Ev5 ISS-00](images/Ev5-ISS-00.png)
 
-**Ev6 — Carpeta del frontend:** `front-circularguajira-express-ii` solo contiene `docs/`.
+**Ev6 — Carpeta del frontend:** en el commit `820bc53` de este ISS, `git ls-tree` muestra que `front-circularguajira-express-ii` solo contiene `docs/`.
 
 ![Ev6 ISS-00](images/Ev6-ISS-00.png)
 
@@ -89,3 +89,5 @@ git add docs/PROCESO.md docs/images/Ev1-ISS-00.png docs/images/Ev2-ISS-00.png do
 git commit -m "FRONT-ISS-00: Requisitos previos"
 git push origin main
 ```
+
+Commit: [`820bc53`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/820bc535796b844270434257844df1f83bbb63ad)
