@@ -1,7 +1,19 @@
-<!-- Application frame: background, max width and padding with Tailwind utilities. -->
-<main class="min-h-dvh bg-slate-50 p-6 text-slate-900">
-  <div class="mx-auto w-full max-w-4xl">
-    <!-- Composition: one tag in the template renders the Example component. -->
-    <app-example />
+<!-- Container of the four regions: Tailwind for height and direction. -->
+<div class="flex min-h-screen flex-col bg-slate-100">
+  <app-header />
+
+  <div class="flex flex-1">
+    <!-- Fixed 16rem Aside; in ISS-01B it hides on small screens. -->
+    <aside class="w-64 shrink-0">
+      <app-aside />
+    </aside>
+
+    <!-- min-w-0 + wrap-break-word keep wide content from overflowing the flex and creating scroll. -->
+    <main id="content" class="min-w-0 flex-1 p-6 wrap-break-word">
+      <h1 class="text-2xl font-semibold text-slate-900">{{ title }}</h1>
+      <p class="mt-2 text-slate-600">Bienvenido a CircularGuajira.</p>
+    </main>
   </div>
-</main>
+
+  <app-footer />
+</div>

@@ -1,18 +1,23 @@
 import { Component } from '@angular/core';
-import { Example } from './demo/example/example';
+import { Aside } from './layout/aside/aside';
+import { Footer } from './layout/footer/footer';
+import { Header } from './layout/header/header';
 
 /**
  * Root component (`<app-root>`).
  *
- * The first one Angular renders. In ISS-01 it only composes the example component,
- * so it shows up on screen through a tag. Routes arrive in ISS-01B, once there is a
- * business screen to show.
+ * The first one Angular renders. It composes the four screen regions: Header on top,
+ * Aside on the left, the content in the middle and Footer at the bottom. The content is
+ * still fixed; in ISS-01B it changes with the menu and in ISS-02 the router arrives.
  */
 @Component({
   host: { class: 'block' },
   selector: 'app-root',
-  imports: [Example],
+  imports: [Header, Aside, Footer],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App {}
+export class App {
+  /** Title of the initial screen. In ISS-01B it changes when a menu item is chosen. */
+  protected readonly title = 'Inicio';
+}

@@ -315,3 +315,100 @@ git add .editorconfig .gitignore .postcssrc.json .prettierrc .vscode README.md a
 git commit -m "FRONT-ISS-01: Bootstrap Angular 22 con CLI"
 git push origin main
 ```
+
+Commit: [`64b8292`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/64b829293197dfa27324ea478fe6fe38318a5632)
+
+### ISS-01A — Esqueleto Header / Aside / contenido / Footer
+
+Construir primero la pantalla: Header arriba, Aside a la izquierda del contenido y Footer abajo a todo el ancho, con datos fijos y sin llamadas a la API. Los tres componentes de `layout/` son de presentación: no inyectan servicios ni conocen permisos. `demo/example` deja de componerse y queda solo como material de consulta del ISS-01.
+
+Un componente generado no se ve hasta que el padre lo declara en `imports` (paso 1) y escribe su selector como etiqueta en su plantilla (paso 2).
+
+Criterios de aceptación (ISS-01A)
+
+- [x] Explica por qué un componente generado no aparece hasta que el padre lo declara en `imports` y usa su selector
+- [x] Existen `src/app/layout/header/`, `src/app/layout/aside/` y `src/app/layout/footer/`, cada una con `.ts`, `.html` y `.css`
+- [x] `header.ts` declara `title` y `header.html` lo muestra con `{{ title }}`
+- [x] Los tres `.css` de `layout/` no contienen reglas: solo un comentario que explica por qué están vacíos
+- [x] `app.ts` importa `Header`, `Aside` y `Footer` y los declara en `imports`
+- [x] `app.html` compone las cuatro regiones: `<app-header />`, `<aside>` con `<app-aside />`, `<main>` con el contenido y `<app-footer />`
+- [x] `app.html` ya no contiene `<app-example />`: `demo/example` no forma parte de la aplicación
+- [x] Se ven las cuatro regiones, el Footer queda abajo y no hay desplazamiento horizontal
+- [x] En Network no aparece ninguna petición `/api`
+- [x] `ng build` termina con código 0 y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component layout/header --skip-tests --defaults
+ng generate component layout/aside --skip-tests --defaults
+ng generate component layout/footer --skip-tests --defaults
+# header.ts/html, aside.ts/html, footer.ts/html, los tres .css con comentario,
+# app.ts (imports: [Header, Aside, Footer]), app.html (cuatro regiones) y app.spec.ts
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+ls src/app/layout/header src/app/layout/aside src/app/layout/footer
+grep -n "imports: \[Header, Aside, Footer\]" src/app/app.ts
+grep -n "app-header\|app-aside\|app-footer" src/app/app.html
+grep -c "app-example" src/app/app.html || echo "no aparece: correcto"
+grep -v "^\s*$" src/app/layout/*/*.css | grep -v "^\S*: \*\|/\*\|^\S*:  \*" || echo "sin reglas: correcto"
+npm test -- --watch=false
+```
+
+**Verificación:** la pantalla tiene las cuatro regiones, el Footer se mantiene abajo, no hay scroll horizontal y la aplicación no depende de la API.
+
+#### Evidencias
+
+**Ev1 — imports + selector:** `app.ts` declara `imports: [Header, Aside, Footer]`, cada componente tiene su `selector` (`app-header`, `app-aside`, `app-footer`) y `app.html` escribe esas etiquetas; sin uno de los dos pasos el componente no se pinta.
+
+![Ev1 ISS-01A](images/Ev1-ISS-01A.png)
+
+**Ev2 — layout/:** `header/`, `aside/` y `footer/` tienen `.ts`, `.html` y `.css` (generados con `--skip-tests`).
+
+![Ev2 ISS-01A](images/Ev2-ISS-01A.png)
+
+**Ev3 — Header:** `readonly title = 'CircularGuajira Express II'` y `header.html` lo muestra con `{{ title }}`.
+
+![Ev3 ISS-01A](images/Ev3-ISS-01A.png)
+
+**Ev4 — CSS vacíos:** los tres `.css` solo tienen un comentario; el filtro de la verificación responde «sin reglas: correcto».
+
+![Ev4 ISS-01A](images/Ev4-ISS-01A.png)
+
+**Ev5 — Imports de App:** `app.ts` importa `Aside`, `Footer` y `Header` y los declara en `imports`.
+
+![Ev5 ISS-01A](images/Ev5-ISS-01A.png)
+
+**Ev6 — Composición:** `app.html` con `<app-header />`, `<aside class="w-64 shrink-0">` con `<app-aside />`, `<main id="content" class="min-w-0 flex-1 p-6 wrap-break-word">` y `<app-footer />`.
+
+![Ev6 ISS-01A](images/Ev6-ISS-01A.png)
+
+**Ev7 — Sin demo:** `grep -c 'app-example' src/app/app.html` da 0.
+
+![Ev7 ISS-01A](images/Ev7-ISS-01A.png)
+
+**Ev8 — Pantalla:** Header blanco con CircularGuajira Express II, Aside oscuro con Menú de CircularGuajira, contenido Inicio / Bienvenido a CircularGuajira. y Footer abajo a todo el ancho.
+
+![Ev8 ISS-01A](images/Ev8-ISS-01A.png)
+
+**Ev9 — Medidas y Network:** sobre el build servido en `localhost:4300`, Header 64 px, Aside 256 px, `main` desde x = 256, Footer termina en 900 = alto de la ventana y `scrollWidth = clientWidth` a 1280 y a 390 px; ninguna respuesta `/api` y 0 errores de consola.
+
+![Ev9 ISS-01A](images/Ev9-ISS-01A.png)
+
+**Ev10 — Build y pruebas:** `ng build` termina con código 0 (Initial total 415.81 kB) y `ng test` aprueba 8 pruebas (4 de App + 4 del ejemplo).
+
+![Ev10 ISS-01A](images/Ev10-ISS-01A.png)
+
+### Commit
+
+```bash
+git add src/app/app.ts src/app/app.html src/app/app.spec.ts src/app/layout \
+  docs/PROCESO.md docs/images/Ev*-ISS-01A.png
+git commit -m "FRONT-ISS-01A: Esqueleto Header / Aside / contenido / Footer"
+git push origin main
+```
