@@ -1,0 +1,113 @@
+<app-page-header title="Recicladores" subtitle="El backend solo lista los recicladores activos; la baja lógica cambia su estado.">
+  <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
+  <button pButton type="button" (click)="openCreate()">
+    <i pButtonIcon class="pi pi-plus"></i>
+    <span pButtonLabel>Nuevo reciclador</span>
+  </button>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">
+    {{ error() }}
+  </p-message>
+}
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <p-table
+    [value]="visibleRows()"
+    [loading]="loading()"
+    [paginator]="visibleRows().length > 10"
+    [rows]="10"
+    dataKey="id"
+    tableStyleClass="min-w-3xl"
+  >
+    <ng-template #caption>
+      <div class="flex items-center gap-2">
+        <i class="pi pi-search text-slate-400"></i>
+        <input
+          pInputText
+          type="search"
+          aria-label="Buscar recicladores"
+          placeholder="Buscar por nombre, documento, teléfono, email o dirección…"
+          [value]="filter()"
+          (input)="filter.set($any($event.target).value)"
+          class="w-full"
+        />
+      </div>
+      @if (filter()) {
+        <p class="mt-2 text-xs text-slate-500">
+          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+        </p>
+      }
+    </ng-template>
+
+    <ng-template #header>
+      <tr>
+        <th pSortableColumn="name">
+          <div class="flex items-center gap-1">Nombre <p-sort-icon field="name" /></div>
+        </th>
+        <th pSortableColumn="recyclerType">
+          <div class="flex items-center gap-1">Tipo <p-sort-icon field="recyclerType" /></div>
+        </th>
+        <th>Contacto</th>
+        <th>Dirección</th>
+        <th>Estado</th>
+        <th class="w-40 text-right">Acciones</th>
+      </tr>
+    </ng-template>
+
+    <ng-template #body let-recycler>
+      <tr>
+        <td>
+          <p class="font-medium text-slate-800">{{ recycler.name }}</p>
+          <p class="text-xs text-slate-400">#{{ recycler.id }} · Doc. {{ recycler.documentNumber }}</p>
+        </td>
+        <td class="text-sm text-slate-700">{{ typeLabel(recycler.recyclerType) }}</td>
+        <td>
+          <p class="text-sm text-slate-700">{{ recycler.phone }}</p>
+          <p class="text-xs text-slate-400">{{ recycler.email || 'Sin email' }}</p>
+        </td>
+        <td class="text-sm text-slate-600">{{ recycler.address || '—' }}</td>
+        <td><app-status-tag [status]="recycler.status" /></td>
+        <td>
+          <div class="flex justify-end gap-1">
+            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)"></button>
+            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)"></button>
+            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)"></button>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template #emptymessage>
+      <tr>
+        <td colspan="6">
+          @if (filter()) {
+            <app-empty-state icon="pi pi-search" title="Sin coincidencias" message="Ningún reciclador coincide con la búsqueda. Borra el filtro para ver todos." />
+          } @else {
+            <app-empty-state icon="pi pi-users" title="Sin recicladores activos" message="Crea el primero con el botón «Nuevo reciclador» o ejecuta el seeder del backend." />
+          }
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  [header]="title()"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-full max-w-2xl mx-4"
+>
+  <app-recycler-form
+    [recycler]="editing()"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
+</p-dialog>

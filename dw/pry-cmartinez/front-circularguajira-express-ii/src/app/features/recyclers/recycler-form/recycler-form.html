@@ -1,0 +1,81 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <div>
+    <label for="recycler-name" class="mb-1 block text-sm font-medium text-slate-700">
+      Nombre <span class="text-red-500">*</span>
+    </label>
+    <input id="recycler-name" pInputText formControlName="name" placeholder="Asociación Wayuu Recicla" autocomplete="name" class="w-full" />
+    @if (form.controls.name.touched && form.controls.name.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        El nombre es obligatorio (máximo 120 caracteres).
+      </p-message>
+    }
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="recycler-document" class="mb-1 block text-sm font-medium text-slate-700">
+        Documento / NIT <span class="text-red-500">*</span>
+      </label>
+      <input id="recycler-document" pInputText formControlName="documentNumber" placeholder="900123456-7" class="w-full" />
+      @if (form.controls.documentNumber.touched && form.controls.documentNumber.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          De 5 a 15 dígitos, con dígito de verificación opcional (-7).
+        </p-message>
+      }
+    </div>
+
+    <div>
+      <label for="recycler-type" class="mb-1 block text-sm font-medium text-slate-700">
+        Tipo <span class="text-red-500">*</span>
+      </label>
+      <p-select inputId="recycler-type" formControlName="recyclerType" [options]="typeOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+    </div>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="recycler-phone" class="mb-1 block text-sm font-medium text-slate-700">
+        Teléfono <span class="text-red-500">*</span>
+      </label>
+      <input id="recycler-phone" pInputText formControlName="phone" placeholder="3001234567" autocomplete="tel" class="w-full" />
+      @if (form.controls.phone.touched && form.controls.phone.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          De 7 a 15 dígitos, con + opcional.
+        </p-message>
+      }
+    </div>
+
+    <div>
+      <label for="recycler-email" class="mb-1 block text-sm font-medium text-slate-700">Email</label>
+      <input id="recycler-email" type="email" pInputText formControlName="email" placeholder="reciclador@correo.co" autocomplete="email" class="w-full" />
+      @if (form.controls.email.touched && form.controls.email.invalid) {
+        <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+          Formato de email inválido.
+        </p-message>
+      }
+    </div>
+  </div>
+
+  <div>
+    <label for="recycler-address" class="mb-1 block text-sm font-medium text-slate-700">Dirección</label>
+    <textarea id="recycler-address" pTextarea formControlName="address" rows="2" placeholder="Barrio Los Olivos, Riohacha" class="w-full"></textarea>
+  </div>
+
+  <div>
+    <label for="recycler-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
+    <p-select inputId="recycler-status" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" [fluid]="true" />
+    @if (recycler()) {
+      <p class="mt-1 text-xs text-slate-500">El estado de un reciclador existente solo cambia con la baja lógica.</p>
+    }
+  </div>
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Guardar</span>
+    </button>
+  </div>
+</form>

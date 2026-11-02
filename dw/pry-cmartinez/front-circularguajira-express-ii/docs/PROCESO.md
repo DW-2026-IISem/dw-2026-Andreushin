@@ -669,3 +669,125 @@ git add angular.json vitest-base.config.ts src/environments src/app/app.config.t
 git commit -m "FRONT-ISS-02: Núcleo: environment, modelos, servicios y layout"
 git push origin main
 ```
+
+Commit: [`722a9ec`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/722a9ec543b8b8b1cbc6d27ef7a39201e67ba69d)
+
+### ISS-03 — CRUD de recicladores con Signals
+
+Primer CRUD completo contra `/api/recyclers` (equivale a «clientes» de la guía): listar, crear, editar, baja lógica y baja física. `RecyclerForm` recibe `recycler` y `resetKey` con `input()` y devuelve el resultado con `output()` (`saved`, `cancelled`); no llama a la API. `RecyclerList` guarda todo el estado en signals, filtra con `computed` y decide entre `POST` y `PATCH`. El formulario replica las reglas del backend: documento `^\d{5,15}(-\d)?$`, teléfono `^\+?\d{7,15}$`, tipo `independent`/`organization`.
+
+Fase I: el backend ya exige JWT (no tiene `AUTH_ENABLED`), así que la carga contra él muestra el 401 real en `p-message`. El flujo de escritura se comprobó contra un stub temporal del contrato de `/api/recyclers` en el puerto 4000 (fuera del repositorio), sembrado con los 10 recicladores activos del backend; el `environment` no se tocó.
+
+Criterios de aceptación (ISS-03)
+
+- [x] `recycler-list` y `recycler-form` existen y son standalone (`imports: [...]`, sin `NgModule`)
+- [x] `filterRows` es una función pura y probada
+- [x] El formulario no llama a la API: entra por `input()` y sale por `output<RecyclerPayload>()` / `output<void>()`
+- [x] La lista usa `computed`, no tiene filtrado imperativo y la tabla usa `#caption/#header/#body/#emptymessage` de PrimeNG 22 (sin `pTemplate`)
+- [x] La ruta `recyclers` es hija de `Shell`, `/` redirige a ella, el menú apunta a `/recyclers` y los CSS no tienen reglas
+- [x] `GET /api/recyclers` pinta la tabla con los recicladores activos del seeder
+- [x] «Nuevo reciclador» abre el diálogo, valida y crea (`POST`)
+- [x] Editar abre el mismo formulario con los datos cargados y hace `PATCH` sin `status`
+- [x] El buscador filtra sin recargar y sin llamar al backend
+- [x] La baja lógica y la física desaparecen de la tabla
+- [x] Un fallo de carga (`GET`) se muestra en `p-message` con la tabla vacía
+- [x] Un fallo de operación (guardar) se muestra en un toast y el diálogo sigue abierto
+- [x] La consola no muestra errores de código
+- [x] `ng build` termina con código 0 y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/recyclers/recycler-list --skip-tests --defaults
+ng generate component features/recyclers/recycler-form --skip-tests --defaults
+# core/utils/filter-rows.ts (+ spec), recycler-form.ts/html/spec, recycler-list.ts/html/spec,
+# ruta `recyclers` hija de Shell y redirección '' → 'recyclers'
+# vitest-base.config.mts: 1 worker y testTimeout 60 s (la máquina de 4 GB pagina con 2 workers)
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+grep -n "export function filterRows" src/app/core/utils/filter-rows.ts
+grep -n "output<RecyclerPayload>\|output<void>" src/app/features/recyclers/recycler-form/recycler-form.ts
+grep -n "computed(" src/app/features/recyclers/recycler-list/recycler-list.ts
+grep -n "applyFilter" src/app/features/recyclers/recycler-list/recycler-list.ts || echo "sin applyFilter: correcto"
+grep -n "#caption\|#header\|#body\|#emptymessage" src/app/features/recyclers/recycler-list/recycler-list.html
+grep -n "pTemplate=" src/app/features/recyclers/recycler-list/recycler-list.html || echo "sin pTemplate: correcto"
+grep -n "recyclers" src/app/app.routes.ts src/app/layout/shell/shell.ts
+curl -s -i http://localhost:4000/api/recyclers | sed -n '1p;$p'
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** la tabla lista los activos, el diálogo crea y edita con el mismo formulario, el buscador filtra en memoria, las bajas recargan la tabla y cada fallo tiene su canal (`p-message` para la carga, toast para la operación).
+
+#### Evidencias
+
+**Ev1 — Componentes:** `recycler-list` y `recycler-form` con sus cuatro archivos; ambos declaran `imports: [...]` y no hay `NgModule`.
+
+![Ev1 ISS-03](images/Ev1-ISS-03.png)
+
+**Ev2 — filterRows:** función pura exportada; sus 5 pruebas (copia sin término, mayúsculas, números, `null`, sin coincidencias) pasan.
+
+![Ev2 ISS-03](images/Ev2-ISS-03.png)
+
+**Ev3 — Formulario:** `recycler`, `resetKey` y `saving` son `input()`; `saved` y `cancelled` son `output()`; no usa `RecyclerApi` ni `HttpClient`; sus 7 pruebas pasan.
+
+![Ev3 ISS-03](images/Ev3-ISS-03.png)
+
+**Ev4 — Lista y tabla:** `visibleRows` y `title` son `computed`, no hay `applyFilter`, y la tabla usa `#caption`, `#header`, `#body` y `#emptymessage` sin `pTemplate`.
+
+![Ev4 ISS-03](images/Ev4-ISS-03.png)
+
+**Ev5 — Ruta y menú:** `'' → recyclers`, ruta `recyclers` con `loadComponent` y menú `/recyclers`; los CSS de `recyclers/` no tienen reglas.
+
+![Ev5 ISS-03](images/Ev5-ISS-03.png)
+
+**Ev6 — Tabla:** `/recyclers` con los 10 recicladores activos del seeder, tipo, contacto, dirección, estado Activo y el contador «10 activos».
+
+![Ev6 ISS-03](images/Ev6-ISS-03.png)
+
+**Ev7 — Crear:** «Guardar» vacío muestra los tres mensajes de validación sin petición; con datos válidos hace `POST /api/recyclers` con `status: "active"`, responde 201, cierra el diálogo y el contador pasa a «11 activos».
+
+![Ev7 ISS-03](images/Ev7-ISS-03.png)
+
+**Ev8 — Editar:** el formulario abre con los datos de Teodoro Valadez y el estado deshabilitado (`aria-disabled="true"`); «Guardar» hace `PATCH /api/recyclers/4` sin `status` y la fila muestra el teléfono nuevo.
+
+![Ev8 ISS-03](images/Ev8-ISS-03.png)
+
+**Ev9 — Buscador:** «maicao» deja «2 de 11 coinciden» y al borrarlo vuelven las filas; ninguna petición nueva.
+
+![Ev9 ISS-03](images/Ev9-ISS-03.png)
+
+**Ev10 — Bajas:** «Desactivar» hace `PATCH /api/recyclers/10/deactivate` (11 → 10 activos) y «Eliminar» hace `DELETE /api/recyclers/6` (10 → 9).
+
+![Ev10 ISS-03](images/Ev10-ISS-03.png)
+
+**Ev11 — Error de carga:** contra el backend real, `GET /api/recyclers` responde 401 y la pantalla muestra «Falta el token de acceso (Authorization: Bearer <token>)» en `p-message`, tabla vacía y «Sin recicladores activos».
+
+![Ev11 ISS-03](images/Ev11-ISS-03.png)
+
+**Ev12 — Error de operación:** un documento repetido responde 409; el toast muestra «No se pudo guardar · Ya existe un registro con esos datos únicos» y el diálogo sigue abierto.
+
+![Ev12 ISS-03](images/Ev12-ISS-03.png)
+
+**Ev13 — Consola:** abrir y cancelar los diálogos de alta y edición y buscar termina con 0 errores (solo el aviso de licencia de PrimeUI).
+
+![Ev13 ISS-03](images/Ev13-ISS-03.png)
+
+**Ev14 — Build y pruebas:** `ng build` código 0 (Initial total 549.79 kB; `recycler-list` 570.34 kB diferido); las 10 pruebas de la lista pasan y la suite queda en 13 archivos y 55 pruebas.
+
+![Ev14 ISS-03](images/Ev14-ISS-03.png)
+
+### Commit
+
+```bash
+git add angular.json vitest-base.config.ts vitest-base.config.mts src/app/app.routes.ts \
+  src/app/core/utils/filter-rows.ts src/app/core/utils/filter-rows.spec.ts \
+  src/app/features/recyclers/recycler-list src/app/features/recyclers/recycler-form \
+  docs/PROCESO.md docs/images/Ev*-ISS-03.png
+git commit -m "FRONT-ISS-03: CRUD de recicladores con Signals"
+git push origin main
+```
