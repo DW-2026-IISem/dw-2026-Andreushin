@@ -412,3 +412,120 @@ git add src/app/app.ts src/app/app.html src/app/app.spec.ts src/app/layout \
 git commit -m "FRONT-ISS-01A: Esqueleto Header / Aside / contenido / Footer"
 git push origin main
 ```
+
+Commit: [`48a2c32`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/48a2c326281f845c42fce9bf0c118d638c82b080)
+
+### ISS-01B — Menú PrimeNG y primera interacción
+
+Pasar de una maqueta a una pantalla que responde: PanelMenu en el Aside, botón de menú en el Header, Drawer en pantalla pequeña y selección que cambia el contenido local. Sin rutas de negocio y sin API. La pantalla es `features/prototype` (equivale a `construir` de la guía) y las cinco opciones son las del dominio: Inicio, Recicladores, Materiales y tarifas, Rutas de recolección y Pesajes y liquidaciones.
+
+`input()` es el dato que el padre entrega al hijo (`items`, `appName`); `output()` es el aviso que el hijo devuelve al padre (`menuRequested`, `navigated`); `signal()` es el estado propio de la pantalla (`title`, `mobileOpen`, `sidebarCollapsed`). `[(visible)]` en el Drawer es ida y vuelta en un solo atributo.
+
+Criterios de aceptación (ISS-01B)
+
+- [x] Explica la diferencia entre `input()` (dato del padre al hijo), `output()` (aviso del hijo al padre) y `signal()` (estado propio)
+- [x] `aside.ts` declara `items = input<MenuItem[]>([])` y `aside.html` lo pinta con `<p-panelmenu [model]="items()" [multiple]="true" />`
+- [x] `aside.css` sigue sin reglas: la apariencia es de Aura y Tailwind
+- [x] El Header emite `menuRequested` y su botón está siempre visible: por debajo de `lg` abre el Drawer, desde `lg` alterna el Aside fijo
+- [x] Existe `src/app/features/prototype/` con `prototype.ts`, `prototype.html`, `prototype.css` y `prototype.spec.ts`
+- [x] `mobileOpen`, `sidebarCollapsed` y `title` son `signal`; elegir una opción cambia el título y cierra el Drawer
+- [x] El layout se compone una sola vez en `prototype.html` y se reutiliza en el Drawer
+- [x] `app.ts` importa `RouterOutlet` y `app.html` contiene solo `<router-outlet />`
+- [x] `app.routes.ts` declara `prototype` con `loadComponent` y redirige `''` y `**` a `prototype`
+- [x] A 1280 px se ve el Aside con las cinco opciones; a 390 px se oculta y el botón abre el Drawer
+- [x] A 1280 px el botón de menú se ve y oculta/muestra el Aside sin abrir el Drawer
+- [x] La URL no cambia al elegir una opción y Network no registra llamadas `/api`
+- [x] `ng build` termina con código 0, `prototype` se empaqueta como chunk diferido y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/prototype --skip-tests --defaults
+# core/utils/media-query.ts (watchMediaQuery), aside.ts/html (input/output + p-panelmenu),
+# header.ts/html (menuRequested), prototype.ts/html/css/spec (estado y Drawer),
+# app.ts/html (RouterOutlet), app.routes.ts (loadComponent) y public/brand/circularguajira-mark.svg
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+grep -n "input<MenuItem\[\]>" src/app/layout/aside/aside.ts
+grep -n "menuRequested" src/app/layout/header/header.ts
+grep -rn "lg:hidden" src/app/layout/header/header.html || echo "sin lg:hidden: correcto"
+grep -n "signal(" src/app/features/prototype/prototype.ts
+grep -n "app-header\|app-aside\|app-footer\|p-drawer" src/app/features/prototype/prototype.html
+grep -n "RouterOutlet" src/app/app.ts
+grep -n "loadComponent" src/app/app.routes.ts
+for f in src/app/layout/*/*.css src/app/features/prototype/*.css; do
+  grep -q '[{}]' "$f" && echo "REGLAS EN $f"
+done
+npm test -- --watch=false
+```
+
+**Verificación:** el Aside pinta el menú que recibe, el Header avisa sin conocer el estado ajeno, el Drawer funciona en móvil y App quedó como punto de entrada con `router-outlet`. No hay llamadas a la API y los CSS de `layout/` y `prototype/` siguen vacíos.
+
+#### Evidencias
+
+**Ev1 — input, output y signal:** Aside y Header solo declaran `input()` y `output<void>()`; `prototype.ts` tiene los tres `signal`; en `prototype.html` viajan `[items]` hacia abajo y vuelven `(menuRequested)` y `(navigated)`, más `[(visible)]` en el Drawer.
+
+![Ev1 ISS-01B](images/Ev1-ISS-01B.png)
+
+**Ev2 — Aside:** `items = input<MenuItem[]>([])` y `<p-panelmenu [model]="items()" [multiple]="true" />`.
+
+![Ev2 ISS-01B](images/Ev2-ISS-01B.png)
+
+**Ev3 — CSS sin reglas:** el ciclo sobre los `.css` de `layout/` y `prototype/` no imprime ningún «REGLAS EN».
+
+![Ev3 ISS-01B](images/Ev3-ISS-01B.png)
+
+**Ev4 — Botón de menú:** `menuRequested = output<void>()` y el botón lo emite; no hay `lg:hidden`; `onMenuToggle` alterna `sidebarCollapsed` en escritorio y abre `mobileOpen` en móvil.
+
+![Ev4 ISS-01B](images/Ev4-ISS-01B.png)
+
+**Ev5 — features/prototype:** `prototype.ts`, `prototype.html`, `prototype.css` y `prototype.spec.ts`.
+
+![Ev5 ISS-01B](images/Ev5-ISS-01B.png)
+
+**Ev6 — Estado:** `sidebarCollapsed`, `mobileOpen` y `title` son `signal`; los cinco `command` llaman a `select`, que hace `title.set(title)` y `mobileOpen.set(false)`.
+
+![Ev6 ISS-01B](images/Ev6-ISS-01B.png)
+
+**Ev7 — Layout una vez:** `prototype.html` compone `app-header`, `app-aside` y `app-footer`, y el `p-drawer` reutiliza el mismo `<app-aside [items]="items">`.
+
+![Ev7 ISS-01B](images/Ev7-ISS-01B.png)
+
+**Ev8 — Punto de entrada:** `app.ts` importa `RouterOutlet` y `app.html` solo contiene `<router-outlet />`.
+
+![Ev8 ISS-01B](images/Ev8-ISS-01B.png)
+
+**Ev9 — Rutas:** `prototype` con `loadComponent`, `''` con `pathMatch: 'full'` y `**` redirigen a `prototype`.
+
+![Ev9 ISS-01B](images/Ev9-ISS-01B.png)
+
+**Ev10 — Escritorio y móvil:** a 1280 px el Aside fijo muestra logo y las cinco opciones; a 390 px el Aside no se ve y el botón abre el Drawer con las mismas cinco opciones.
+
+![Ev10 ISS-01B](images/Ev10-ISS-01B.png)
+
+**Ev11 — Botón en escritorio:** a 1280 px el Aside mide 288 px; el primer clic lo quita del DOM (`sin aside`) sin abrir Drawer y el segundo lo devuelve.
+
+![Ev11 ISS-01B](images/Ev11-ISS-01B.png)
+
+**Ev12 — Móvil, URL y Network:** a 390 px el Aside no se ve, el botón abre el Drawer, «Recicladores» cambia el `<h1>` y cierra el Drawer; la URL sigue en `/prototype` y no hay respuestas `/api`.
+
+![Ev12 ISS-01B](images/Ev12-ISS-01B.png)
+
+**Ev13 — Build y pruebas:** `ng build` termina con código 0, `main` 117.15 kB y `prototype` como chunk diferido de 226.62 kB; `ng test` aprueba 13 pruebas en 3 archivos.
+
+![Ev13 ISS-01B](images/Ev13-ISS-01B.png)
+
+### Commit
+
+```bash
+git add src/app/app.ts src/app/app.html src/app/app.routes.ts src/app/app.spec.ts \
+  src/app/layout/aside src/app/layout/header src/app/features/prototype src/app/core \
+  public/brand docs/PROCESO.md docs/images/Ev*-ISS-01B.png
+git commit -m "FRONT-ISS-01B: Menú PrimeNG y primera interacción"
+git push origin main
+```
