@@ -1766,3 +1766,5 @@ git add src package.json docs/PROCESO.md docs/images/Ev*-ISS-11.png
 git commit -m "FRONT-ISS-11: Build, calidad y cierre del proyecto"
 git push origin main
 ```
+
+Commit: [`725aa8f`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/725aa8f2316266feb0900297014a7066825dbceb)
