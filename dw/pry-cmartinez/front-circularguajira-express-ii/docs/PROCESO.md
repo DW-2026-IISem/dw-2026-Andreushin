@@ -529,3 +529,143 @@ git add src/app/app.ts src/app/app.html src/app/app.routes.ts src/app/app.spec.t
 git commit -m "FRONT-ISS-01B: Menú PrimeNG y primera interacción"
 git push origin main
 ```
+
+Commit: [`1bcce95`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/1bcce9522bb2bd9160264aa18351217bebb981f6)
+
+### ISS-02 — Núcleo: environment, modelos, servicios y layout
+
+Dejar lista la capa de infraestructura antes de las pantallas de negocio: `environment` con la URL del backend, interfaces que reflejan el contrato real de Express, servicios HTTP que devuelven `Observable<T>` ya desenvuelto, utilidades transversales, componentes de UI reutilizables y el layout `Shell`. Todavía no hay ninguna petición HTTP real.
+
+El contrato se tomó del backend, no de la guía de StoreLab: campos en camelCase, listas envueltas en plural (`{ recyclers }`, `{ points }`, `{ rates }`, `{ assignments }`, `{ grants }`), un solo elemento sin envoltura y errores `{ message }`. Cadena: plantilla → componente → `RecyclerApi` → `GET /api/recyclers` → Express responde `{ recyclers: [...] }` → `pipe(map)` del servicio devuelve `Recycler[]` → el componente lo guarda en un `signal`. La respuesta se desenvuelve en el servicio.
+
+Criterios de aceptación (ISS-02)
+
+- [x] `environment.apiUrl === 'http://localhost:4000/api'`, sin slash final
+- [x] `environment.ts` y `environment.development.ts` existen y `angular.json` aplica `fileReplacements`
+- [x] Los 15 modelos compilan y coinciden campo a campo con los modelos del backend
+- [x] `Money` acepta `number | string` y `toNumber()` normaliza DECIMAL
+- [x] `status` no viaja en los payload de edición: solo el backend lo cambia con `/deactivate`
+- [x] Cada servicio usa `this.base` construido desde `environment.apiUrl`
+- [x] `list()` desenvuelve la colección (`{ recyclers }` → `Recycler[]`) y `get()`/`create()` devuelven la entidad tal como llega
+- [x] Las envolturas pivote son `{ assignments }` y `{ grants }`, no `{ role_users }`
+- [x] `toApiMessage` distingue `status === 0` (backend caído) de un 403
+- [x] `NotificationService` traduce a `MessageService` con duraciones por severidad
+- [x] `PageHeader`, `EmptyState` y `StatusTag` compilan como standalone y no añaden CSS
+- [x] `StatusTag` se repinta al cambiar el input gracias a `computed`
+- [x] `Shell` compone Header/aside/router-outlet/Footer una sola vez; el botón del Header alterna el Aside en escritorio y abre el Drawer en móvil
+- [x] `app.routes.ts` carga `Shell` con `loadComponent` y conserva el prototipo
+- [x] `provideHttpClient()` está registrado y no hay interceptores de sesión
+- [x] `ng build` termina con código 0 y `shell` aparece como chunk diferido
+- [x] Las pruebas pasan: 10 archivos, 33 casos
+
+### Pasos
+
+```bash
+ng generate component shared/ui/page-header --skip-tests --defaults
+ng generate component shared/ui/empty-state --skip-tests --defaults
+ng generate component shared/ui/status-tag --skip-tests --defaults
+ng generate component layout/shell --skip-tests --defaults
+# environment*.ts (production, appName, apiUrl, requireAuth, primeUiLicense)
+# core/models/*.model.ts (15), features/*/*-api.ts (12), core/utils/api-error.ts,
+# core/services/notification.ts, shared/ui, layout/shell, app.routes.ts y provideHttpClient()
+# vitest-base.config.ts (maxWorkers: 2) enlazado en angular.json → test → runnerConfig
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+grep -n "apiUrl" src/environments/environment.ts src/environments/environment.development.ts
+ls src/app/core/models/*.model.ts
+grep -rn "\.pipe(map" src/app/features src/app/core | wc -l
+grep -n "provideHttpClient" src/app/app.config.ts
+grep -rn "withInterceptors" src/app/app.config.ts || echo "sin interceptores: correcto"
+grep -n "assignments\|grants" src/app/features/admin/*/*-api.ts
+for f in src/app/shared/ui/*/*.css src/app/layout/shell/shell.css; do
+  grep -q '[{}]' "$f" && echo "REGLAS EN $f"
+done
+npm test -- --watch=false
+```
+
+**Verificación:** una URL de backend, 15 modelos que reflejan las tablas, 12 servicios que desenvuelven la respuesta de Express, dos utilidades transversales, tres componentes de UI y un `Shell` que conserva el layout al navegar; sin llamadas `/api` todavía.
+
+#### Evidencias
+
+**Ev1 — apiUrl:** ambos environments declaran `apiUrl: 'http://localhost:4000/api'`, sin slash final.
+
+![Ev1 ISS-02](images/Ev1-ISS-02.png)
+
+**Ev2 — Environments:** existen `environment.ts` y `environment.development.ts`; `fileReplacements` los intercambia en desarrollo.
+
+![Ev2 ISS-02](images/Ev2-ISS-02.png)
+
+**Ev3 — Modelos:** 15 archivos en `core/models`, `tsc --noEmit` los compila y los campos de `Recycler` coinciden uno a uno con el modelo del backend (los `readonly` finales son las marcas de tiempo de Sequelize).
+
+![Ev3 ISS-02](images/Ev3-ISS-02.png)
+
+**Ev4 — Money:** `Money = number | string` y `toNumber()` normaliza; 11 campos numéricos usan `Money`.
+
+![Ev4 ISS-02](images/Ev4-ISS-02.png)
+
+**Ev5 — Payload de edición:** los `*UpdatePayload` son `Omit<..., 'status'>` o interfaces sin `status`; `UserUpdatePayload` no lo tiene.
+
+![Ev5 ISS-02](images/Ev5-ISS-02.png)
+
+**Ev6 — base:** los 12 servicios construyen `base` desde `environment.apiUrl`.
+
+![Ev6 ISS-02](images/Ev6-ISS-02.png)
+
+**Ev7 — Desenvolver:** `list()` hace `pipe(map((response) => response.recyclers))` y los demás métodos devuelven `Observable<Recycler>`; las 4 pruebas de `RecyclerApi` con `HttpTestingController` pasan.
+
+![Ev7 ISS-02](images/Ev7-ISS-02.png)
+
+**Ev8 — Pivotes:** `RoleUserApi` desenvuelve `{ assignments }` y `ResourceRoleApi` `{ grants }` con los filtros `roleId`/`resourceId`; sus 2 pruebas pasan.
+
+![Ev8 ISS-02](images/Ev8-ISS-02.png)
+
+**Ev9 — toApiMessage:** rama `status === 0` y lectura de `body.message`; las 4 pruebas (backend caído, 403, texto plano y error genérico) pasan.
+
+![Ev9 ISS-02](images/Ev9-ISS-02.png)
+
+**Ev10 — Notificaciones:** `success` 3000 ms, `info` 3500, `warn` 4500 y `error` 6000; la prueba lo comprueba sobre `MessageService`.
+
+![Ev10 ISS-02](images/Ev10-ISS-02.png)
+
+**Ev11 — UI compartida:** `app-page-header`, `app-empty-state` y `app-status-tag` con `input()`/`input.required()`; ningún CSS tiene reglas.
+
+![Ev11 ISS-02](images/Ev11-ISS-02.png)
+
+**Ev12 — StatusTag:** `label` y `severity` son `computed`; al pasar el input a `inactive` cambian a Inactivo/danger.
+
+![Ev12 ISS-02](images/Ev12-ISS-02.png)
+
+**Ev13 — Shell:** `shell.html` monta header, aside, `router-outlet`, footer, Drawer, `p-toast` y `p-confirmdialog` una vez; las 5 pruebas cubren composición, hosts, enlaces reales, Drawer en móvil y Aside oculto en escritorio.
+
+![Ev13 ISS-02](images/Ev13-ISS-02.png)
+
+**Ev14 — Rutas:** `prototype` y `Shell` con `loadComponent`; la hija de `Shell` redirige a `/prototype`. En el build servido, `/` termina en `/prototype` sin errores ni respuestas `/api`.
+
+![Ev14 ISS-02](images/Ev14-ISS-02.png)
+
+**Ev15 — HttpClient:** `provideHttpClient()` registrado y sin `withInterceptors`.
+
+![Ev15 ISS-02](images/Ev15-ISS-02.png)
+
+**Ev16 — Build:** código 0, Initial total 517.99 kB; `shell` (96.69 kB) y `prototype` (7.77 kB) como chunks diferidos.
+
+![Ev16 ISS-02](images/Ev16-ISS-02.png)
+
+**Ev17 — Pruebas:** 10 archivos y 33 pruebas aprobadas.
+
+![Ev17 ISS-02](images/Ev17-ISS-02.png)
+
+### Commit
+
+```bash
+git add angular.json vitest-base.config.ts src/environments src/app/app.config.ts src/app/app.routes.ts \
+  src/app/core src/app/features/recyclers src/app/features/materials src/app/features/routes \
+  src/app/features/collections src/app/features/settlements src/app/features/admin \
+  src/app/shared src/app/layout/shell docs/PROCESO.md docs/images/Ev*-ISS-02.png
+git commit -m "FRONT-ISS-02: Núcleo: environment, modelos, servicios y layout"
+git push origin main
+```

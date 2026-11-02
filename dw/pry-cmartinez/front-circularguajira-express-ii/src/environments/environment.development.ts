@@ -1,4 +1,13 @@
+/**
+ * Development environment (`ng serve`, `ng test`).
+ *
+ * Day to day this is the file Angular imports (through `fileReplacements`). Paste here
+ * the same `primeUiLicense` as in `environment.ts`.
+ */
 export const environment = {
-  // Personal PrimeUI Community key (ISS-02 §2.1); empty shows the license notice.
+  production: false,
+  appName: 'CircularGuajira Express II',
+  apiUrl: 'http://localhost:4000/api',
+  requireAuth: true,
   primeUiLicense: '',
 };
