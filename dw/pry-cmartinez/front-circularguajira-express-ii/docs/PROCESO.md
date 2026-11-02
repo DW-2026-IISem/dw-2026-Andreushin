@@ -33,6 +33,9 @@ Criterios de aceptación (ISS-00)
 - [x] DevTools con Console y Network disponibles para revisar cada petición
 - [x] La carpeta del frontend existe y está vacía de código: sin `src/` ni `package.json`; solo `docs/`
 - [x] `curl -i http://localhost:4000/api/recyclers` responde 401 (backend final)
+- [x] `GET /api/session/profile` (JWT) devuelve el usuario con sus `roles`
+- [x] Un usuario sin rol se autentica pero recibe 403 en recursos RBAC
+- [x] En Network la petición lleva `Authorization: Bearer ...`
 
 ### Pasos
 
@@ -64,7 +67,10 @@ TOKEN=$(curl -s -X POST http://localhost:4000/api/session/login \
 curl -s http://localhost:4000/api/session/permissions \
   -H "Authorization: Bearer $TOKEN" | head -c 300
 
-# 4. Permisos de los demás roles
+# 4. Perfil (JWT)
+curl -s http://localhost:4000/api/session/profile -H "Authorization: Bearer $TOKEN"
+
+# 5. Permisos de los demás roles
 for u in logistica bascula planta finanzas; do
   B='{"identifier":"'$u'","password":"'${u^}'2026!"}'
   T=$(curl -s -X POST http://localhost:4000/api/session/login \
@@ -75,7 +81,7 @@ for u in logistica bascula planta finanzas; do
 done
 ```
 
-**Verificación:** versiones correctas, backend protegido en el puerto 4000 (401 sin token), login y permisos efectivos de los cinco roles.
+**Verificación:** versiones correctas, backend protegido en el puerto 4000 (401 sin token), login, perfil y permisos efectivos de los cinco roles; un usuario sin rol recibe 403.
 
 #### Evidencias
 
@@ -115,6 +121,18 @@ done
 
 ![Ev9 ISS-00](images/Ev9-ISS-00.png)
 
+**Ev10 — Perfil:** con el token del admin, `GET /api/session/profile` devuelve `id`, `username`, `email`, `status` y `roles: ["ADMIN"]`.
+
+![Ev10 ISS-00](images/Ev10-ISS-00.png)
+
+**Ev11 — Usuario sin rol:** `homero.7lhgr` (usuario aleatorio del seeder, `Usuario2026!`) inicia sesión, pero tiene `roles: []`, `permissions: []` y `GET /api/recyclers` responde 403.
+
+![Ev11 ISS-00](images/Ev11-ISS-00.png)
+
+**Ev12 — Authorization en Network:** la petición `permissions` (200) muestra en Request Headers `Authorization: Bearer eyJ...`.
+
+![Ev12 ISS-00](images/Ev12-ISS-00.png)
+
 ### Commit
 
 ```bash
@@ -135,5 +153,15 @@ git add docs/PROCESO.md docs/images/Ev1-ISS-00.png docs/images/Ev2-ISS-00.png do
   docs/images/Ev4-ISS-00.png docs/images/Ev5-ISS-00.png docs/images/Ev6-ISS-00.png docs/images/Ev7-ISS-00.png \
   docs/images/Ev8-ISS-00.png docs/images/Ev9-ISS-00.png
 git commit -m "FRONT-ISS-00: Criterios consolidados de requisitos previos"
+git push origin main
+```
+
+Commit: [`2adf274`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/2adf274138e969c8b2b23f868176a7527bd22b02)
+
+Sub-ítems de perfil, usuario sin rol y Authorization:
+
+```bash
+git add docs/PROCESO.md docs/images/Ev10-ISS-00.png docs/images/Ev11-ISS-00.png docs/images/Ev12-ISS-00.png
+git commit -m "FRONT-ISS-00: Perfil, usuario sin rol y Authorization en Network"
 git push origin main
 ```
