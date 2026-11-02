@@ -29,6 +29,19 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/materials/material-list/material-list').then((m) => m.MaterialList),
       },
+      {
+        path: 'routes',
+        title: 'Rutas · CircularGuajira',
+        loadComponent: () => import('./features/routes/route-list/route-list').then((m) => m.RouteList),
+      },
+      {
+        path: 'collection-points',
+        title: 'Puntos de recolección · CircularGuajira',
+        loadComponent: () =>
+          import('./features/routes/collection-point-list/collection-point-list').then(
+            (m) => m.CollectionPointList,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: 'prototype' },

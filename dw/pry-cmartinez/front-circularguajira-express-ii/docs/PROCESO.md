@@ -893,3 +893,130 @@ git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell
 git commit -m "FRONT-ISS-04: CRUD de materiales"
 git push origin main
 ```
+
+Commit: [`9b80bc3`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/9b80bc3f52a48a0a811e64ccdf1022f2cf4169ce)
+
+### ISS-05 — CRUD de rutas, puntos de recolección y su relación
+
+Primera relación muchos-a-uno: cada punto de recolección pertenece a una ruta (`routeId`), igual que el producto de la guía pertenece a un tipo. Para tener rutas que elegir, este ISS incluye su CRUD (nombre único de 80, municipio de 60, descripción de 255), como el ISS-07 del backend («rutas y puntos de recolección»).
+
+`CollectionPointList` carga puntos y rutas activas en paralelo con `forkJoin`; la tabla solo trae `routeId`, así que `routeName()` construye un `Map` una vez en un `computed` y resuelve cada fila. `routesWithoutPoints()` (equivalente a `lowStockCount()`) cuenta las rutas activas sin puntos, y un punto cuya ruta ya no está activa se marca en rojo («Ruta #5 (inactiva)»). El `p-select` del formulario usa `optionValue="id"`: guarda el número de la ruta, que es lo que espera `routeId`, no el objeto completo. El backend valida que la ruta esté activa (400), que el orden de visita sea único dentro de la ruta (409) y que una ruta con puntos no se elimine (409). No hay precio en este dominio, así que el formato de moneda llega con los pesajes.
+
+Además, el combobox de `p-select` es un `span` que `<label for>` no etiqueta: los `p-select` de todos los formularios reciben `ariaLabelledBy` con el `id` de su etiqueta.
+
+Criterios de aceptación (ISS-05)
+
+- [x] Existen los servicios y las pantallas de rutas y puntos; la lista de puntos usa `forkJoin`, un `Map` en `computed` y `routesWithoutPoints`
+- [x] El CRUD de rutas valida nombre y municipio y crea con `POST`
+- [x] El listado de puntos muestra la ruta como texto, el orden de visita, el nombre, la dirección y el estado
+- [x] El formulario solo recibe las rutas activas y su `p-select` usa `optionValue="id"` con etiqueta accesible
+- [x] Crear un punto bloquea el envío sin ruta y envía `routeId` numérico; el contador de rutas sin puntos se actualiza
+- [x] Crear un punto en una ruta que se desactivó falla (400) y el error se muestra al usuario
+- [x] Un orden de visita repetido en la misma ruta se rechaza (409) en un toast
+- [x] Editar conserva la ruta seleccionada (`routeId` numérico) y hace `PATCH` sin `status`
+- [x] Tras desactivar una ruta, sus puntos la muestran como inactiva y el formulario ya no la ofrece
+- [x] La ruta inactiva se ve en rojo en el listado
+- [x] Una ruta con puntos no se puede eliminar (409) y el motivo se muestra
+- [x] El buscador de puntos encuentra por nombre de ruta, nombre y dirección
+- [x] Un fallo de carga se muestra en `p-message`
+- [x] Las rutas `/routes` y `/collection-points` están en `Shell` y el menú, y los CSS no tienen reglas
+- [x] `ng build` termina con código 0 y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/routes/route-list --skip-tests --defaults
+ng generate component features/routes/route-form --skip-tests --defaults
+ng generate component features/routes/collection-point-list --skip-tests --defaults
+ng generate component features/routes/collection-point-form --skip-tests --defaults
+# route-form/list, collection-point-form/list con sus pruebas, route-apis.spec.ts,
+# rutas `routes` y `collection-points` hijas de Shell, menú «Rutas» y «Puntos de recolección»,
+# ariaLabelledBy en los p-select de todos los formularios
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -i http://localhost:4000/api/collection-points | sed -n '1p;$p'
+grep -n "forkJoin\|new Map\|routesWithoutPoints = computed" src/app/features/routes/collection-point-list/collection-point-list.ts
+grep -n 'optionValue="id"\|ariaLabelledBy="point-route' src/app/features/routes/collection-point-form/collection-point-form.html
+grep -n "routes'\|collection-points'" src/app/app.routes.ts src/app/layout/shell/shell.ts
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** el punto se guarda con el id numérico de una ruta activa, la tabla muestra el nombre de la ruta resuelto con el `Map` y cada regla de la relación que rechaza el backend (ruta inactiva, orden repetido, ruta con puntos) llega al usuario.
+
+#### Evidencias
+
+**Ev1 — Estructura:** `features/routes/` tiene los dos servicios, su prueba y las cuatro pantallas; la lista de puntos usa `forkJoin`, `routeName = computed(...)` con `new Map(...)` y `routesWithoutPoints = computed(...)`.
+
+![Ev1 ISS-05](images/Ev1-ISS-05.png)
+
+**Ev2 — CRUD de rutas:** «Guardar» vacío muestra los mensajes de nombre y municipio; «Riohacha Norte» hace `POST /api/routes` (201) y pasan a «7 activas».
+
+![Ev2 ISS-05](images/Ev2-ISS-05.png)
+
+**Ev3 — Listado de puntos:** los 24 puntos del seeder con la ruta como texto (Riohacha Centro, Riohacha Sur, Maicao Comercial…), orden, nombre, dirección, estado y acciones; «0 rutas sin puntos».
+
+![Ev3 ISS-05](images/Ev3-ISS-05.png)
+
+**Ev4 — Select de rutas:** `[options]="routes()"`, `optionLabel="name"`, `optionValue="id"` y `ariaLabelledBy`; el control nace como `number | null` y se emite `routeId: value.routeId`; la tabla usa `routeName()` y `routeIsActive()`.
+
+![Ev4 ISS-05](images/Ev4-ISS-05.png)
+
+**Ev5 — Crear punto:** con la ruta nueva aparece «1 rutas sin puntos»; «Guardar» sin datos muestra «Elige una ruta activa»; al elegir «Riohacha Norte» se envía `"routeId":7` (número), responde 201 y el contador pasa a «0 rutas sin puntos».
+
+![Ev5 ISS-05](images/Ev5-ISS-05.png)
+
+**Ev6 — Ruta inactiva al guardar:** con el formulario abierto en «Manaure Salinas» se desactiva la ruta en el backend; «Guardar» recibe 400 y el toast muestra «No se pudo guardar · La ruta 5 debe estar activa» con el diálogo abierto.
+
+![Ev6 ISS-05](images/Ev6-ISS-05.png)
+
+**Ev7 — Orden repetido:** otro punto en «Riohacha Centro» con orden 1 responde 409: «La ruta 1 ya tiene un punto en el orden de visita 1 (Supermercado Razo Quintero)».
+
+![Ev7 ISS-05](images/Ev7-ISS-05.png)
+
+**Ev8 — Editar:** el formulario abre con «Maicao Comercial», orden 1 y estado bloqueado; «Guardar» hace `PATCH /api/collection-points/9` con `"routeId":3` y sin `status`.
+
+![Ev8 ISS-05](images/Ev8-ISS-05.png)
+
+**Ev9 — Tras desactivar la ruta:** los 4 puntos de Manaure muestran «Ruta #5 (inactiva)» y el `p-select` solo ofrece las 6 rutas activas (sin Manaure Salinas).
+
+![Ev9 ISS-05](images/Ev9-ISS-05.png)
+
+**Ev10 — Ruta inactiva en rojo:** la etiqueta de ruta de esos puntos cambia a `danger`.
+
+![Ev10 ISS-05](images/Ev10-ISS-05.png)
+
+**Ev11 — Ruta con puntos:** eliminar «Riohacha Centro» responde 409 y el toast dice «La ruta tiene 4 punto(s) de recolección; elimínalos o desactiva la ruta».
+
+![Ev11 ISS-05](images/Ev11-ISS-05.png)
+
+**Ev12 — Buscador:** «maicao comercial» encuentra por nombre de ruta los 4 puntos de esa ruta y «supermercado» encuentra por nombre 3 puntos; sin peticiones nuevas.
+
+![Ev12 ISS-05](images/Ev12-ISS-05.png)
+
+**Ev13 — Error de carga:** contra el backend real `/collection-points` recibe 401, `forkJoin` cancela la petición de rutas y la pantalla muestra «Falta el token de acceso…» y «Sin puntos activos».
+
+![Ev13 ISS-05](images/Ev13-ISS-05.png)
+
+**Ev14 — Rutas y menú:** `routes` y `collection-points` en `app.routes.ts` y en el menú del Shell; los CSS de `routes/` no tienen reglas.
+
+![Ev14 ISS-05](images/Ev14-ISS-05.png)
+
+**Ev15 — Build y pruebas:** `ng build` código 0 (Initial total 550.37 kB; `collection-point-list` 14.49 kB y `route-list` 12.11 kB diferidos); 24 pruebas de rutas y puntos y la suite en 21 archivos y 104 pruebas.
+
+![Ev15 ISS-05](images/Ev15-ISS-05.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell/shell.spec.ts \
+  src/app/features/routes src/app/features/recyclers/recycler-form/recycler-form.html \
+  src/app/features/materials/material-form/material-form.html \
+  docs/PROCESO.md docs/images/Ev*-ISS-05.png
+git commit -m "FRONT-ISS-05: CRUD de rutas, puntos de recolección y su relación"
+git push origin main
+```

@@ -58,6 +58,8 @@ describe('Shell', () => {
 
     expect(hrefs).toContain('/recyclers');
     expect(hrefs).toContain('/materials');
+    expect(hrefs).toContain('/routes');
+    expect(hrefs).toContain('/collection-points');
     expect(hrefs).toContain('/prototype');
   });
 

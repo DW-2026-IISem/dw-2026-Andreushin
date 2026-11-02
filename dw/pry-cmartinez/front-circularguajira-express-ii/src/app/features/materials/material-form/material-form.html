@@ -22,8 +22,8 @@
   </div>
 
   <div>
-    <label for="material-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
-    <p-select [fluid]="true" inputId="material-status" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" />
+    <label id="material-status-label" for="material-status" class="mb-1 block text-sm font-medium text-slate-700">Estado</label>
+    <p-select [fluid]="true" inputId="material-status" ariaLabelledBy="material-status-label" formControlName="status" [options]="statusOptions" optionLabel="label" optionValue="value" />
     @if (material()) {
       <p class="mt-1 text-xs text-slate-500">El estado de un material existente solo cambia con la baja lógica.</p>
     }
