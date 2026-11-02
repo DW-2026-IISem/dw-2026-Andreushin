@@ -1,9 +1,11 @@
 <app-page-header title="Recicladores" subtitle="El backend solo lista los recicladores activos; la baja lógica cambia su estado.">
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nuevo reciclador</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/recyclers'">
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nuevo reciclador</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -71,15 +73,21 @@
         <td><app-status-tag [status]="recycler.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/recyclers/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/recyclers/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/recyclers/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

@@ -1,9 +1,11 @@
 <app-page-header title="Materiales" subtitle="Catálogo de materiales reciclables. Las tarifas por kg se gestionan aparte.">
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nuevo material</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/materials'">
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nuevo material</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -62,15 +64,21 @@
         <td><app-status-tag [status]="material.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar material" pTooltip="Editar" (click)="openEdit(material)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al material" pTooltip="Baja lógica" (click)="deactivate(material)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar material" pTooltip="Eliminar" (click)="remove(material)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/materials/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar material" pTooltip="Editar" (click)="openEdit(material)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/materials/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al material" pTooltip="Baja lógica" (click)="deactivate(material)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/materials/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar material" pTooltip="Eliminar" (click)="remove(material)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

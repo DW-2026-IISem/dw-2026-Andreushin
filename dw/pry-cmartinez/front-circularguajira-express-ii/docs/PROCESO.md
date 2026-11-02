@@ -1457,3 +1457,107 @@ git add src/app/app.config.ts src/app/app.routes.ts src/app/core/models/auth.mod
 git commit -m "FRONT-ISS-08: Autenticación JWT, perfil y permisos efectivos"
 git push origin main
 ```
+
+Commit: [`30630a4`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/30630a49a74a75132913b535d5ed53d862b4aaa3)
+
+### ISS-09 — Guards y RBAC en las pantallas de negocio
+
+Fase II · bloque 2 de 3 (protección). La autenticación se vuelve autorización visible sin reescribir las pantallas de la Fase I: las rutas declaran su permiso, el menú se calcula con `computed()` y los botones de escritura se envuelven con `*appHasPermission`. La fuente de verdad es `SessionStore.permissions()` (`GET /api/session/permissions`); ningún rol está escrito en el frontend. Todo esto es UX: Express vuelve a validar con `authenticate` + `authorize`.
+
+- `authGuard` (sin sesión → `/login?returnUrl=…`) y `guestGuard` (con sesión → `/dashboard`) vienen del ISS-08; `permissionGuard` lee `data.permission` y, sin la concesión, lleva a `/forbidden?permission=…`, que muestra el permiso que falta. `authOnlyGuard` protege `/profile`.
+- Matriz de rutas, igual a la del menú (`layout/shell/nav.config.ts`): `/dashboard` y `/collections` → `GET /api/collections`, `/recyclers` → `GET /api/recyclers`, `/materials` → `GET /api/materials`, `/routes` → `GET /api/routes`, `/collection-points` → `GET /api/collection-points`, `/collections/new` → `POST /api/collections`, `/weighings` → `GET /api/weighings`, `/settlements` → `GET /api/settlements`. `/profile` y `/forbidden` no llevan permiso.
+- Botones: crear (`POST`), editar (`PATCH /:id`), baja lógica (`PATCH /:id/deactivate`) y eliminar (`DELETE /:id`); en liquidaciones, liquidar, notas, anular y verificar (`GET /:id/verify`).
+
+A diferencia de StoreLab, el catálogo del backend reparte las lecturas por responsabilidad: PLANTA no lee recicladores ni rutas y FINANZAS no lee rutas. Como recolecciones, panel y liquidaciones cruzan varios listados con `forkJoin`, un solo 403 rompía la pantalla; ahora cada fuente opcional se pide solo si el rol puede leerla (`readIf`) y la tabla cae a «Reciclador #id». El panel se protege con `GET /api/collections` (lo tienen todos los roles operativos) y oculta la tarjeta de recicladores y la de pendientes por liquidar a quien no puede leer esas fuentes. Las pruebas usan los permisos reales de cada rol, generados desde `resource-catalog.ts` del backend (`core/testing/role-permissions.ts`). El modo laboratorio de la guía (`requireAuth: false`) no aplica: este backend no tiene `AUTH_ENABLED` y siempre exige JWT.
+
+Criterios de aceptación (ISS-09)
+
+- [x] Sin sesión, una ruta protegida redirige al login con `returnUrl`
+- [x] Con sesión, `/login` redirige al panel (`guestGuard`)
+- [x] admin ve todo el menú de Operación
+- [x] Cada rol ve solo las pantallas que su matriz le permite abrir
+- [x] Escribir a mano una ruta sin permiso lleva a `/forbidden` y muestra el permiso faltante
+- [x] Los botones de escritura desaparecen si falta el `POST`/`PATCH`/`DELETE`
+- [x] Tras «Actualizar permisos», el menú cambia sin recargar
+- [x] Las pantallas de la Fase I siguen funcionando para roles con lectura parcial (sin 403 y en modo lectura)
+- [x] El backend manda: forzar la petición responde 403 con token y 401 sin él
+- [x] Las pruebas pasan (directiva, guards, menú por rol, pantallas por rol)
+- [x] `ng build` termina con código 0
+
+### Pasos
+
+```bash
+ng generate guard core/guards/permission --functional --implements CanActivate --skip-tests --defaults
+ng generate guard core/guards/auth-only --functional --implements CanActivate --skip-tests --defaults
+ng generate directive shared/directives/has-permission --skip-tests --defaults
+# permissionGuard + data.permission en las rutas, nav.config.ts + computed en el Shell,
+# *appHasPermission en los botones, readIf en las pantallas que cruzan listados,
+# /forbidden con el permiso faltante
+cd ../app-circularguajira-express-ii && npm run dev
+```
+
+### Verificación del ISS
+
+```bash
+grep -n "permissionGuard\|data: { permission" src/app/app.routes.ts
+grep -rn "appHasPermission" src/app/features --include=*.html | wc -l
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** con los usuarios del seeder, cada rol ve su menú y sus botones, una URL forzada termina en `/forbidden`, y aunque se salte la UI, el backend responde 403.
+
+#### Evidencias
+
+**Ev1 — Sin sesión:** `/settlements` termina en `/login?returnUrl=%2Fsettlements`.
+
+![Ev1 ISS-09](images/Ev1-ISS-09.png)
+
+**Ev2 — Con sesión:** admin inicia sesión y abrir `/login` lo devuelve a `/dashboard`.
+
+![Ev2 ISS-09](images/Ev2-ISS-09.png)
+
+**Ev3 — Menú de admin:** el grupo Operación con las 8 pantallas (Panel a Liquidaciones), Laboratorio con Prototipo, y el panel completo con recicladores y pendientes por liquidar.
+
+![Ev3 ISS-09](images/Ev3-ISS-09.png)
+
+**Ev4 — Menú por rol:** logistica ve Panel, Recicladores, Materiales, Rutas, Puntos, Recolecciones y Pesajes; bascula, sin Puntos; planta, solo Panel, Materiales, Recolecciones y Pesajes; finanzas, sin Rutas ni Puntos pero con Liquidaciones.
+
+![Ev4 ISS-09](images/Ev4-ISS-09.png)
+
+**Ev5 — URL forzada:** planta escribe `/recyclers` y termina en `/forbidden?permission=GET%20%2Fapi%2Frecyclers`: «Acceso denegado», permiso requerido `GET /api/recyclers` y su menú reducido (13 permisos).
+
+![Ev5 ISS-09](images/Ev5-ISS-09.png)
+
+**Ev6 — Botones:** en `/recyclers` admin ve crear, editar, baja y eliminar; logistica, sin eliminar (el borrado físico es solo de ADMIN); finanzas, ninguno; en `/materials`, planta ve crear, editar y baja.
+
+![Ev6 ISS-09](images/Ev6-ISS-09.png)
+
+**Ev7 — Actualizar permisos:** con planta abierto, admin concede `GET /api/recyclers` a PLANTA por la API (`POST /api/resource-roles` → 201); «Actualizar permisos» vuelve a pedir perfil y permisos, el menú suma «Recicladores» y el contador pasa a 14 permisos, con `sinRecargar: true`. La concesión se retiró después (`PATCH /api/resource-roles/240/deactivate` → 200).
+
+![Ev7 ISS-09](images/Ev7-ISS-09.png)
+
+**Ev8 — Fase I con lectura parcial:** planta abre `/collections` sin pedir recicladores ni rutas (todas las respuestas 200, sin `p-message` de error): 8 filas con «Reciclador #4 · Ruta #5» y solo la acción «Ver detalle».
+
+![Ev8 ISS-09](images/Ev8-ISS-09.png)
+
+**Ev9 — El backend manda:** desde la sesión de planta, `fetch` a `/api/recyclers` con su Bearer responde 403 «No tienes permiso para GET /api/recyclers»; sin token, 401 «Falta el token de acceso».
+
+![Ev9 ISS-09](images/Ev9-ISS-09.png)
+
+**Ev10 — Pruebas:** directiva (pinta y destruye la vista al cambiar los permisos), `permissionGuard` (deny by default hacia `/forbidden`), menú de PLANTA y cambio sin recargar; la suite queda en 39 archivos y 183 pruebas.
+
+![Ev10 ISS-09](images/Ev10-ISS-09.png)
+
+**Ev11 — Build:** `ng build` código 0 (Initial total 578.37 kB).
+
+![Ev11 ISS-09](images/Ev11-ISS-09.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/core/guards src/app/core/testing src/app/core/utils/read-if.ts \
+  src/app/shared/directives src/app/layout/shell src/app/features docs/PROCESO.md docs/images/Ev*-ISS-09.png
+git commit -m "FRONT-ISS-09: Guards y RBAC en las pantallas de negocio"
+git push origin main
+```

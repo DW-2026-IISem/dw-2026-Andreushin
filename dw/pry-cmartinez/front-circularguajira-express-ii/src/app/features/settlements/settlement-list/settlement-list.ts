@@ -30,6 +30,9 @@ import { RecyclerApi } from '../../recyclers/recycler-api';
 import { SettlementApi } from '../settlement-api';
 import { PendingCollectionOption, SettlementForm } from '../settlement-form/settlement-form';
 import { SettlementVerification } from '../settlement-verification/settlement-verification';
+import { HasPermission } from '../../../shared/directives/has-permission';
+import { SessionStore } from '../../../core/services/session-store';
+import { readIf } from '../../../core/utils/read-if';
 
 /**
  * Settlements: what is paid to each recycler for one collection.
@@ -42,6 +45,7 @@ import { SettlementVerification } from '../settlement-verification/settlement-ve
   host: { class: 'block' },
   selector: 'app-settlement-list',
   imports: [
+    HasPermission,
     ButtonModule,
     CurrencyPipe,
     DatePipe,
@@ -62,6 +66,7 @@ import { SettlementVerification } from '../settlement-verification/settlement-ve
 })
 export class SettlementList {
   private readonly api = inject(SettlementApi);
+  private readonly session = inject(SessionStore);
   private readonly collectionsApi = inject(CollectionApi);
   private readonly recyclersApi = inject(RecyclerApi);
   private readonly materialsApi = inject(MaterialApi);
@@ -125,8 +130,8 @@ export class SettlementList {
     forkJoin({
       settlements: this.api.list(),
       collections: this.collectionsApi.list(),
-      recyclers: this.recyclersApi.list(),
-      materials: this.materialsApi.list(),
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
     }).subscribe({
       next: ({ settlements, collections, recyclers, materials }) => {
         this.rows.set(settlements);

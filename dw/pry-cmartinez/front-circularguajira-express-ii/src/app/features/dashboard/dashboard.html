@@ -17,10 +17,12 @@
   </div>
 } @else {
   <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-    <p-card>
-      <p class="text-sm text-slate-500">Recicladores activos</p>
-      <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="recyclers">{{ recyclers().length }}</p>
-    </p-card>
+    <ng-container *appHasPermission="'GET /api/recyclers'">
+      <p-card>
+        <p class="text-sm text-slate-500">Recicladores activos</p>
+        <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="recyclers">{{ recyclers().length }}</p>
+      </p-card>
+    </ng-container>
     <p-card>
       <p class="text-sm text-slate-500">Materiales activos</p>
       <p class="mt-1 text-3xl font-semibold text-slate-900" data-kpi="materials">{{ materials().length }}</p>
@@ -33,12 +35,13 @@
     <p-card>
       <p class="text-sm text-slate-500">Valor recolectado</p>
       <p class="mt-1 text-2xl font-semibold text-slate-900" data-kpi="amount">{{ collectedAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }}</p>
-      <p class="text-xs text-slate-400">{{ pendingAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} sin liquidar</p>
+      <p *appHasPermission="'GET /api/settlements'" class="text-xs text-slate-400">{{ pendingAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0' }} sin liquidar</p>
     </p-card>
   </div>
 
   <div class="mt-6 grid gap-6 2xl:grid-cols-2">
-    <p-card header="Recolecciones sin liquidar">
+    <!-- Without the settlements list "pending" cannot be computed: the card is hidden. -->
+    <p-card *appHasPermission="'GET /api/settlements'" header="Recolecciones sin liquidar">
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p-tag [value]="unsettled().length + ' pendientes'" [severity]="unsettled().length > 0 ? 'warn' : 'success'" [rounded]="true" />
         <a pButton routerLink="/settlements" text severity="secondary">

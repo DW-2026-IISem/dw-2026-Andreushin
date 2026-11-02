@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Material } from '../../../core/models/material.model';
 import { MaterialList } from './material-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const BASE = `${environment.apiUrl}/materials`;
 
@@ -23,6 +24,8 @@ describe('MaterialList', () => {
       imports: [MaterialList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 

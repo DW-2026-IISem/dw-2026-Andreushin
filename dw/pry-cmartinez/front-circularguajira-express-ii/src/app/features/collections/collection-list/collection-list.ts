@@ -27,6 +27,9 @@ import { RecyclerApi } from '../../recyclers/recycler-api';
 import { RouteApi } from '../../routes/route-api';
 import { CollectionApi } from '../collection-api';
 import { CollectionDetail } from '../collection-detail/collection-detail';
+import { HasPermission } from '../../../shared/directives/has-permission';
+import { SessionStore } from '../../../core/services/session-store';
+import { readIf } from '../../../core/utils/read-if';
 
 /**
  * Collections (header + weighings). Names of recycler and route are resolved with `Map`s;
@@ -36,6 +39,7 @@ import { CollectionDetail } from '../collection-detail/collection-detail';
   host: { class: 'block' },
   selector: 'app-collection-list',
   imports: [
+    HasPermission,
     ButtonModule,
     CollectionDetail,
     CurrencyPipe,
@@ -57,6 +61,7 @@ import { CollectionDetail } from '../collection-detail/collection-detail';
 })
 export class CollectionList {
   private readonly api = inject(CollectionApi);
+  private readonly session = inject(SessionStore);
   private readonly recyclersApi = inject(RecyclerApi);
   private readonly routesApi = inject(RouteApi);
   private readonly materialsApi = inject(MaterialApi);
@@ -107,9 +112,11 @@ export class CollectionList {
     this.error.set(null);
     forkJoin({
       collections: this.api.list(),
-      recyclers: this.recyclersApi.list(),
-      routes: this.routesApi.list(),
-      materials: this.materialsApi.list(),
+      // Optional sources: PLANTA cannot read recyclers or routes, FINANZAS cannot read routes.
+      // Without them the table falls back to «Reciclador #id» instead of failing with a 403.
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
+      routes: readIf(this.session.canPermission('GET /api/routes'), () => this.routesApi.list()),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
     }).subscribe({
       next: ({ collections, recyclers, routes, materials }) => {
         this.rows.set(collections);

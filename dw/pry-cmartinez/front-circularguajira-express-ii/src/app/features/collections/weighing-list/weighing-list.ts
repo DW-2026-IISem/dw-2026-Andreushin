@@ -21,6 +21,7 @@ import { MaterialApi } from '../../materials/material-api';
 import { CollectionApi } from '../collection-api';
 import { WeighingApi } from '../weighing-api';
 import { CollectionOption, WeighingForm } from '../weighing-form/weighing-form';
+import { HasPermission } from '../../../shared/directives/has-permission';
 
 /**
  * Weighings as an independent CRUD of lines (equivalent to the sale lines of the guide).
@@ -33,6 +34,7 @@ import { CollectionOption, WeighingForm } from '../weighing-form/weighing-form';
   host: { class: 'block' },
   selector: 'app-weighing-list',
   imports: [
+    HasPermission,
     ButtonModule,
     CurrencyPipe,
     DecimalPipe,

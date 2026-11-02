@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Recycler } from '../../../core/models/recycler.model';
 import { RecyclerList } from './recycler-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const BASE = `${environment.apiUrl}/recyclers`;
 
@@ -23,6 +24,8 @@ describe('RecyclerList', () => {
       imports: [RecyclerList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 
@@ -174,5 +177,32 @@ describe('RecyclerList', () => {
 
     http.expectNone(`${BASE}/1`);
     http.expectNone(`${BASE}/1/deactivate`);
+  });
+
+  const buttons = (element: HTMLElement) =>
+    [...element.querySelectorAll('button[aria-label], button')]
+      .map((button) => button.getAttribute('aria-label') ?? button.textContent?.trim())
+      .filter((label) => label && label !== 'Limpiar búsqueda');
+
+  it('should paint for LOGISTICA create, edit and deactivate but not the physical delete', async () => {
+    signInAs('LOGISTICA');
+    const { element } = await createList();
+    const labels = buttons(element);
+
+    expect(labels).toContain('Nuevo reciclador');
+    expect(labels).toContain('Editar reciclador');
+    expect(labels).toContain('Dar de baja al reciclador');
+    expect(labels).not.toContain('Eliminar reciclador');
+  });
+
+  it('should leave FINANZAS in read-only mode', async () => {
+    signInAs('FINANZAS');
+    const { element } = await createList();
+    const labels = buttons(element);
+
+    expect(labels).not.toContain('Nuevo reciclador');
+    expect(labels).not.toContain('Editar reciclador');
+    expect(labels).not.toContain('Dar de baja al reciclador');
+    expect(element.querySelectorAll('tbody tr').length).toBeGreaterThan(0);
   });
 });

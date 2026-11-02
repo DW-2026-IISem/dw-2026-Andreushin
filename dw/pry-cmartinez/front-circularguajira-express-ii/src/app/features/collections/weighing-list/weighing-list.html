@@ -1,9 +1,11 @@
 <app-page-header title="Pesajes" subtitle="Líneas de cada recolección. Agregar o corregir un pesaje recalcula los totales; una recolección liquidada no se modifica.">
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nuevo pesaje</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/weighings'">
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nuevo pesaje</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -48,15 +50,21 @@
         </td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar pesaje" pTooltip="Editar" (click)="openEdit(weighing)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al pesaje" pTooltip="Baja lógica" (click)="deactivate(weighing)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar pesaje" pTooltip="Eliminar" (click)="remove(weighing)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/weighings/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar pesaje" pTooltip="Editar" (click)="openEdit(weighing)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/weighings/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al pesaje" pTooltip="Baja lógica" (click)="deactivate(weighing)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/weighings/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar pesaje" pTooltip="Eliminar" (click)="remove(weighing)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

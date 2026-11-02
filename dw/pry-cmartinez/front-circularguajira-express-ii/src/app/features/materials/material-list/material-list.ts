@@ -16,6 +16,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { MaterialApi } from '../material-api';
 import { MaterialForm } from '../material-form/material-form';
+import { HasPermission } from '../../../shared/directives/has-permission';
 
 /**
  * Material catalog with every CRUD operation. Same structure as `RecyclerList`: only the
@@ -25,6 +26,7 @@ import { MaterialForm } from '../material-form/material-form';
   host: { class: 'block' },
   selector: 'app-material-list',
   imports: [
+    HasPermission,
     ButtonModule,
     DialogModule,
     EmptyState,

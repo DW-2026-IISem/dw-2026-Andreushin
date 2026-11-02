@@ -16,6 +16,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { RecyclerApi } from '../recycler-api';
 import { RecyclerForm } from '../recycler-form/recycler-form';
+import { HasPermission } from '../../../shared/directives/has-permission';
 
 /**
  * Recycler list with every CRUD operation.
@@ -27,6 +28,7 @@ import { RecyclerForm } from '../recycler-form/recycler-form';
   host: { class: 'block' },
   selector: 'app-recycler-list',
   imports: [
+    HasPermission,
     ButtonModule,
     DialogModule,
     EmptyState,

@@ -1,10 +1,12 @@
 <app-page-header title="Puntos de recolección" subtitle="Paradas de cada ruta en orden de visita. Solo se asignan a rutas activas.">
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <p-tag [value]="routesWithoutPoints() + ' rutas sin puntos'" [severity]="routesWithoutPoints() > 0 ? 'warn' : 'success'" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nuevo punto</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/collection-points'">
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nuevo punto</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -58,15 +60,21 @@
         <td><app-status-tag [status]="point.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar punto" pTooltip="Editar" (click)="openEdit(point)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al punto" pTooltip="Baja lógica" (click)="deactivate(point)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar punto" pTooltip="Eliminar" (click)="remove(point)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/collection-points/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar punto" pTooltip="Editar" (click)="openEdit(point)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/collection-points/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al punto" pTooltip="Baja lógica" (click)="deactivate(point)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/collection-points/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar punto" pTooltip="Eliminar" (click)="remove(point)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

@@ -4,7 +4,8 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { SessionStore } from '../../core/services/session-store';
-import { PERMISSIONS, PROFILE, TOKENS } from '../../core/testing/session-fixtures';
+import { ROLE_PERMISSIONS } from '../../core/testing/role-permissions';
+import { signInAs } from '../../core/testing/session-fixtures';
 import { Shell } from './shell';
 
 /** jsdom has no `matchMedia`: replace it to exercise the desktop branch. */
@@ -33,9 +34,7 @@ describe('Shell', () => {
       imports: [Shell],
       providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
-    const session = TestBed.inject(SessionStore);
-    session.setTokens(TOKENS);
-    session.setAccess({ user: PROFILE, permissions: PERMISSIONS });
+    signInAs('ADMIN');
   });
 
   afterEach(() => localStorage.clear());
@@ -116,7 +115,32 @@ describe('Shell', () => {
 
     expect(compiled.querySelector('app-header')?.textContent).toContain('admin');
     expect(compiled.querySelector('app-header')?.textContent).toContain('ADMIN');
-    expect(compiled.querySelector('aside app-aside')?.textContent).toContain('2 permisos');
+    expect(compiled.querySelector('aside app-aside')?.textContent).toContain(`${ROLE_PERMISSIONS.ADMIN.length} permisos`);
     expect(compiled.querySelector('aside button[aria-label="Cerrar sesión"]')).toBeTruthy();
+  });
+
+  it('should build the menu from the grants of the role (PLANTA)', async () => {
+    signInAs('PLANTA');
+    const { compiled } = await createShell();
+    // Group headers are anchors without href; only the options link to a screen.
+    const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) => link.getAttribute('href'));
+
+    expect(hrefs).toEqual(['/dashboard', '/materials', '/collections', '/weighings', '/prototype']);
+  });
+
+  it('should change the menu without reloading when the permissions change', async () => {
+    signInAs('PLANTA');
+    const { fixture, compiled } = await createShell();
+    expect(compiled.querySelector('aside a[href="/settlements"]')).toBeNull();
+
+    const session = TestBed.inject(SessionStore);
+    session.setAccess({
+      user: session.user()!,
+      permissions: [...session.permissions(), { resourceId: 999, method: 'GET', path: '/api/settlements' }],
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(compiled.querySelector('aside a[href="/settlements"]')).toBeTruthy();
   });
 });

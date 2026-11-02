@@ -1,10 +1,12 @@
 <app-page-header title="Recolecciones" subtitle="Cada recolección guarda sus pesajes y los importes que calculó el backend con la tarifa vigente.">
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
   <p-tag [value]="(totalAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0') + ' en total'" severity="secondary" [rounded]="true" />
-  <a pButton routerLink="/collections/new">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nueva recolección</span>
-  </a>
+  <ng-container *appHasPermission="'POST /api/collections'">
+    <a pButton routerLink="/collections/new">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nueva recolección</span>
+    </a>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -62,12 +64,16 @@
             <button pButton type="button" text rounded severity="secondary" aria-label="Ver detalle de la recolección" pTooltip="Ver detalle" (click)="openDetail(collection)">
               <i pButtonIcon class="pi pi-eye"></i>
             </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Cancelar recolección" pTooltip="Cancelar (baja lógica)" (click)="deactivate(collection)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar recolección" pTooltip="Eliminar" (click)="remove(collection)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/collections/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Cancelar recolección" pTooltip="Cancelar (baja lógica)" (click)="deactivate(collection)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/collections/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar recolección" pTooltip="Eliminar" (click)="remove(collection)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

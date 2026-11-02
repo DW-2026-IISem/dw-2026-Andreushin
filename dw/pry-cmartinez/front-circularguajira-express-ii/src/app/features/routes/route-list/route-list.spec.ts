@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Route } from '../../../core/models/route.model';
 import { RouteList } from './route-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const BASE = `${environment.apiUrl}/routes`;
 const ROUTES: Route[] = [
@@ -21,6 +22,8 @@ describe('RouteList', () => {
       imports: [RouteList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 

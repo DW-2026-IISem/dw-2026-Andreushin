@@ -2,7 +2,13 @@
   <i class="pi pi-lock text-4xl text-amber-500"></i>
   <h1 class="mt-3 text-xl font-semibold text-slate-900">Acceso denegado</h1>
   <p class="mt-2 text-sm text-slate-500">Tu rol no tiene permiso para abrir esta pantalla. Si lo necesitas, pídeselo a un administrador.</p>
-  <div class="mt-5 flex justify-center gap-2">
+  @if (permission) {
+    <div class="mt-4 rounded-xl bg-slate-900 px-4 py-3 text-left">
+      <p class="text-[11px] uppercase tracking-wider text-slate-400">Permiso requerido</p>
+      <code class="text-sm break-all text-emerald-300">{{ permission }}</code>
+    </div>
+  }
+  <div class="mt-5 flex flex-wrap justify-center gap-2">
     <a pButton routerLink="/dashboard"><span pButtonLabel>Ir al panel</span></a>
     <a pButton routerLink="/profile" severity="secondary" outlined><span pButtonLabel>Ver mis permisos</span></a>
   </div>

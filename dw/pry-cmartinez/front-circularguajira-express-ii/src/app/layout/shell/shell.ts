@@ -9,6 +9,7 @@ import { NotificationService } from '../../core/services/notification';
 import { SessionStore } from '../../core/services/session-store';
 import { watchMediaQuery } from '../../core/utils/media-query';
 import { Aside } from '../aside/aside';
+import { NAV } from './nav.config';
 import { Footer } from '../footer/footer';
 import { Header } from '../header/header';
 
@@ -21,7 +22,7 @@ import { Header } from '../header/header';
  *
  * Since ISS-08 it is the only layout piece that knows the session: it reads `SessionStore`
  * and passes plain data to Header and Aside (which stay presentational), and runs the
- * logout they request. The menu filtered by permissions arrives in ISS-09.
+ * logout they request. Since ISS-09 the menu is filtered by the session permissions.
  */
 @Component({
   host: { class: 'block' },
@@ -46,20 +47,22 @@ export class Shell {
   readonly mobileOpen = signal(false);
 
   /**
-   * Phase I menu (ISS-02 to ISS-07B). ISS-09 replaces this array with the navigation
-   * filtered by the session permissions.
+   * Side menu derived from `NAV` and the session grants: an option appears only if the
+   * session may open its screen, and a group without options disappears. It is a
+   * `computed`, so after "Actualizar permisos" the menu changes without reloading.
    */
-  readonly items: MenuItem[] = [
-    { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard' },
-    { label: 'Recicladores', icon: 'pi pi-users', routerLink: '/recyclers' },
-    { label: 'Materiales', icon: 'pi pi-tags', routerLink: '/materials' },
-    { label: 'Rutas', icon: 'pi pi-map', routerLink: '/routes' },
-    { label: 'Puntos de recolección', icon: 'pi pi-map-marker', routerLink: '/collection-points' },
-    { label: 'Recolecciones', icon: 'pi pi-truck', routerLink: '/collections' },
-    { label: 'Pesajes', icon: 'pi pi-gauge', routerLink: '/weighings' },
-    { label: 'Liquidaciones', icon: 'pi pi-wallet', routerLink: '/settlements' },
-    { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/prototype' },
-  ];
+  readonly items = computed<MenuItem[]>(() =>
+    NAV.filter((group) => !group.authOnly || this.session.authEnabled)
+      .map<MenuItem>((group) => ({
+        label: group.label,
+        icon: group.icon,
+        expanded: true,
+        items: group.items
+          .filter((item) => !item.permission || this.session.canPermission(item.permission))
+          .map<MenuItem>((item) => ({ label: item.label, icon: item.icon, routerLink: item.routerLink })),
+      }))
+      .filter((group) => (group.items?.length ?? 0) > 0),
+  );
 
   readonly username = computed(() => this.session.user()?.username ?? '');
 

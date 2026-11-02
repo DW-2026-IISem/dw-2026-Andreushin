@@ -1,10 +1,12 @@
 <app-page-header title="Liquidaciones" subtitle="Lo que se paga a cada reciclador por una recolección. Los valores quedan congelados; una liquidación errada se anula y se emite de nuevo.">
   <p-tag [value]="rows().length + ' emitidas'" severity="info" [rounded]="true" />
   <p-tag [value]="pending().length + ' por liquidar'" [severity]="pending().length > 0 ? 'warn' : 'success'" [rounded]="true" />
-  <button pButton type="button" [disabled]="pending().length === 0" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-wallet"></i>
-    <span pButtonLabel>Liquidar recolección</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/settlements'">
+    <button pButton type="button" [disabled]="pending().length === 0" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-wallet"></i>
+      <span pButtonLabel>Liquidar recolección</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -53,15 +55,21 @@
         <td class="max-w-48 text-sm text-slate-600">{{ settlement.notes || '—' }}</td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Verificar liquidación" pTooltip="Verificar" [loading]="verifying() === settlement.id" (click)="verify(settlement)">
-              <i pButtonIcon class="pi pi-verified"></i>
-            </button>
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar notas de la liquidación" pTooltip="Notas" (click)="openNotes(settlement)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Anular liquidación" pTooltip="Anular" (click)="voidSettlement(settlement)">
-              <i pButtonIcon class="pi pi-undo"></i>
-            </button>
+            <ng-container *appHasPermission="'GET /api/settlements/:id/verify'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Verificar liquidación" pTooltip="Verificar" [loading]="verifying() === settlement.id" (click)="verify(settlement)">
+                <i pButtonIcon class="pi pi-verified"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/settlements/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar notas de la liquidación" pTooltip="Notas" (click)="openNotes(settlement)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/settlements/:id/void'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Anular liquidación" pTooltip="Anular" (click)="voidSettlement(settlement)">
+                <i pButtonIcon class="pi pi-undo"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

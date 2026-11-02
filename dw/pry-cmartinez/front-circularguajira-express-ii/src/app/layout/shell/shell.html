@@ -17,7 +17,7 @@
     @if (!sidebarCollapsed()) {
       <aside class="hidden w-72 shrink-0 lg:block">
         <app-aside
-        [items]="items"
+        [items]="items()"
         [showSession]="true"
         [username]="username()"
         [roleLabel]="session.roleLabel()"
@@ -41,7 +41,7 @@
 <!-- Mobile: the same Aside, another layout. -->
 <p-drawer [(visible)]="mobileOpen" header="Menú" position="left" styleClass="w-72">
   <app-aside
-    [items]="items"
+    [items]="items()"
     [showSession]="true"
     [username]="username()"
     [roleLabel]="session.roleLabel()"

@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { Dashboard } from './dashboard';
+import { signInAs } from '../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 
@@ -15,6 +16,8 @@ describe('Dashboard', () => {
       imports: [Dashboard],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 
@@ -77,5 +80,21 @@ describe('Dashboard', () => {
     await fixture.whenStable();
     expect(fixture.componentInstance.collectedAmount()).toBe(1000.5);
     expect(fixture.componentInstance.unsettled()).toEqual([]);
+  });
+
+  it('should only read what PLANTA may read and hide the cards it cannot compute', async () => {
+    signInAs('PLANTA');
+    const fixture = TestBed.createComponent(Dashboard);
+    http.expectNone(`${API}/recyclers`);
+    http.expectNone(`${API}/settlements`);
+    http.expectOne(`${API}/materials`).flush({ materials: [{ id: 1 }] });
+    http.expectOne(`${API}/collections`).flush({ collections: COLLECTIONS });
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+
+    expect(element.querySelector('[data-kpi="recyclers"]')).toBeNull();
+    expect(element.querySelector('[data-kpi="collections"]')).toBeTruthy();
+    expect(element.textContent).not.toContain('Recolecciones sin liquidar');
+    expect(element.textContent).not.toContain('sin liquidar');
   });
 });

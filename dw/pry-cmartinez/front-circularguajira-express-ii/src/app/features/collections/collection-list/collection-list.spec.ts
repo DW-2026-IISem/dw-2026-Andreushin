@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Collection } from '../../../core/models/collection.model';
 import { CollectionList } from './collection-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const COLLECTIONS: Collection[] = [
@@ -22,6 +23,8 @@ describe('CollectionList', () => {
       imports: [CollectionList],
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([]), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 
@@ -73,5 +76,23 @@ describe('CollectionList', () => {
     await fixture.whenStable();
     expect(list.detailVisible()).toBe(true);
     expect(list.detailTitle()).toBe('Recolección #7');
+  });
+
+  it('should keep working for PLANTA without reading recyclers or routes (no 403)', async () => {
+    signInAs('PLANTA');
+    const fixture = TestBed.createComponent(CollectionList);
+    http.expectOne(`${API}/collections`).flush({ collections: COLLECTIONS });
+    http.expectNone(`${API}/recyclers`);
+    http.expectNone(`${API}/routes`);
+    http.expectOne(`${API}/materials`).flush({ materials: [] });
+    await fixture.whenStable();
+    const element = fixture.nativeElement as HTMLElement;
+    const row = element.querySelector('tbody tr') as HTMLElement;
+
+    expect(row.textContent).toContain('Reciclador #4');
+    expect(element.querySelector('a[href="/collections/new"]')).toBeNull();
+    expect(row.querySelector('button[aria-label="Ver detalle de la recolección"]')).toBeTruthy();
+    expect(row.querySelector('button[aria-label="Cancelar recolección"]')).toBeNull();
+    expect(row.querySelector('button[aria-label="Eliminar recolección"]')).toBeNull();
   });
 });

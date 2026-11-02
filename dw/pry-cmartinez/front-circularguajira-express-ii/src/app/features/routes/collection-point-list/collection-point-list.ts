@@ -19,6 +19,7 @@ import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { CollectionPointApi } from '../collection-point-api';
 import { CollectionPointForm } from '../collection-point-form/collection-point-form';
 import { RouteApi } from '../route-api';
+import { HasPermission } from '../../../shared/directives/has-permission';
 
 /**
  * Collection points and their many-to-one relation with routes.
@@ -30,6 +31,7 @@ import { RouteApi } from '../route-api';
   host: { class: 'block' },
   selector: 'app-collection-point-list',
   imports: [
+    HasPermission,
     ButtonModule,
     CollectionPointForm,
     DialogModule,

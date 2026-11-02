@@ -20,6 +20,9 @@ import { CollectionApi } from '../collections/collection-api';
 import { MaterialApi } from '../materials/material-api';
 import { RecyclerApi } from '../recyclers/recycler-api';
 import { SettlementApi } from '../settlements/settlement-api';
+import { HasPermission } from '../../shared/directives/has-permission';
+import { SessionStore } from '../../core/services/session-store';
+import { readIf } from '../../core/utils/read-if';
 
 /**
  * Operations panel. The API is queried ONCE (four requests in parallel); every indicator is
@@ -29,6 +32,7 @@ import { SettlementApi } from '../settlements/settlement-api';
   host: { class: 'block' },
   selector: 'app-dashboard',
   imports: [
+    HasPermission,
     ButtonModule,
     CardModule,
     CurrencyPipe,
@@ -46,6 +50,7 @@ import { SettlementApi } from '../settlements/settlement-api';
 })
 export class Dashboard {
   private readonly recyclersApi = inject(RecyclerApi);
+  private readonly session = inject(SessionStore);
   private readonly materialsApi = inject(MaterialApi);
   private readonly collectionsApi = inject(CollectionApi);
   private readonly settlementsApi = inject(SettlementApi);
@@ -98,10 +103,11 @@ export class Dashboard {
     this.loading.set(true);
     this.error.set(null);
     forkJoin({
-      recyclers: this.recyclersApi.list(),
-      materials: this.materialsApi.list(),
+      // Each card reads only what the role may read (the route already requires collections).
+      recyclers: readIf(this.session.canPermission('GET /api/recyclers'), () => this.recyclersApi.list()),
+      materials: readIf(this.session.canPermission('GET /api/materials'), () => this.materialsApi.list()),
       collections: this.collectionsApi.list(),
-      settlements: this.settlementsApi.list(),
+      settlements: readIf(this.session.canPermission('GET /api/settlements'), () => this.settlementsApi.list()),
     }).subscribe({
       next: ({ recyclers, materials, collections, settlements }) => {
         this.recyclers.set(recyclers);

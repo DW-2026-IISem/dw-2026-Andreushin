@@ -1,9 +1,11 @@
 <app-page-header title="Rutas de recolección" subtitle="Rutas activas por municipio. Una ruta con puntos no se elimina: se desactiva.">
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
-  <button pButton type="button" (click)="openCreate()">
-    <i pButtonIcon class="pi pi-plus"></i>
-    <span pButtonLabel>Nueva ruta</span>
-  </button>
+  <ng-container *appHasPermission="'POST /api/routes'">
+    <button pButton type="button" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nueva ruta</span>
+    </button>
+  </ng-container>
 </app-page-header>
 
 @if (error()) {
@@ -53,15 +55,21 @@
         <td><app-status-tag [status]="route.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" aria-label="Editar ruta" pTooltip="Editar" (click)="openEdit(route)">
-              <i pButtonIcon class="pi pi-pencil"></i>
-            </button>
-            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja a la ruta" pTooltip="Baja lógica" (click)="deactivate(route)">
-              <i pButtonIcon class="pi pi-ban"></i>
-            </button>
-            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar ruta" pTooltip="Eliminar" (click)="remove(route)">
-              <i pButtonIcon class="pi pi-trash"></i>
-            </button>
+            <ng-container *appHasPermission="'PATCH /api/routes/:id'">
+              <button pButton type="button" text rounded severity="secondary" aria-label="Editar ruta" pTooltip="Editar" (click)="openEdit(route)">
+                <i pButtonIcon class="pi pi-pencil"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'PATCH /api/routes/:id/deactivate'">
+              <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja a la ruta" pTooltip="Baja lógica" (click)="deactivate(route)">
+                <i pButtonIcon class="pi pi-ban"></i>
+              </button>
+            </ng-container>
+            <ng-container *appHasPermission="'DELETE /api/routes/:id'">
+              <button pButton type="button" text rounded severity="danger" aria-label="Eliminar ruta" pTooltip="Eliminar" (click)="remove(route)">
+                <i pButtonIcon class="pi pi-trash"></i>
+              </button>
+            </ng-container>
           </div>
         </td>
       </tr>

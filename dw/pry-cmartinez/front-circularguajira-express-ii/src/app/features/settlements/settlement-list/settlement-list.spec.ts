@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Settlement } from '../../../core/models/settlement.model';
 import { SettlementList } from './settlement-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const SETTLEMENTS: Settlement[] = [
@@ -26,6 +27,8 @@ describe('SettlementList', () => {
       imports: [SettlementList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 

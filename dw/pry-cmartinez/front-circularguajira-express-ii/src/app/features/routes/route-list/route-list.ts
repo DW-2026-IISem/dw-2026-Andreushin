@@ -16,6 +16,7 @@ import { PageHeader } from '../../../shared/ui/page-header/page-header';
 import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { RouteApi } from '../route-api';
 import { RouteForm } from '../route-form/route-form';
+import { HasPermission } from '../../../shared/directives/has-permission';
 
 /**
  * Collection routes with every CRUD operation (same structure as `RouteList`). A route
@@ -25,6 +26,7 @@ import { RouteForm } from '../route-form/route-form';
   host: { class: 'block' },
   selector: 'app-route-list',
   imports: [
+    HasPermission,
     ButtonModule,
     DialogModule,
     EmptyState,

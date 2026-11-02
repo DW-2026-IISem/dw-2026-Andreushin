@@ -6,6 +6,7 @@ import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
 import { Weighing } from '../../../core/models/weighing.model';
 import { WeighingList } from './weighing-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const API = environment.apiUrl;
 const WEIGHINGS: Weighing[] = [
@@ -21,6 +22,8 @@ describe('WeighingList', () => {
       imports: [WeighingList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 

@@ -7,6 +7,7 @@ import { environment } from '../../../../environments/environment';
 import { CollectionPoint } from '../../../core/models/collection-point.model';
 import { Route } from '../../../core/models/route.model';
 import { CollectionPointList } from './collection-point-list';
+import { signInAs } from '../../../core/testing/session-fixtures';
 
 const POINTS_URL = `${environment.apiUrl}/collection-points`;
 const ROUTES_URL = `${environment.apiUrl}/routes`;
@@ -31,6 +32,8 @@ describe('CollectionPointList', () => {
       imports: [CollectionPointList],
       providers: [provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    // Phase II: buttons are painted per grant; ADMIN has the whole real matrix.
+    signInAs('ADMIN');
     http = TestBed.inject(HttpTestingController);
   });
 
