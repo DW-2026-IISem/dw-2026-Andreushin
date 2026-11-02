@@ -23,6 +23,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/recyclers/recycler-list/recycler-list').then((m) => m.RecyclerList),
       },
+      {
+        path: 'materials',
+        title: 'Materiales · CircularGuajira',
+        loadComponent: () =>
+          import('./features/materials/material-list/material-list').then((m) => m.MaterialList),
+      },
     ],
   },
   { path: '**', redirectTo: 'prototype' },

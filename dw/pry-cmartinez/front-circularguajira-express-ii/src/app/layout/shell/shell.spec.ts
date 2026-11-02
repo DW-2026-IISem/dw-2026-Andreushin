@@ -57,6 +57,7 @@ describe('Shell', () => {
     const hrefs = [...compiled.querySelectorAll('aside a')].map((link) => link.getAttribute('href'));
 
     expect(hrefs).toContain('/recyclers');
+    expect(hrefs).toContain('/materials');
     expect(hrefs).toContain('/prototype');
   });
 

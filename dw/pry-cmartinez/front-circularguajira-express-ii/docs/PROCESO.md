@@ -745,7 +745,7 @@ ng build
 
 ![Ev5 ISS-03](images/Ev5-ISS-03.png)
 
-**Ev6 — Tabla:** `/recyclers` con los 10 recicladores activos del seeder, tipo, contacto, dirección, estado Activo y el contador «10 activos».
+**Ev6 — Tabla:** `/recyclers` con los 10 recicladores activos del seeder, tipo, contacto, dirección, estado Activo, los tres iconos de acción y el contador «10 activos» (captura rehecha en el ISS-04 tras corregir los iconos).
 
 ![Ev6 ISS-03](images/Ev6-ISS-03.png)
 
@@ -789,5 +789,107 @@ git add angular.json vitest-base.config.ts vitest-base.config.mts src/app/app.ro
   src/app/features/recyclers/recycler-list src/app/features/recyclers/recycler-form \
   docs/PROCESO.md docs/images/Ev*-ISS-03.png
 git commit -m "FRONT-ISS-03: CRUD de recicladores con Signals"
+git push origin main
+```
+
+Commit: [`f69f34e`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/f69f34e0d94668953f43d8a6239506aeb2444fcc)
+
+### ISS-04 — CRUD de materiales
+
+Repetir el patrón del ISS-03 con una entidad más simple: `/api/materials` (equivale a «tipos de producto» de la guía). Se reutiliza todo: servicio de ISS-02, signals de estado, `filterRows`, `computed`, `resetKey`, diálogo, confirmaciones y canales de error. Cambian el modelo (`name`, `description`, `status`), los campos buscables y los límites, que salen del backend: nombre obligatorio de máximo 60 caracteres y único (409), descripción hasta 255. La pantalla vive dentro de `Shell`, así que por URL directa conserva Header, Aside y Footer.
+
+Al revisar la tabla se encontró que los botones de acción no mostraban icono: en PrimeNG 22 el atributo `icon` del directivo `pButton` ya no pinta nada. Se corrigió con `<i pButtonIcon>` en recicladores y materiales, con una prueba de regresión en cada lista.
+
+Criterios de aceptación (ISS-04)
+
+- [x] `material-list` y `material-form` existen, son standalone y repiten la estructura de recicladores (solo cambian modelo, campos y textos)
+- [x] La tabla lista los materiales activos del backend con sus acciones visibles
+- [x] Crear valida nombre obligatorio y máximo 60 caracteres antes de enviar
+- [x] Editar carga el material y hace `PATCH` sin `status`
+- [x] La baja lógica oculta el material del listado
+- [x] El buscador filtra por nombre y descripción usando `filterRows`, sin peticiones
+- [x] La ruta `/materials` funciona por URL directa con Header, Aside y Footer
+- [x] Un fallo de carga se muestra en `p-message`
+- [x] Un fallo de operación (nombre repetido, 409) se muestra en un toast con el diálogo abierto
+- [x] La consola no muestra errores de código
+- [x] `ng build` termina con código 0 y las pruebas pasan
+
+### Pasos
+
+```bash
+ng generate component features/materials/material-list --skip-tests --defaults
+ng generate component features/materials/material-form --skip-tests --defaults
+# material-form.ts/html/spec, material-list.ts/html/spec, material-api.spec.ts,
+# ruta `materials` hija de Shell y entrada «Materiales» en el menú;
+# botones de acción con <i pButtonIcon> en recycler-list.html y material-list.html
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -i http://localhost:4000/api/materials | sed -n '1p;$p'
+grep -n "materials" src/app/app.routes.ts src/app/layout/shell/shell.ts
+grep -n "filterRows(this.rows()" src/app/features/materials/material-list/material-list.ts
+grep -rn 'icon="pi' src/app/features --include=*-list.html | grep -v app-empty-state || echo "acciones con pButtonIcon: correcto"
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** misma pantalla que recicladores con otra entidad; la tabla lista, crea, edita, da de baja y filtra en memoria, y la URL directa monta el Shell completo.
+
+#### Evidencias
+
+**Ev1 — Qué se reutiliza:** `materials/` tiene servicio, prueba, lista y formulario; el `diff` de miembros entre `RecyclerList` y `MaterialList` solo muestra `typeLabel`, y el filtro usa `filterRows` con `name` y `description`.
+
+![Ev1 ISS-04](images/Ev1-ISS-04.png)
+
+**Ev2 — Tabla:** los 10 materiales activos del seeder (Aluminio … Vidrio) con descripción, estado, los tres iconos de acción y «10 activos».
+
+![Ev2 ISS-04](images/Ev2-ISS-04.png)
+
+**Ev3 — Crear y validar:** «Guardar» vacío y con 61 caracteres muestra «El nombre es obligatorio (máximo 60 caracteres).» sin petición; «Bolsa de leche» hace `POST /api/materials` (201) y el contador pasa a 11.
+
+![Ev3 ISS-04](images/Ev3-ISS-04.png)
+
+**Ev4 — Editar:** el formulario carga «Tetra Pak» con el estado bloqueado y su nota; «Guardar» hace `PATCH /api/materials/10` sin `status` y la fila muestra «Tetra Pak (envases)».
+
+![Ev4 ISS-04](images/Ev4-ISS-04.png)
+
+**Ev5 — Buscador:** «botellas» encuentra por descripción PET y Vidrio (2 de 10), «chatarra» por nombre (1 de 10) y un término sin resultados muestra «Sin coincidencias»; ninguna petición nueva.
+
+![Ev5 ISS-04](images/Ev5-ISS-04.png)
+
+**Ev6 — Baja lógica:** «Desactivar» en Vidrio hace `PATCH /api/materials/5/deactivate`; la recarga deja 9 activos y Vidrio ya no aparece.
+
+![Ev6 ISS-04](images/Ev6-ISS-04.png)
+
+**Ev7 — URL directa:** `GET /materials` sirve la app (200) y la pantalla abre en `/materials` con título «Materiales · CircularGuajira», Header, Aside y Footer presentes.
+
+![Ev7 ISS-04](images/Ev7-ISS-04.png)
+
+**Ev8 — Error de operación:** crear «Cartón» otra vez responde 409; el toast muestra «No se pudo guardar · Ya existe un registro con esos datos únicos» y el diálogo sigue abierto.
+
+![Ev8 ISS-04](images/Ev8-ISS-04.png)
+
+**Ev9 — Consola:** abrir y cancelar los diálogos y buscar termina con 0 errores (solo el aviso de licencia).
+
+![Ev9 ISS-04](images/Ev9-ISS-04.png)
+
+**Ev10 — Build y pruebas:** `ng build` código 0 (Initial total 550.03 kB; `material-list` 11.93 kB diferido); 24 pruebas de materiales y la suite completa en 16 archivos y 80 pruebas.
+
+![Ev10 ISS-04](images/Ev10-ISS-04.png)
+
+**Ev11 — Error de carga:** contra el backend real, `/materials` por URL directa recibe 401 y muestra «Falta el token de acceso…» en `p-message`, «Sin materiales activos» y el layout completo.
+
+![Ev11 ISS-04](images/Ev11-ISS-04.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell/shell.spec.ts \
+  src/app/features/materials src/app/features/recyclers/recycler-list \
+  docs/PROCESO.md docs/images/Ev6-ISS-03.png docs/images/Ev*-ISS-04.png
+git commit -m "FRONT-ISS-04: CRUD de materiales"
 git push origin main
 ```

@@ -71,9 +71,15 @@
         <td><app-status-tag [status]="recycler.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <button pButton type="button" text rounded severity="secondary" icon="pi pi-pencil" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)"></button>
-            <button pButton type="button" text rounded severity="warn" icon="pi pi-ban" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)"></button>
-            <button pButton type="button" text rounded severity="danger" icon="pi pi-trash" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)"></button>
+            <button pButton type="button" text rounded severity="secondary" aria-label="Editar reciclador" pTooltip="Editar" (click)="openEdit(recycler)">
+              <i pButtonIcon class="pi pi-pencil"></i>
+            </button>
+            <button pButton type="button" text rounded severity="warn" aria-label="Dar de baja al reciclador" pTooltip="Baja lógica" (click)="deactivate(recycler)">
+              <i pButtonIcon class="pi pi-ban"></i>
+            </button>
+            <button pButton type="button" text rounded severity="danger" aria-label="Eliminar reciclador" pTooltip="Eliminar" (click)="remove(recycler)">
+              <i pButtonIcon class="pi pi-trash"></i>
+            </button>
           </div>
         </td>
       </tr>

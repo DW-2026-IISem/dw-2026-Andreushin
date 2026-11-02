@@ -44,6 +44,15 @@ describe('RecyclerList', () => {
     });
   }
 
+  it('should render the three row actions with a visible icon', async () => {
+    const { element } = await createList();
+    const row = element.querySelector('tbody tr') as HTMLElement;
+    for (const label of ['Editar reciclador', 'Dar de baja al reciclador', 'Eliminar reciclador']) {
+      const button = row.querySelector(`button[aria-label="${label}"]`);
+      expect(button?.querySelector('[data-pc-section="icon"], .pi')).toBeTruthy();
+    }
+  });
+
   it('should render one table row per active recycler and the counter', async () => {
     const { element } = await createList();
     expect(element.querySelectorAll('tbody tr')).toHaveLength(3);
