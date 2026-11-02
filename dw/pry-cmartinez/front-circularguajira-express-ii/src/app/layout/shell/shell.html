@@ -1,5 +1,13 @@
 <div class="flex min-h-screen flex-col bg-slate-100">
-  <app-header (menuRequested)="onMenuToggle()" />
+  <app-header
+    [showSession]="true"
+    [authEnabled]="session.authEnabled"
+    [username]="username()"
+    [initials]="session.initials()"
+    [roleLabel]="session.roleLabel()"
+    [userItems]="userItems()"
+    (menuRequested)="onMenuToggle()"
+  />
 
   <div class="flex flex-1">
     <!--
@@ -8,7 +16,15 @@
     -->
     @if (!sidebarCollapsed()) {
       <aside class="hidden w-72 shrink-0 lg:block">
-        <app-aside [items]="items" (navigated)="mobileOpen.set(false)" />
+        <app-aside
+        [items]="items"
+        [showSession]="true"
+        [username]="username()"
+        [roleLabel]="session.roleLabel()"
+        [permissionCount]="session.permissionCount()"
+        (navigated)="mobileOpen.set(false)"
+        (logoutRequested)="logout()"
+      />
       </aside>
     }
 
@@ -24,7 +40,15 @@
 
 <!-- Mobile: the same Aside, another layout. -->
 <p-drawer [(visible)]="mobileOpen" header="Menú" position="left" styleClass="w-72">
-  <app-aside [items]="items" (navigated)="mobileOpen.set(false)" />
+  <app-aside
+    [items]="items"
+    [showSession]="true"
+    [username]="username()"
+    [roleLabel]="session.roleLabel()"
+    [permissionCount]="session.permissionCount()"
+    (navigated)="mobileOpen.set(false)"
+    (logoutRequested)="logout()"
+  />
 </p-drawer>
 
 <!-- Hosts of the CRUD notifications and confirmations (ISS-03). -->

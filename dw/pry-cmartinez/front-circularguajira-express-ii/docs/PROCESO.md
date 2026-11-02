@@ -1351,3 +1351,109 @@ git add src/app/app.routes.ts src/app/layout/shell/shell.ts src/app/layout/shell
 git commit -m "FRONT-ISS-07B: Liquidaciones"
 git push origin main
 ```
+
+Commit: [`52b7200`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/52b720039087fa192910846883be4093925d3bc8)
+
+### ISS-08 — Autenticación JWT, perfil y permisos efectivos
+
+Fase II · bloque 1 de 3 (sesión). Se activa el login contra el contrato real de `app-circularguajira-express-ii`: `POST /api/session/login` devuelve **solo tokens** (`accessToken` de 900 s y `refreshToken` opaco de 7 días); el perfil (`GET /api/session/profile`, con sus `roles`) y los permisos efectivos (`GET /api/session/permissions` → `{ permissions: { resourceId, method, path }[] }`) se cargan después con `forkJoin`. Si esa carga falla, la sesión se limpia. Refresh y logout llevan `{ refreshToken }` en el cuerpo. El backend de CircularGuajira siempre exige JWT (no tiene `AUTH_ENABLED`), así que `environment.requireAuth` queda en `true`.
+
+`SessionStore` guarda tokens, perfil y permisos en signals y en `localStorage` (`circularguajira.session.v1`, observable en DevTools; en producción irían en cookies HttpOnly). `authInterceptor` añade el Bearer solo a la API y, ante un 401, comparte **un único refresh en vuelo** (`refreshInFlight ??=` + `shareReplay`) y reintenta. Dos refresh en paralelo presentarían el mismo token dos veces y el backend revocaría la familia. Si el refresh falla, limpia la sesión y redirige a `/login?returnUrl=…`. `errorInterceptor` muestra un toast para 403, 5xx y backend caído. `authGuard` protege el Shell y `guestGuard` el login; los guards por permiso y el menú filtrado son del ISS-09. El Shell pasa usuario, iniciales, rol y permisos a Header y Aside, que siguen siendo presentacionales. `/prototype` sigue siendo público y no llama a la sesión.
+
+Criterios de aceptación (ISS-08)
+
+- [x] `/dashboard` sin sesión redirige a `/login?returnUrl=/dashboard`; `/prototype` abre sin sesión y sin llamadas de sesión
+- [x] El login guarda los tokens, carga perfil y permisos, y abre la `returnUrl`
+- [x] Local Storage contiene `circularguajira.session.v1` con `accessToken`, `refreshToken`, `user` y `permissions`
+- [x] Cada petición protegida lleva `Authorization: Bearer <access>`
+- [x] Con el access vencido, los 401 disparan un solo refresh y se reintentan
+- [x] Logout borra el storage, vuelve al login y el refresh deja de servir
+- [x] El refresh rota y reutilizar uno viejo revoca la familia
+- [x] El perfil muestra usuario, roles y permisos efectivos; Header y Aside muestran la sesión
+- [x] Credenciales inválidas muestran el mensaje del backend sin crear sesión
+- [x] Las pruebas pasan (store, servicio, interceptor single-flight, guards, login, perfil, shell)
+- [x] `ng build` termina con código 0
+
+### Pasos
+
+```bash
+ng generate interceptor core/interceptors/auth --functional --skip-tests --defaults
+ng generate interceptor core/interceptors/error --functional --skip-tests --defaults
+ng generate guard core/guards/auth --functional --implements CanActivate --skip-tests --defaults
+ng generate guard core/guards/guest --functional --implements CanActivate --skip-tests --defaults
+ng generate component features/auth/login --skip-tests --defaults
+ng generate component features/auth/profile --skip-tests --defaults
+ng generate component features/auth/forbidden --skip-tests --defaults
+# auth.model, SessionStore, AuthService, interceptores en app.config, rutas login/profile/forbidden
+# con authGuard en el Shell, y sesión conectada a Header y Aside
+cd ../app-circularguajira-express-ii && npm run db:migrate && npm run db:seed && npm run dev
+```
+
+### Verificación del ISS
+
+```bash
+curl -s -w ' -> HTTP %{http_code}\n' http://localhost:4000/api/collections
+grep -n "let refreshInFlight\|refreshInFlight ??=\|shareReplay(" src/app/core/interceptors/auth-interceptor.ts
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** con el backend real, el login abre la sesión, cada petición lleva el Bearer, un access vencido se renueva con un solo refresh y el logout deja inservible el refresh.
+
+#### Evidencias
+
+**Ev1 — Sin sesión:** `/dashboard` termina en `/login?returnUrl=%2Fdashboard`; `/prototype` abre con `sesion: null` y sin ninguna petición `/api`.
+
+![Ev1 ISS-08](images/Ev1-ISS-08.png)
+
+**Ev2 — Login:** `POST /api/session/login` (contraseña enmascarada) sin Authorization; luego `profile` y `permissions` con Authorization, y se abre `/settlements` (la `returnUrl`).
+
+![Ev2 ISS-08](images/Ev2-ISS-08.png)
+
+**Ev3 — Local Storage:** `circularguajira.session.v1` con los campos `accessToken` (JWT `eyJhbGci…`), `refreshToken`, `user` (`admin ["ADMIN"]`) y `permissions` (87).
+
+![Ev3 ISS-08](images/Ev3-ISS-08.png)
+
+**Ev4 — Bearer:** sin token, `curl` a `/api/collections` responde 401 «Falta el token de acceso»; desde la app, las peticiones de `/collections` salen con Authorization y responden 200.
+
+![Ev4 ISS-08](images/Ev4-ISS-08.png)
+
+**Ev5 — Refresh:** con un access inválido, el panel recibe 4 respuestas 401, hace **un** `POST /api/session/refresh` y reintenta las 4 con 200; el access nuevo vuelve a ser un JWT.
+
+![Ev5 ISS-08](images/Ev5-ISS-08.png)
+
+**Ev6 — Logout:** «Cerrar sesión» hace `POST /api/session/logout`, vuelve a `/login` con `storage: null`, y el refresh anterior ya responde 401.
+
+![Ev6 ISS-08](images/Ev6-ISS-08.png)
+
+**Ev7 — Rotación y reuso:** el refresh R1 rota a R2; presentar R1 otra vez da 401 «Refresh token reutilizado» y revoca la familia, por eso R2 también da 401; el logout responde 200 (idempotente).
+
+![Ev7 ISS-08](images/Ev7-ISS-08.png)
+
+**Ev8 — Perfil:** `/profile` muestra admin, su correo, el rol ADMIN y 87 permisos efectivos con método, ruta y recurso; el Header muestra ADMIN y el avatar, y el Aside muestra «87 permisos» y el botón de salir.
+
+![Ev8 ISS-08](images/Ev8-ISS-08.png)
+
+**Ev9 — Credenciales inválidas:** el login responde 401 y el formulario muestra «Credenciales inválidas», sigue en `/login` y sin sesión guardada.
+
+![Ev9 ISS-08](images/Ev9-ISS-08.png)
+
+**Ev10 — Pruebas:** `refreshInFlight` es una variable de módulo con `??=` y `shareReplay`; pasan las 44 pruebas de core, auth y layout (incluido «should share ONE refresh between two concurrent 401») y la suite queda en 37 archivos y 171 pruebas.
+
+![Ev10 ISS-08](images/Ev10-ISS-08.png)
+
+**Ev11 — Build:** `ng build` código 0 (Initial total 580.88 kB).
+
+![Ev11 ISS-08](images/Ev11-ISS-08.png)
+
+### Commit
+
+```bash
+git add src/app/app.config.ts src/app/app.routes.ts src/app/core/models/auth.model.ts \
+  src/app/core/services/auth.ts src/app/core/services/auth.spec.ts \
+  src/app/core/services/session-store.ts src/app/core/services/session-store.spec.ts \
+  src/app/core/interceptors src/app/core/guards src/app/core/testing src/app/features/auth \
+  src/app/layout/shell docs/PROCESO.md docs/images/Ev*-ISS-08.png
+git commit -m "FRONT-ISS-08: Autenticación JWT, perfil y permisos efectivos"
+git push origin main
+```

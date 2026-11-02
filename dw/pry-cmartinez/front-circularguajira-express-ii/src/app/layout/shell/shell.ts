@@ -1,9 +1,12 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, computed, inject, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { DrawerModule } from 'primeng/drawer';
 import { ToastModule } from 'primeng/toast';
+import { AuthService } from '../../core/services/auth';
+import { NotificationService } from '../../core/services/notification';
+import { SessionStore } from '../../core/services/session-store';
 import { watchMediaQuery } from '../../core/utils/media-query';
 import { Aside } from '../aside/aside';
 import { Footer } from '../footer/footer';
@@ -16,8 +19,9 @@ import { Header } from '../header/header';
  * `<router-outlet />`. Reusing the layout avoids remounting the menu (and losing scroll
  * or focus) on navigation.
  *
- * Phase I: no `AuthService` or `SessionStore`. Business routes are added as children of
- * `Shell` from ISS-03; the session, in ISS-08.
+ * Since ISS-08 it is the only layout piece that knows the session: it reads `SessionStore`
+ * and passes plain data to Header and Aside (which stay presentational), and runs the
+ * logout they request. The menu filtered by permissions arrives in ISS-09.
  */
 @Component({
   host: { class: 'block' },
@@ -27,6 +31,11 @@ import { Header } from '../header/header';
   styleUrl: './shell.css',
 })
 export class Shell {
+  private readonly auth = inject(AuthService);
+  private readonly notify = inject(NotificationService);
+  private readonly router = inject(Router);
+  readonly session = inject(SessionStore);
+
   /** Tailwind `lg`: from here on the Aside is fixed and the button toggles it. */
   private readonly isDesktop = watchMediaQuery('(min-width: 1024px)');
 
@@ -37,8 +46,8 @@ export class Shell {
   readonly mobileOpen = signal(false);
 
   /**
-   * Minimal Phase I menu (ISS-02). ISS-08/09 replace this array with the permission
-   * driven navigation.
+   * Phase I menu (ISS-02 to ISS-07B). ISS-09 replaces this array with the navigation
+   * filtered by the session permissions.
    */
   readonly items: MenuItem[] = [
     { label: 'Panel', icon: 'pi pi-chart-bar', routerLink: '/dashboard' },
@@ -51,6 +60,34 @@ export class Shell {
     { label: 'Liquidaciones', icon: 'pi pi-wallet', routerLink: '/settlements' },
     { label: 'Prototipo', icon: 'pi pi-desktop', routerLink: '/prototype' },
   ];
+
+  readonly username = computed(() => this.session.user()?.username ?? '');
+
+  /** Header user menu. */
+  readonly userItems = computed<MenuItem[]>(() => [
+    { label: this.session.user()?.email ?? 'Sesión', disabled: true },
+    { separator: true },
+    { label: 'Mi perfil', icon: 'pi pi-user', routerLink: '/profile' },
+    { label: 'Actualizar permisos', icon: 'pi pi-refresh', command: () => this.syncAccess() },
+    { label: 'Cerrar sesión', icon: 'pi pi-sign-out', command: () => this.logout() },
+  ]);
+
+  /** `POST /api/session/logout` revokes the refresh token; the local session is cleared anyway. */
+  logout(): void {
+    this.mobileOpen.set(false);
+    this.auth.logout().subscribe({
+      complete: () => {
+        this.notify.info('Sesión cerrada');
+        void this.router.navigate(['/login']);
+      },
+    });
+  }
+
+  private syncAccess(): void {
+    this.auth.me().subscribe({
+      next: () => this.notify.success('Sesión sincronizada', 'Perfil y permisos recargados.'),
+    });
+  }
 
   /**
    * One button, two layouts: on desktop it toggles the fixed Aside; below `lg` it opens

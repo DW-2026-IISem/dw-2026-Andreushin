@@ -31,3 +31,14 @@ export interface EffectivePermission {
   method: HttpMethod;
   path: string;
 }
+
+/** Body of POST /api/session/refresh and /logout: the opaque refresh token. */
+export interface RefreshPayload {
+  refreshToken: string;
+}
+
+/** State kept by SessionStore: profile (with its roles) + effective permissions. */
+export interface AccessPayload {
+  user: Profile;
+  permissions: EffectivePermission[];
+}

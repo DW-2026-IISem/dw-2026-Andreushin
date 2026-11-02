@@ -1,6 +1,10 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ConfirmationService, MessageService } from 'primeng/api';
+import { SessionStore } from '../../core/services/session-store';
+import { PERMISSIONS, PROFILE, TOKENS } from '../../core/testing/session-fixtures';
 import { Shell } from './shell';
 
 /** jsdom has no `matchMedia`: replace it to exercise the desktop branch. */
@@ -24,11 +28,17 @@ function stubDesktopMedia(matches: boolean): () => void {
 
 describe('Shell', () => {
   beforeEach(async () => {
+    localStorage.clear();
     await TestBed.configureTestingModule({
       imports: [Shell],
-      providers: [provideRouter([]), MessageService, ConfirmationService],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting(), MessageService, ConfirmationService],
     }).compileComponents();
+    const session = TestBed.inject(SessionStore);
+    session.setTokens(TOKENS);
+    session.setAccess({ user: PROFILE, permissions: PERMISSIONS });
   });
+
+  afterEach(() => localStorage.clear());
 
   async function createShell() {
     const fixture = TestBed.createComponent(Shell);
@@ -99,5 +109,14 @@ describe('Shell', () => {
     } finally {
       restore();
     }
+  });
+
+  it('should pass the session to the header and the aside', async () => {
+    const { compiled } = await createShell();
+
+    expect(compiled.querySelector('app-header')?.textContent).toContain('admin');
+    expect(compiled.querySelector('app-header')?.textContent).toContain('ADMIN');
+    expect(compiled.querySelector('aside app-aside')?.textContent).toContain('2 permisos');
+    expect(compiled.querySelector('aside button[aria-label="Cerrar sesión"]')).toBeTruthy();
   });
 });

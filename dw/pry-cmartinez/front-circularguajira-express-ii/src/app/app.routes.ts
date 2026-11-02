@@ -1,10 +1,13 @@
 import { Routes } from '@angular/router';
+import { authGuard } from './core/guards/auth-guard';
+import { guestGuard } from './core/guards/guest-guard';
 
 /**
  * Application routes.
  *
- * `prototype` keeps its own layout (ISS-01B). `''` mounts the `Shell`, whose children are
- * the business screens: `/` opens the operations panel.
+ * `prototype` keeps its own layout (ISS-01B) and stays public: it makes no session calls.
+ * `login` is only for guests. `''` mounts the `Shell` behind `authGuard` (ISS-08): without a
+ * session it sends to `/login?returnUrl=…`. Permission checks per screen arrive in ISS-09.
  */
 export const routes: Routes = [
   {
@@ -12,7 +15,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/prototype/prototype').then((m) => m.Prototype),
   },
   {
+    path: 'login',
+    title: 'Iniciar sesión · CircularGuajira',
+    canActivate: [guestGuard],
+    loadComponent: () => import('./features/auth/login/login').then((m) => m.Login),
+  },
+  {
     path: '',
+    canActivate: [authGuard],
     loadComponent: () => import('./layout/shell/shell').then((m) => m.Shell),
     children: [
       // Since ISS-07 the default screen is the operations panel.
@@ -70,6 +80,16 @@ export const routes: Routes = [
         title: 'Liquidaciones · CircularGuajira',
         loadComponent: () =>
           import('./features/settlements/settlement-list/settlement-list').then((m) => m.SettlementList),
+      },
+      {
+        path: 'profile',
+        title: 'Mi perfil · CircularGuajira',
+        loadComponent: () => import('./features/auth/profile/profile').then((m) => m.Profile),
+      },
+      {
+        path: 'forbidden',
+        title: 'Acceso denegado · CircularGuajira',
+        loadComponent: () => import('./features/auth/forbidden/forbidden').then((m) => m.Forbidden),
       },
     ],
   },

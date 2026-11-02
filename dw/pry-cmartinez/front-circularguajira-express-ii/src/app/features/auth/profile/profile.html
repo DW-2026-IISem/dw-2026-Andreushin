@@ -1,0 +1,68 @@
+<app-page-header title="Mi perfil" subtitle="Identidad y permisos efectivos de la sesión, tal como los entrega el backend.">
+  <button pButton type="button" severity="secondary" outlined [loading]="refreshing()" (click)="refresh()">
+    <i pButtonIcon class="pi pi-refresh"></i>
+    <span pButtonLabel>Actualizar permisos</span>
+  </button>
+  <button pButton type="button" severity="danger" outlined (click)="logout()">
+    <i pButtonIcon class="pi pi-sign-out"></i>
+    <span pButtonLabel>Cerrar sesión</span>
+  </button>
+</app-page-header>
+
+@if (session.user(); as user) {
+  <div class="grid gap-4 lg:grid-cols-3">
+    <!-- The grid item is the wrapper: a class on p-card would land on its inner div. -->
+    <div>
+    <p-card styleClass="h-full">
+      <div class="flex items-center gap-3">
+        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-lg font-semibold text-emerald-700">
+          {{ session.initials() }}
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-lg font-semibold text-slate-900">{{ user.username }}</p>
+          <p class="truncate text-sm text-slate-500">{{ user.email }}</p>
+        </div>
+      </div>
+      <dl class="mt-4 space-y-2 text-sm">
+        <div class="flex justify-between gap-2"><dt class="text-slate-500">Id</dt><dd class="font-mono">{{ user.id }}</dd></div>
+        <div class="flex justify-between gap-2"><dt class="text-slate-500">Estado</dt><dd>{{ user.status === 'active' ? 'Activo' : 'Inactivo' }}</dd></div>
+        <div class="flex items-start justify-between gap-2">
+          <dt class="text-slate-500">Roles</dt>
+          <dd class="flex flex-wrap justify-end gap-1">
+            @for (role of session.roleNames(); track role) {
+              <p-tag [value]="role" severity="info" [rounded]="true" />
+            } @empty {
+              <span class="text-slate-400">Sin rol</span>
+            }
+          </dd>
+        </div>
+        <div class="flex justify-between gap-2"><dt class="text-slate-500">Permisos efectivos</dt><dd class="font-mono">{{ session.permissionCount() }}</dd></div>
+      </dl>
+    </p-card>
+    </div>
+
+    <div class="min-w-0 lg:col-span-2">
+    <p-card header="Permisos efectivos">
+      <p-table [value]="permissions()" [paginator]="permissions().length > 10" [rows]="10" size="small">
+        <ng-template #header>
+          <tr>
+            <th class="w-24">Método</th>
+            <th>Ruta</th>
+            <th class="w-24 text-right">Recurso</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-permission>
+          <tr>
+            <td><p-tag [value]="permission.method" [severity]="methodSeverity[permission.method]" /></td>
+            <td class="font-mono text-sm wrap-break-word">{{ permission.path }}</td>
+            <td class="text-right font-mono text-sm">#{{ permission.resourceId }}</td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr><td colspan="3" class="py-6 text-center text-slate-400">Tu rol no tiene permisos asignados.</td></tr>
+        </ng-template>
+      </p-table>
+    </p-card>
+    </div>
+  </div>
+}
