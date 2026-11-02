@@ -1561,3 +1561,110 @@ git add src/app/app.routes.ts src/app/core/guards src/app/core/testing src/app/c
 git commit -m "FRONT-ISS-09: Guards y RBAC en las pantallas de negocio"
 git push origin main
 ```
+
+Commit: [`6b03adf`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/6b03adfc64bb09e4eb7614746d5ad44c6df3a3d5)
+
+### ISS-10 — Formularios de las entidades Auth
+
+Fase II · bloque 3 de 3 (administración). Cinco pantallas administran el modelo de autorización `User ──< role_users >── Role ──< resource_roles >── Resource`. Un usuario puede ejecutar `MÉTODO /ruta` solo si existe la cadena activa completa (asignación, rol, concesión y recurso); si falta un eslabón, el backend responde 403. `refresh_tokens` no tiene pantalla: se gestiona con la sesión.
+
+Rutas en inglés, como el resto del frontend, cada una con `authOnlyGuard` + `permissionGuard`, en el grupo «Seguridad» del menú (`authOnly`):
+
+- `/admin/users` (`GET /api/users`): crear, editar, baja lógica y eliminar. Contraseña y estado **solo al crear**: `PATCH /api/users/:id` los rechaza (400). «Ver permisos» muestra `GET /api/users/:id/permissions` (la misma consulta que `authorize`) y sus roles activos. El usuario de la sesión no puede desactivarse ni eliminarse.
+- `/admin/roles` (`GET /api/roles`): CRUD con baja lógica; el nombre se envía en MAYÚSCULAS, como lo guarda el backend.
+- `/admin/resources` (`GET /api/resources`): CRUD; la ruta se valida con el mismo patrón del backend (`/api` + segmentos o `:param`, barra final opcional porque el backend la normaliza); contadores y filtro por método con `computed`.
+- `/admin/role-users` (`GET /api/role-users`): asignar y retirar (baja lógica, sin DELETE); filtros por usuario y por rol; un par ya activo se bloquea en el diálogo; nadie puede retirarse un rol a sí mismo.
+- `/admin/resource-roles` (`GET /api/resource-roles`): conceder y retirar; el `p-select` de recursos usa las plantillas `#selectedItem` / `#item` (método + ruta); no se pueden retirar al propio rol los permisos de administración del RBAC (evita el auto-bloqueo).
+
+Contrato real (difiere de StoreLab): rutas `/api/users`, `/api/roles`, `/api/resources`, `/api/role-users` y `/api/resource-roles`; cuerpos en camelCase (`{ userId, roleId }`, `{ roleId, resourceId }`); listas envueltas (`{ users }`, `{ roles }`, `{ resources }`, `{ assignments }`, `{ grants }`) que solo traen registros activos; el POST de un pivote responde 201 si es nuevo y 200 si reactiva uno inactivo.
+
+Criterios de aceptación (ISS-10)
+
+- [x] admin lista, crea y edita usuarios; la contraseña y el estado solo se envían al crear
+- [x] «Ver permisos» muestra los permisos efectivos (método, ruta) y los roles activos del usuario
+- [x] Roles: CRUD con baja lógica; el nombre se guarda en MAYÚSCULAS
+- [x] Recursos: crear, editar, desactivar y eliminar; la ruta se valida
+- [x] Asignaciones: crear el vínculo usuario-rol y retirarlo; no se puede duplicar
+- [x] Concesiones: el selector de recursos muestra método + ruta
+- [x] Conceder y revocar desde la UI cambia el menú del otro usuario tras «Actualizar permisos», sin recargar
+- [x] Un rol sin los `GET` de administración no abre `/admin/*` ni ve el grupo Seguridad
+- [x] Las pruebas pasan
+- [x] `ng build` termina con código 0
+
+### Pasos
+
+```bash
+ng generate component features/admin/users/user-list --skip-tests --defaults
+ng generate component features/admin/users/user-form --skip-tests --defaults
+ng generate component features/admin/roles/role-list --skip-tests --defaults
+ng generate component features/admin/roles/role-form --skip-tests --defaults
+ng generate component features/admin/resources/resource-list --skip-tests --defaults
+ng generate component features/admin/resources/resource-form --skip-tests --defaults
+ng generate component features/admin/role-users/role-user-list --skip-tests --defaults
+ng generate component features/admin/resource-roles/resource-role-list --skip-tests --defaults
+# rutas /admin/* con authOnlyGuard + permissionGuard y grupo «Seguridad» en nav.config.ts
+cd ../app-circularguajira-express-ii && npm run dev
+```
+
+### Verificación del ISS
+
+```bash
+grep -n "admin/" src/app/app.routes.ts src/app/layout/shell/nav.config.ts
+npm test -- --watch=false
+ng build
+```
+
+**Verificación:** con el backend real, admin administra usuarios, roles, recursos, asignaciones y concesiones desde la UI, y un permiso concedido o revocado cambia lo que ve el otro usuario sin reiniciar el backend.
+
+#### Evidencias
+
+**Ev1 — Usuarios:** «Nuevo usuario» hace `POST /api/users` con `password` (enmascarada) y `status`, y responde 201; al editar, el formulario no tiene contraseña y el estado está bloqueado, y el `PATCH /api/users/218` solo lleva `username`, `email` y `avatar`.
+
+![Ev1 ISS-10](images/Ev1-ISS-10.png)
+
+**Ev2 — Ver permisos:** el diálogo de planta muestra su rol activo PLANTA, «13 permisos» y cada uno con método, ruta y recurso.
+
+![Ev2 ISS-10](images/Ev2-ISS-10.png)
+
+**Ev3 — Roles:** «visitante» se envía como `{"name":"VISITANTE",…,"status":"active"}` (201); editar hace `PATCH /api/roles/74` sin estado; la baja lógica (`PATCH /api/roles/74/deactivate`) lo quita de la lista.
+
+![Ev3 ISS-10](images/Ev3-ISS-10.png)
+
+**Ev4 — Recursos:** la ruta `summaries` muestra «Debe empezar por /api…»; `/api/summaries/` se guarda como `/api/summaries`; se crea `/api/summaries/:id` y se elimina (`DELETE /api/resources/162`), se edita la descripción (`PATCH`) y se da de baja (`/deactivate`); los contadores vuelven a 87 (GET 29 · POST 13 · PUT 10 · PATCH 25 · DELETE 10).
+
+![Ev4 ISS-10](images/Ev4-ISS-10.png)
+
+**Ev5 — Asignaciones:** `POST /api/role-users` `{"userId":218,"roleId":5}` responde 201 y operador.patio aparece con FINANZAS; repetir el par muestra «operador.patio ya tiene el rol FINANZAS.» con «Asignar» deshabilitado; «Retirar rol» hace `PATCH /api/role-users/173/deactivate`.
+
+![Ev5 ISS-10](images/Ev5-ISS-10.png)
+
+**Ev6 — Concesiones:** el diálogo «Conceder permiso» con rol PLANTA y el selector de recursos filtrado por «recyclers», cada opción con la etiqueta del método y la ruta; arriba, los contadores de concesiones por rol.
+
+![Ev6 ISS-10](images/Ev6-ISS-10.png)
+
+**Ev7 — Cadena completa:** con la sesión de planta abierta (13 permisos), admin concede desde la UI `GET /api/recyclers` a PLANTA (`POST /api/resource-roles`, que reactiva la concesión 240); planta pulsa «Actualizar permisos» y aparece «Recicladores» (14 permisos); admin la retira (`PATCH /api/resource-roles/240/deactivate` → 200) y, tras otro «Actualizar permisos», el menú vuelve a 13 permisos, con `sinRecargar: true`.
+
+![Ev7 ISS-10](images/Ev7-ISS-10.png)
+
+**Ev8 — Sin permisos de administración:** planta abre a mano `/admin/users` y `/admin/resource-roles` y termina en `/forbidden` con `GET /api/users` y `GET /api/resource-roles`; el grupo Seguridad no está en su menú.
+
+![Ev8 ISS-10](images/Ev8-ISS-10.png)
+
+**Ev9 — Pruebas:** las 17 pruebas de administración pasan (formularios, auto-bloqueo, permisos efectivos, duplicados, concesiones) y la suite queda en 46 archivos y 199 pruebas.
+
+![Ev9 ISS-10](images/Ev9-ISS-10.png)
+
+**Ev10 — Build:** `ng build` código 0 (Initial total 579.69 kB).
+
+![Ev10 ISS-10](images/Ev10-ISS-10.png)
+
+Datos de prueba: el rol VISITANTE y los recursos `/api/reports` y `/api/summaries` se eliminaron al terminar; el usuario operador.patio quedó desactivado, porque el backend no deja borrar un usuario con historial de asignaciones (409 «desactívalo en lugar de eliminarlo»).
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell src/app/core/utils/http-method.ts \
+  src/app/features/admin docs/PROCESO.md docs/images/Ev*-ISS-10.png
+git commit -m "FRONT-ISS-10: Formularios de las entidades Auth"
+git push origin main
+```

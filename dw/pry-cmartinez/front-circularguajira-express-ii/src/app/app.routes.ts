@@ -103,6 +103,42 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/settlements/settlement-list/settlement-list').then((m) => m.SettlementList),
       },
+      // ISS-10: RBAC administration. Only with a session (authOnlyGuard) and with the grant.
+      {
+        path: 'admin/users',
+        title: 'Usuarios · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/users' },
+        loadComponent: () => import('./features/admin/users/user-list/user-list').then((m) => m.UserList),
+      },
+      {
+        path: 'admin/roles',
+        title: 'Roles · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/roles' },
+        loadComponent: () => import('./features/admin/roles/role-list/role-list').then((m) => m.RoleList),
+      },
+      {
+        path: 'admin/resources',
+        title: 'Recursos · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/resources' },
+        loadComponent: () => import('./features/admin/resources/resource-list/resource-list').then((m) => m.ResourceList),
+      },
+      {
+        path: 'admin/role-users',
+        title: 'Asignaciones · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/role-users' },
+        loadComponent: () => import('./features/admin/role-users/role-user-list/role-user-list').then((m) => m.RoleUserList),
+      },
+      {
+        path: 'admin/resource-roles',
+        title: 'Concesiones · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/resource-roles' },
+        loadComponent: () => import('./features/admin/resource-roles/resource-role-list/resource-role-list').then((m) => m.ResourceRoleList),
+      },
       {
         path: 'profile',
         title: 'Mi perfil · CircularGuajira',
