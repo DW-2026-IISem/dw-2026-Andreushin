@@ -1,0 +1,7 @@
+/*
+ * Styles of the App component.
+ *
+ * Intentionally EMPTY: the look comes from Tailwind utilities in the HTML and from
+ * the PrimeNG Aura theme. Angular keeps the file because `styleUrl` references it,
+ * and it would only affect `<app-root>`.
+ */

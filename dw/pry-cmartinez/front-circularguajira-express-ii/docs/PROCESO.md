@@ -165,3 +165,153 @@ git add docs/PROCESO.md docs/images/Ev10-ISS-00.png docs/images/Ev11-ISS-00.png 
 git commit -m "FRONT-ISS-00: Perfil, usuario sin rol y Authorization en Network"
 git push origin main
 ```
+
+Commit: [`89ba2b1`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/89ba2b18db06c2b6670b148daf5e473f8746c5e7)
+
+### ISS-01 — Bootstrap Angular 22 con CLI
+
+Crear el proyecto con el Angular CLI actual sin carpeta adicional, integrar Tailwind y PrimeNG compatibles y dejar el tema Aura funcionando. Al final `ng serve` muestra la pantalla inicial sin errores. App compone un único componente de aprendizaje, `demo/example`: un objeto `Material` en un `signal`, dos `computed` y un `effect` (equivalente al producto con IVA de la guía: aquí el valor liquidado es tarifa × peso neto).
+
+El tema Aura de PrimeNG pinta los controles (variables CSS generadas en runtime); las utilidades Tailwind resuelven espacio, tipografía y color en el HTML. El orden de capas `theme, base, primeng, utilities` hace que Tailwind gane sin `!important`.
+
+Criterios de aceptación (ISS-01)
+
+- [x] Existen `angular.json`, `package.json`, `src/main.ts` y `src/app/app.config.ts` directamente en la carpeta del proyecto (sin subcarpeta)
+- [x] `src/app/app.routes.ts` existe con `export const routes` y `provideRouter` está en `app.config.ts`
+- [x] `npm ls primeng @primeuix/themes primeicons @angular/cdk --depth=0` muestra versiones compatibles con Angular 22; `package-lock.json` se conserva
+- [x] `src/styles.css` declara el orden de capas e importa `tailwindcss` y `primeicons/primeicons.css`
+- [x] `providePrimeNG` usa el preset Aura y `darkModeSelector: '.app-dark'`
+- [x] `providePrimeNG` lee `environment.primeUiLicense` y se entiende el aviso Invalid PrimeUI License
+- [x] `app.ts` importa `Example` y `app.html` contiene `<app-example />`; `app.css` queda vacío; `app.routes.ts` sigue vacío
+- [x] Existe el componente `src/app/demo/example/` (`.ts`, `.html`, `.css`, `.spec.ts`) con un objeto en un `signal`
+- [x] `index.html` tiene `<title>CircularGuajira Express II · Angular 22</title>`, `lang="es"` y `<body class="m-0 bg-slate-100 font-sans text-slate-900">`
+- [x] El presupuesto `initial` de producción es 750kB / 1MB
+- [x] `ng serve` compila sin errores y `http://localhost:4200` responde 200
+- [x] En pantalla se ve la tarjeta del material; +100 cambia la tarifa y el valor liquidado sin recargar
+- [x] Explica el arranque `index.html` → `main.ts` → `app.config.ts` → App → `<app-example />` → `demo/example` y la función de los cuatro archivos de un componente
+- [x] Explica cómo el selector del componente se convierte en la etiqueta que se escribe en `app.html`
+- [x] Distingue `signal`, `computed` y `effect` sobre el código real de `demo/example/example.ts`
+- [x] Explica el aislamiento de estilos con la clase `.example-scope` de `example.css` y el atributo `_ngcontent-…`
+- [x] La consola del navegador no muestra errores de código; `[PrimeUI] PrimeUI license is not configured` está identificado como aviso de licencia
+- [x] La consola del navegador no muestra errores de dependencias ni de tema
+- [x] `ng build` termina con código 0
+
+### Pasos
+
+```bash
+cd ~/ia-lab/projects/dw/pry-cmartinez/front-circularguajira-express-ii
+ng new front-circularguajira-express-ii --directory . --style=tailwind --routing \
+  --ssr=false --skip-git --package-manager=npm --defaults
+npm install
+npm view primeng version peerDependencies --json
+npm install primeng @primeuix/themes primeicons @angular/cdk
+ng generate environments
+ng generate component demo/example
+# styles.css, app.config.ts, environment*.ts, app.ts/html/css/spec, app.routes.ts,
+# index.html, README.md y presupuesto initial en angular.json
+npm start
+```
+
+### Verificación del ISS
+
+```bash
+ng build
+grep -R "providePrimeNG\|@import 'tailwindcss'" src | head
+npm ls primeng @primeuix/themes primeicons @angular/cdk --depth=0
+node -e "const a=require('./angular.json');const p=a.projects[Object.keys(a.projects)[0]];console.log(p.architect.build.configurations.production.budgets[0])"
+cat src/styles.css
+grep -n "imports: \[Example\]" src/app/app.ts
+grep -n "app-example" src/app/app.html
+grep -n "signal<\|computed(\|effect(" src/app/demo/example/example.ts
+npm test -- --watch=false
+```
+
+**Verificación:** `ng serve` muestra la tarjeta del material con Tailwind y Aura activos; +100 cambia la tarifa y el valor liquidado sin recargar, el estado alterna el mensaje y el presupuesto está ajustado.
+
+#### Evidencias
+
+**Ev1 — Proyecto en la carpeta:** los cinco archivos clave están en la raíz del proyecto, sin subcarpeta.
+
+![Ev1 ISS-01](images/Ev1-ISS-01.png)
+
+**Ev2 — Rutas:** `app.routes.ts` exporta `routes: Routes = []` y `app.config.ts` usa `provideRouter`.
+
+![Ev2 ISS-01](images/Ev2-ISS-01.png)
+
+**Ev3 — PrimeNG:** `primeng@22.1.4`, `@primeuix/themes@3.1.0`, `primeicons@8.0.2`, `@angular/cdk@22.2.5`; los peers de PrimeNG piden `@angular/* ^22.1.0` y existe `package-lock.json`.
+
+![Ev3 ISS-01](images/Ev3-ISS-01.png)
+
+**Ev4 — Estilos globales:** `styles.css` declara `@layer theme, base, primeng, utilities;` e importa `tailwindcss` y `primeicons`.
+
+![Ev4 ISS-01](images/Ev4-ISS-01.png)
+
+**Ev5 — Tema:** `providePrimeNG` con `preset: Aura`, `darkModeSelector: '.app-dark'` y `cssLayer` `primeng`.
+
+![Ev5 ISS-01](images/Ev5-ISS-01.png)
+
+**Ev6 — Licencia:** `license: environment.primeUiLicense || undefined`; `primeUiLicense: ''` en ambos environments y `fileReplacements` para desarrollo. Sin clave aparece la banda Invalid PrimeUI License (Ev12).
+
+![Ev6 ISS-01](images/Ev6-ISS-01.png)
+
+**Ev7 — Composición:** `app.ts` importa `Example`, `app.html` contiene `<app-example />`, `app.css` solo tiene un comentario y `routes` sigue vacío.
+
+![Ev7 ISS-01](images/Ev7-ISS-01.png)
+
+**Ev8 — Componente de ejemplo:** `demo/example` tiene sus cuatro archivos y `material = signal<Material>(createInitialMaterial())`.
+
+![Ev8 ISS-01](images/Ev8-ISS-01.png)
+
+**Ev9 — index.html:** `lang="es"`, título, meta description y `<body class="m-0 bg-slate-100 font-sans text-slate-900">`.
+
+![Ev9 ISS-01](images/Ev9-ISS-01.png)
+
+**Ev10 — Presupuesto:** `initial` con `maximumWarning: "750kB"` y `maximumError: "1MB"`.
+
+![Ev10 ISS-01](images/Ev10-ISS-01.png)
+
+**Ev11 — ng serve:** `npm start` compila y `GET http://localhost:4200` responde 200 con el título del proyecto.
+
+![Ev11 ISS-01](images/Ev11-ISS-01.png)
+
+**Ev12 — Pantalla tras +100:** tarjeta «Objeto material» con tarifa 1900 y valor liquidado 19000, etiqueta Activo, las tarjetas Signals y Estilos y la banda de licencia.
+
+![Ev12 ISS-01](images/Ev12-ISS-01.png)
+
+**Ev13 — Arranque:** `index.html` (`<app-root>`) → `main.ts` (`bootstrapApplication`) → `app.config.ts` (providers) → `app.ts` (`imports: [Example]`) → `app.html` (`<app-example />`) → `demo/example` (`.ts` clase, `.html` vista, `.css` estilos privados, `.spec.ts` prueba).
+
+![Ev13 ISS-01](images/Ev13-ISS-01.png)
+
+**Ev14 — Selector a etiqueta:** `selector: 'app-example'` en `example.ts` más `imports: [Example]` en `app.ts` hacen que `<app-example />` de `app.html` pinte el componente; `host: { class: 'block' }` da la clase al anfitrión.
+
+![Ev14 ISS-01](images/Ev14-ISS-01.png)
+
+**Ev15 — signal, computed y effect:** `material` es el estado (`signal`), `settlementValue` y `statusLabel` se derivan (`computed`), `logger` registra en consola (`effect`); los métodos usan `update` con `{ ...current }` o `set`, sin mutar el objeto. Sin Zone.js: el signal avisa a la vista.
+
+![Ev15 ISS-01](images/Ev15-ISS-01.png)
+
+**Ev16 — Encapsulamiento:** `example.css` define `.example-scope` y el build la emite como `.example-scope[_ngcontent-%COMP%]`, que solo afecta a `<app-example>`.
+
+![Ev16 ISS-01](images/Ev16-ISS-01.png)
+
+**Ev17 — Consola:** Chromium carga la app y registra 0 errores, el aviso `[PrimeUI] PrimeUI license is not configured` y los logs del `effect` 1800 → 1900 tras +100.
+
+![Ev17 ISS-01](images/Ev17-ISS-01.png)
+
+**Ev18 — Tema cargado:** `--p-primary-color` vale `light-dark(#10b981,#34d399)` en runtime (Aura) y la consola no tiene errores de dependencias ni de tema.
+
+![Ev18 ISS-01](images/Ev18-ISS-01.png)
+
+**Ev19 — Build y pruebas:** `ng build` termina con código 0 (Initial total 602.96 kB, sin warning) y `ng test` aprueba 7 pruebas (3 de App + 4 del ejemplo).
+
+![Ev19 ISS-01](images/Ev19-ISS-01.png)
+
+### Commit
+
+```bash
+git add .editorconfig .gitignore .postcssrc.json .prettierrc .vscode README.md angular.json \
+  package.json package-lock.json tsconfig.json tsconfig.app.json tsconfig.spec.json public src \
+  docs/PROCESO.md docs/images/Ev*-ISS-01.png
+git commit -m "FRONT-ISS-01: Bootstrap Angular 22 con CLI"
+git push origin main
+```

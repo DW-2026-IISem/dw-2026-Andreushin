@@ -1,0 +1,67 @@
+<div class="flex flex-col gap-6">
+  <header>
+    <h1 class="text-2xl font-semibold">CircularGuajira Express II</h1>
+    <p class="text-slate-600">Angular 22 · Signals · PrimeNG (tema Aura) · Tailwind CSS</p>
+  </header>
+
+  <p-card header="Objeto material">
+    <div class="flex flex-col gap-4">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <span class="text-xl font-medium">{{ material().name }}</span>
+        <!-- Boolean property binding: the tag changes color with `active`. -->
+        <p-tag [value]="statusLabel()" [severity]="material().active ? 'success' : 'danger'" />
+      </div>
+
+      <!-- Interpolation: reads the signal and then the field. -->
+      <p class="text-2xl font-bold text-slate-900">{{ material().ratePerKg }}</p>
+      <p class="text-sm text-slate-500">
+        Tarifa por kg · valor liquidado de {{ material().netKg }} kg netos:
+        <strong>{{ settlementValue() }}</strong>
+      </p>
+
+      <!-- Property binding + event binding on an editable field. -->
+      <label class="flex flex-col gap-1 text-sm">
+        Nombre
+        <input pInputText type="text" [value]="material().name" (input)="rename($event)" />
+      </label>
+      <p class="text-sm text-slate-600">Vista previa: {{ material().name }}</p>
+
+      <!-- Event binding with an argument: the button calls the method with 100. -->
+      <div class="flex flex-wrap gap-2">
+        <p-button label="+100" (onClick)="changeRate(100)" />
+        <p-button label="-100" severity="secondary" (onClick)="changeRate(-100)" />
+        <p-button label="Cambiar estado" icon="pi pi-sync" severity="contrast" (onClick)="toggleStatus()" />
+        <p-button label="Reiniciar" icon="pi pi-refresh" [text]="true" (onClick)="reset()" />
+      </div>
+
+      @if (material().active) {
+        <p-message severity="success" variant="simple">
+          Material activo: la API lo devolvería en <code>GET /api/materials</code>.
+        </p-message>
+      } @else {
+        <p-message severity="warn" variant="simple">
+          Material inactivo: el borrado lógico lo oculta de las listas.
+        </p-message>
+      }
+    </div>
+  </p-card>
+
+  <div class="grid gap-6 md:grid-cols-2">
+    <p-card header="Signals">
+      <ul class="flex list-disc flex-col gap-1 pl-5 text-sm">
+        <li><code>signal</code>: <code>material</code> guarda el objeto.</li>
+        <li><code>computed</code>: valor liquidado = tarifa × peso neto.</li>
+        <li><code>effect</code>: escribe <code>[example]</code> en la consola en cada cambio.</li>
+      </ul>
+    </p-card>
+
+    <p-card header="Estilos">
+      <p class="text-sm">
+        El tema Aura de PrimeNG pinta los componentes; las utilidades Tailwind ordenan el espacio.
+      </p>
+      <div class="example-scope mt-4 text-sm text-slate-700">
+        Esta caja usa <code>.example-scope</code> de <code>example.css</code>: solo afecta a este componente.
+      </div>
+    </p-card>
+  </div>
+</div>
