@@ -1,0 +1,63 @@
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+  <p class="text-sm text-slate-600">
+    Nueva tarifa para <span class="font-semibold text-slate-900">{{ materialName() }}</span
+    >.
+  </p>
+
+  <div>
+    <label for="rate-price" class="mb-1 block text-sm font-medium text-slate-700">
+      Precio por kg (COP) <span class="text-red-500">*</span>
+    </label>
+    <p-inputnumber
+      inputId="rate-price"
+      formControlName="pricePerKg"
+      mode="currency"
+      currency="COP"
+      locale="es-CO"
+      [minFractionDigits]="0"
+      [maxFractionDigits]="2"
+      [min]="0"
+      [max]="maxPrice"
+      [fluid]="true"
+    />
+    @if (form.controls.pricePerKg.touched && form.controls.pricePerKg.invalid) {
+      <p-message severity="error" size="small" variant="simple" styleClass="mt-1">
+        Escribe un precio mayor que 0 (máximo 9.999.999,99).
+      </p-message>
+    }
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div>
+      <label for="rate-from" class="mb-1 block text-sm font-medium text-slate-700">
+        Vigente desde <span class="text-red-500">*</span>
+      </label>
+      <input id="rate-from" pInputText type="date" formControlName="validFrom" class="w-full" />
+    </div>
+    <div>
+      <label for="rate-to" class="mb-1 block text-sm font-medium text-slate-700"
+        >Hasta (opcional)</label
+      >
+      <input id="rate-to" pInputText type="date" formControlName="validTo" class="w-full" />
+    </div>
+  </div>
+  @if (form.hasError('periodOrder')) {
+    <p-message severity="error" size="small" variant="simple">
+      La fecha final no puede ser anterior a la inicial.
+    </p-message>
+  }
+  <p class="text-xs text-slate-500">
+    Las tarifas no se editan: si hay una tarifa abierta que empezó antes, el backend la cierra el
+    día anterior. Un periodo que se cruce con otro responde 409.
+  </p>
+
+  <div class="flex justify-end gap-2 border-t border-slate-100 pt-4">
+    <button pButton type="button" severity="secondary" outlined (click)="cancelled.emit()">
+      <span pButtonLabel>Cancelar</span>
+    </button>
+    <button pButton type="submit" [loading]="saving()">
+      <i pButtonIcon class="pi pi-check"></i>
+      <span pButtonLabel>Registrar tarifa</span>
+    </button>
+  </div>
+</form>

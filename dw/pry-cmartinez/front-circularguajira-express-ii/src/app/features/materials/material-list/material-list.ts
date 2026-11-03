@@ -1,4 +1,5 @@
 import { Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ConfirmationService } from 'primeng/api';
 import { ButtonModule } from 'primeng/button';
 import { DialogModule } from 'primeng/dialog';
@@ -27,6 +28,7 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   selector: 'app-material-list',
   imports: [
     HasPermission,
+    RouterLink,
     ButtonModule,
     DialogModule,
     EmptyState,

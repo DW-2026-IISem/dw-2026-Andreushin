@@ -55,6 +55,14 @@ export const routes: Routes = [
           import('./features/materials/material-list/material-list').then((m) => m.MaterialList),
       },
       {
+        path: 'rates',
+        title: 'Tarifas · CircularGuajira',
+        canActivate: [permissionGuard],
+        data: { permission: 'GET /api/materials/:id/rates' },
+        loadComponent: () =>
+          import('./features/materials/rate-list/rate-list').then((m) => m.RateList),
+      },
+      {
         path: 'routes',
         title: 'Rutas · CircularGuajira',
         canActivate: [permissionGuard],

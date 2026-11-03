@@ -141,7 +141,14 @@ describe('Shell', () => {
       link.getAttribute('href'),
     );
 
-    expect(hrefs).toEqual(['/dashboard', '/materials', '/collections', '/weighings', '/prototype']);
+    expect(hrefs).toEqual([
+      '/dashboard',
+      '/materials',
+      '/rates',
+      '/collections',
+      '/weighings',
+      '/prototype',
+    ]);
   });
 
   it('should change the menu without reloading when the permissions change', async () => {

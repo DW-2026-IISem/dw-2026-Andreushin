@@ -41,6 +41,12 @@ export const NAV: NavGroup[] = [
         routerLink: '/materials',
         permission: 'GET /api/materials',
       },
+      {
+        label: 'Tarifas',
+        icon: 'pi pi-dollar',
+        routerLink: '/rates',
+        permission: 'GET /api/materials/:id/rates',
+      },
       { label: 'Rutas', icon: 'pi pi-map', routerLink: '/routes', permission: 'GET /api/routes' },
       {
         label: 'Puntos de recolección',

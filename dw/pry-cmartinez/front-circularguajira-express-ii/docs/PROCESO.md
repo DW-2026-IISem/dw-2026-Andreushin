@@ -1768,3 +1768,82 @@ git push origin main
 ```
 
 Commit: [`725aa8f`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/725aa8f2316266feb0900297014a7066825dbceb)
+
+### ISS-12 — Tarifas
+
+Al revisar el RBAC rol por rol apareció un hueco: FINANZAS es responsable de «tarifas y liquidaciones», y el backend le concede el historial y el registro de tarifas (`GET` y `POST /api/materials/:id/rates`), pero el frontend nunca tuvo esa pantalla. Este ISS la construye. En el backend se ajustó la matriz a mínimo privilegio (`AJUSTE-RBAC`, `dc450a3`): FINANZAS ya no lee pesajes, PLANTA ya no verifica liquidaciones y BASCULA ya no lee el historial de tarifas. El frontend no se tocó para eso: el menú y los botones salen de `GET /api/session/permissions`. Solo se regeneró el fixture de pruebas `core/testing/role-permissions.ts` desde el catálogo.
+
+- `/rates` («Tarifas», en el menú tras Materiales) exige `GET /api/materials/:id/rates`: FINANZAS y PLANTA (solo lectura) y ADMIN. Selector de material, tarifa vigente hoy (fecha de Colombia) y el historial con su estado (`Vigente`, `Programada`, `Cerrada`, `rateStatus` en `core/utils`).
+- «Nueva tarifa» (`POST`, FINANZAS y ADMIN): precio por kg (hasta 9.999.999,99 con 2 decimales), vigencia desde y hasta opcional. Las tarifas no se editan: si hay una abierta que empezó antes, el backend la cierra el día anterior; un periodo cruzado responde 409 y se muestra.
+- En Materiales cada fila tiene «Ver tarifas» (`/rates?materialId=…`) para quien puede leerlas.
+- Se encontró y corrigió un error al capturar: al reabrir el diálogo el formulario conservaba la fecha anterior. El reinicio dependía de un `computed` de la fecha de hoy, que no cambia, así que el `effect` no volvía a correr; ahora lee `resetKey` directamente (con prueba).
+
+Criterios de aceptación (ISS-12)
+
+- [x] `/rates` muestra el historial de tarifas de un material y su tarifa vigente
+- [x] «Nueva tarifa» registra la tarifa, cierra la anterior y muestra el 409 si los periodos se cruzan
+- [x] Cada rol ve Tarifas según su matriz: FINANZAS registra, PLANTA solo lee, LOGISTICA y BASCULA van a `/forbidden`; FINANZAS ya no ve Pesajes
+- [x] Desde Materiales, «Ver tarifas» abre ese material
+- [x] La pantalla es responsiva: el auditor da 0 problemas con `/rates` y su diálogo
+- [x] Las pruebas pasan
+- [x] `ng build` termina con código 0 y el código está formateado
+
+### Pasos
+
+```bash
+ng generate component features/materials/rate-list --skip-tests --defaults
+ng generate component features/materials/rate-form --skip-tests --defaults
+# ruta /rates con permissionGuard, «Tarifas» en nav.config.ts, «Ver tarifas» en material-list
+cd ../app-circularguajira-express-ii && npm run db:seed && npm run dev   # matriz AJUSTE-RBAC
+```
+
+### Verificación del ISS
+
+```bash
+npm test -- --watch=false
+ng build
+node responsive-audit.mjs   # herramienta de evidencias, fuera del repo
+```
+
+**Verificación:** FINANZAS gestiona las tarifas desde el frontend con las reglas del backend, cada rol ve lo que su matriz le permite y la pantalla funciona de 360 a 1920 px.
+
+#### Evidencias
+
+**Ev1 — Tarifas:** finanzas en `/rates` con Cobre: vigente hoy $32,140/kg desde 01/10/2026 sin cierre, y el historial con dos tarifas cerradas; su menú tiene Tarifas y ya no tiene Pesajes (16 permisos).
+
+![Ev1 ISS-12](images/Ev1-ISS-12.png)
+
+**Ev2 — Nueva tarifa:** sobre un material de prueba sin tarifas («Sin tarifa vigente»), se registra $400 desde 2026-10-01 (201); al reabrir, el formulario vuelve a la fecha de hoy y se registra $450 desde 2026-11-02 (201), lo que cierra la anterior del 01/10 al 01/11; un periodo del 15 al 20/10 responde 409 «El periodo se cruza con la tarifa 74». El material de prueba se desactivó al terminar.
+
+![Ev2 ISS-12](images/Ev2-ISS-12.png)
+
+**Ev3 — Permisos por rol:** finanzas ve Tarifas y «Nueva tarifa»; planta ve Tarifas sin «Nueva tarifa»; logistica y bascula no tienen Tarifas en el menú y `/rates` los lleva a `/forbidden` con `GET /api/materials/:id/rates`.
+
+![Ev3 ISS-12](images/Ev3-ISS-12.png)
+
+**Ev4 — Desde Materiales:** planta busca Cobre, «Ver tarifas» apunta a `/rates?materialId=9` y abre esa tarifa vigente.
+
+![Ev4 ISS-12](images/Ev4-ISS-12.png)
+
+**Ev5 — Responsivo:** `responsive-audit.mjs` (18 rutas incluida `/rates`, 360 a 1920 px, tooltips y diálogos): 372 comprobaciones, 0 problemas.
+
+![Ev5 ISS-12](images/Ev5-ISS-12.png)
+
+**Ev6 — Pruebas:** las de tarifas (estado, formulario, pantalla, enlace por rol) pasan; la suite queda en 49 archivos y 210 pruebas.
+
+![Ev6 ISS-12](images/Ev6-ISS-12.png)
+
+**Ev7 — Formato y build:** Prettier sin cambios pendientes y `ng build` código 0 (Initial total 580.68 kB).
+
+![Ev7 ISS-12](images/Ev7-ISS-12.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/shell/shell.spec.ts \
+  src/app/core/utils/rate-status.ts src/app/core/utils/rate-status.spec.ts src/app/core/testing/role-permissions.ts \
+  src/app/features/materials/rate-list src/app/features/materials/rate-form src/app/features/materials/material-list \
+  docs/PROCESO.md docs/images/Ev*-ISS-12.png
+git commit -m "FRONT-ISS-12: Tarifas"
+git push origin main
+```

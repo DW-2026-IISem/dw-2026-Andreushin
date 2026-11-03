@@ -1,0 +1,117 @@
+<app-page-header
+  title="Tarifas"
+  subtitle="Precio por kg de cada material. La tarifa vigente en la fecha de la recolección valoriza sus pesajes y su liquidación."
+>
+  <ng-container *appHasPermission="'POST /api/materials/:id/rates'">
+    <button pButton type="button" [disabled]="!selected()" (click)="openCreate()">
+      <i pButtonIcon class="pi pi-plus"></i>
+      <span pButtonLabel>Nueva tarifa</span>
+    </button>
+  </ng-container>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+
+<div class="mb-4 grid gap-4 md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)]">
+  <div class="rounded-xl border border-slate-200 bg-white p-4">
+    <label
+      id="rate-material-label"
+      for="rate-material"
+      class="mb-1 block text-sm font-medium text-slate-700"
+    >
+      Material
+    </label>
+    <p-select
+      inputId="rate-material"
+      ariaLabelledBy="rate-material-label"
+      [options]="materials()"
+      optionLabel="name"
+      [filter]="true"
+      filterBy="name"
+      placeholder="Elige un material"
+      [loading]="loadingMaterials()"
+      [ngModel]="selected()"
+      (ngModelChange)="choose($event)"
+      [fluid]="true"
+    />
+  </div>
+
+  <div class="rounded-xl border border-slate-200 bg-white p-4" data-testid="current-rate">
+    <p class="text-sm text-slate-500">Tarifa vigente hoy ({{ today }})</p>
+    @if (current(); as rate) {
+      <p class="mt-1 text-2xl font-semibold text-slate-900">
+        {{ price(rate) | currency: 'COP' : 'symbol-narrow' : '1.0-2'
+        }}<span class="text-sm font-normal text-slate-500">/kg</span>
+      </p>
+      <p class="text-xs text-slate-400">
+        Desde {{ rate.validFrom | date: 'dd/MM/yyyy' : 'UTC' }}
+        {{ rate.validTo ? 'hasta ' + (rate.validTo | date: 'dd/MM/yyyy' : 'UTC') : 'sin cierre' }}
+      </p>
+    } @else {
+      <p class="mt-1 text-sm text-amber-700">
+        Sin tarifa vigente: no se pueden registrar pesajes de este material con fecha de hoy.
+      </p>
+    }
+  </div>
+</div>
+
+<div class="rounded-xl border border-slate-200 bg-white">
+  <div class="overflow-x-auto">
+    <p-table [value]="rates()" [loading]="loading()" dataKey="id" tableStyleClass="min-w-xl">
+      <ng-template #header>
+        <tr>
+          <th>Desde</th>
+          <th>Hasta</th>
+          <th class="text-right">Precio por kg</th>
+          <th>Estado</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-rate>
+        <tr>
+          <td class="text-sm">{{ rate.validFrom | date: 'dd/MM/yyyy' : 'UTC' }}</td>
+          <td class="text-sm text-slate-600">
+            {{ rate.validTo ? (rate.validTo | date: 'dd/MM/yyyy' : 'UTC') : 'Sin cierre' }}
+          </td>
+          <td class="text-right font-medium">
+            {{ price(rate) | currency: 'COP' : 'symbol-narrow' : '1.0-2' }}
+          </td>
+          <td>
+            <p-tag [value]="label(rate).value" [severity]="label(rate).severity" [rounded]="true" />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4">
+            <app-empty-state
+              icon="pi pi-dollar"
+              title="Sin tarifas"
+              message="Este material todavía no tiene tarifas registradas."
+            />
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
+</div>
+
+<p-dialog
+  [visible]="dialogVisible()"
+  (visibleChange)="dialogVisible.set($event)"
+  header="Nueva tarifa"
+  [modal]="true"
+  [draggable]="false"
+  [resizable]="false"
+  [dismissableMask]="true"
+  styleClass="w-[calc(100%-2rem)] max-w-lg"
+>
+  <app-rate-form
+    [materialName]="selected()?.name ?? ''"
+    [saving]="saving()"
+    [resetKey]="resetKey()"
+    (saved)="save($event)"
+    (cancelled)="dialogVisible.set(false)"
+  />
+</p-dialog>

@@ -1,6 +1,6 @@
 <app-page-header
   title="Materiales"
-  subtitle="Catálogo de materiales reciclables. Las tarifas por kg se gestionan aparte."
+  subtitle="Catálogo de materiales reciclables. Su precio por kg está en «Tarifas»."
 >
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/materials'">
@@ -67,6 +67,21 @@
         <td><app-status-tag [status]="material.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
+            <ng-container *appHasPermission="'GET /api/materials/:id/rates'">
+              <a
+                pButton
+                text
+                rounded
+                severity="info"
+                aria-label="Ver tarifas del material"
+                tooltipPosition="top"
+                pTooltip="Tarifas"
+                routerLink="/rates"
+                [queryParams]="{ materialId: material.id }"
+              >
+                <i pButtonIcon class="pi pi-dollar"></i>
+              </a>
+            </ng-container>
             <ng-container *appHasPermission="'PATCH /api/materials/:id'">
               <button
                 pButton

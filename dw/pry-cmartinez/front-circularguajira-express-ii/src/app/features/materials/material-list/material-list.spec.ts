@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { Confirmation, ConfirmationService, MessageService } from 'primeng/api';
 import { vi } from 'vitest';
 import { environment } from '../../../../environments/environment';
@@ -25,6 +26,7 @@ describe('MaterialList', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         MessageService,
         ConfirmationService,
       ],
@@ -172,5 +174,22 @@ describe('MaterialList', () => {
       { status: 409, statusText: 'Conflict' },
     );
     expect(add).toHaveBeenCalledWith(expect.objectContaining({ summary: 'No se pudo eliminar' }));
+  });
+
+  it('should link each material to its rates for roles that may read them', async () => {
+    const { element } = await createList();
+    const link = element.querySelector('tbody tr a[aria-label="Ver tarifas del material"]');
+    expect(link?.getAttribute('href')).toBe('/rates?materialId=2');
+
+    signInAs('LOGISTICA');
+    const logistics = TestBed.createComponent(MaterialList);
+    http.expectOne(BASE).flush({ materials: MATERIALS });
+    await logistics.whenStable();
+    // LOGISTICA only needs the rate in force (collection form), not the history.
+    expect(
+      (logistics.nativeElement as HTMLElement).querySelector(
+        'a[aria-label="Ver tarifas del material"]',
+      ),
+    ).toBeNull();
   });
 });
