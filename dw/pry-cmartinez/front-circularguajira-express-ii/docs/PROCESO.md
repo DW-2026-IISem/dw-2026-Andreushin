@@ -1847,3 +1847,5 @@ git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/
 git commit -m "FRONT-ISS-12: Tarifas"
 git push origin main
 ```
+
+Commit: [`0d2f138`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/0d2f138f2fc6e19ec888ff922028a9985bdde887)
