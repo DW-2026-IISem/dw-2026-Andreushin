@@ -2154,6 +2154,8 @@ git commit -m "AJUSTE-RBAC: Mínimo privilegio en las lecturas por rol"
 git push origin main
 ```
 
+Commit: [`dc450a3`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/dc450a3390f372310b73526a02346e37f1dff608)
+
 
 ## Secuencia y entregables
 
