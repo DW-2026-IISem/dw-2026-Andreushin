@@ -2112,6 +2112,49 @@ git push origin main
 Commit: [`37eada6`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/37eada656d9d90f4ca2b5b1c51342d1cc557a26e)
 
 
+### Ajuste `AJUSTE-RBAC` — mínimo privilegio en las lecturas
+
+Al revisar la matriz contra lo que cada pantalla del frontend usa de verdad, tres lecturas no las necesitaba ninguna tarea del rol. Se retiran del catálogo (`resource-catalog.ts`) y el seeder de concesiones las desactiva al reconciliar (`+0 / -n`); el frontend no cambia, porque pinta lo que devuelve `GET /api/session/permissions`.
+
+- FINANZAS deja de leer pesajes (`GET /api/weighings` y `/:id`): la verificación de la liquidación ya devuelve sus líneas.
+- PLANTA deja de verificar liquidaciones (`GET /api/settlements/:id/verify`): no puede listarlas, así que el permiso no tenía uso.
+- BASCULA deja el historial de tarifas (`GET /api/materials/:id/rates`): para registrar pesajes le basta la tarifa vigente (`/rates/current`).
+
+Quedan 165 concesiones: ADMIN 87, LOGISTICA 30, BASCULA 20, PLANTA 12, FINANZAS 16.
+
+Criterios de aceptación (AJUSTE-RBAC)
+
+- [x] Los permisos retirados responden 403 y lo que cada rol necesita sigue en 200; el seeder reconcilia sin crear nada nuevo
+- [x] La suite completa sigue pasando
+
+### Verificación del ISS
+
+```bash
+npm run db:seed
+npm run test:all
+```
+
+#### Evidencias
+
+**Ev1 — Matriz ajustada:** cambios en el catálogo, el README y los `.http`; el seeder deja ADMIN 87, LOGISTICA 30, BASCULA 20, PLANTA 12 y FINANZAS 16; FINANZAS recibe 403 en pesajes y 200 en liquidaciones, verificación e historial de tarifas; PLANTA, 403 al verificar; BASCULA, 403 en el historial y 200 en la tarifa vigente; permisos efectivos 16, 12 y 20.
+
+![Ev1 AJUSTE-RBAC](images/Ev1-AJUSTE-RBAC.png)
+
+**Ev2 — Pruebas:** `npm run test:all`: 11 suites, 53 pruebas, 0 fallos.
+
+![Ev2 AJUSTE-RBAC](images/Ev2-AJUSTE-RBAC.png)
+
+### Commit
+
+```bash
+git add README.md docs/PROCESO.md src/features/auth/resources/resource-catalog.ts \
+  src/features/auth/session/http/session.login.http src/features/auth/resource-roles/http/resource-roles.http \
+  docs/images/Ev1-AJUSTE-RBAC.png docs/images/Ev2-AJUSTE-RBAC.png
+git commit -m "AJUSTE-RBAC: Mínimo privilegio en las lecturas por rol"
+git push origin main
+```
+
+
 ## Secuencia y entregables
 
 1. Completar los bloques en orden, incorporando pruebas y migraciones con cada feature.

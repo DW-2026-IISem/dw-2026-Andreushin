@@ -45,9 +45,9 @@ Creados por `npm run db:seed`; contraseñas solo para desarrollo.
 | :--- | :--- | :--- | ---: |
 | `admin` | `Admin2026!` | ADMIN: todo, incluida la administración de seguridad y los borrados físicos | 87 |
 | `logistica` | `Logistica2026!` | LOGISTICA: recicladores, rutas, puntos y recolecciones | 30 |
-| `bascula` | `Bascula2026!` | BASCULA: pesajes y recolecciones | 21 |
-| `planta` | `Planta2026!` | PLANTA: catálogo de materiales; consulta recolecciones y pesajes | 13 |
-| `finanzas` | `Finanzas2026!` | FINANZAS: tarifas y liquidaciones | 18 |
+| `bascula` | `Bascula2026!` | BASCULA: pesajes y recolecciones | 20 |
+| `planta` | `Planta2026!` | PLANTA: catálogo de materiales; consulta recolecciones y pesajes | 12 |
+| `finanzas` | `Finanzas2026!` | FINANZAS: tarifas y liquidaciones | 16 |
 
 La matriz completa vive en `src/features/auth/resources/resource-catalog.ts` y se reconcilia en cada `db:seed`.
 

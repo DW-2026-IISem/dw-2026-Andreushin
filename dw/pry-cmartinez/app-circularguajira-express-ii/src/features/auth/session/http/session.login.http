@@ -4,9 +4,9 @@
 # Usuarios canónicos del seeder (contraseñas solo de laboratorio):
 #   admin / Admin2026!          ADMIN      (87 permisos)
 #   logistica / Logistica2026!  LOGISTICA  (30)
-#   bascula / Bascula2026!      BASCULA    (21)
-#   planta / Planta2026!        PLANTA     (13)
-#   finanzas / Finanzas2026!    FINANZAS   (18)
+#   bascula / Bascula2026!      BASCULA    (20)
+#   planta / Planta2026!        PLANTA     (12)
+#   finanzas / Finanzas2026!    FINANZAS   (16)
 
 ### login por username -> 200 con accessToken y refreshToken
 # @name login

@@ -8,8 +8,12 @@
  *
  *   LOGISTICA  routes, collection points, recyclers and collection intake
  *   BASCULA    weighings (and collections, which are created with their weighings)
- *   PLANTA     material catalog; reads collections and weighings
- *   FINANZAS   rates and settlements
+ *   PLANTA     material catalog and its rate history; reads collections and weighings
+ *   FINANZAS   rates and settlements; reads the recyclers, materials and collections it pays
+ *
+ * Reads are granted only when a task needs them: FINANZAS does not read weighings (the
+ * settlement verification already returns its lines), PLANTA does not verify settlements
+ * (it cannot list them) and BASCULA only needs the rate in force, not the history.
  *
  * Session endpoints (login, refresh, logout, profile) are not resources: they are OPEN or
  * JWT modes and do not depend on the matrix.
@@ -48,17 +52,17 @@ export const RESOURCE_CATALOG: readonly CatalogResource[] = [
   // ── Business (Phase I) ────────────────────────────────────────
   ...crud("/api/recyclers", "recicladores", { read: ["LOGISTICA", "BASCULA", "FINANZAS"], write: ["LOGISTICA"] }),
   ...crud("/api/materials", "materiales", { read: ["LOGISTICA", "BASCULA", "PLANTA", "FINANZAS"], write: ["PLANTA"] }),
-  { method: "GET", path: "/api/materials/:id/rates", description: "Historial de tarifas", roles: ["BASCULA", "PLANTA", "FINANZAS"] },
+  { method: "GET", path: "/api/materials/:id/rates", description: "Historial de tarifas", roles: ["PLANTA", "FINANZAS"] },
   { method: "POST", path: "/api/materials/:id/rates", description: "Registrar tarifa", roles: ["FINANZAS"] },
   { method: "GET", path: "/api/materials/:id/rates/current", description: "Tarifa aplicable en una fecha", roles: ["LOGISTICA", "BASCULA", "PLANTA", "FINANZAS"] },
   ...crud("/api/routes", "rutas", { read: ["LOGISTICA", "BASCULA"], write: ["LOGISTICA"] }),
   { method: "GET", path: "/api/routes/:id/points", description: "Puntos de una ruta", roles: ["LOGISTICA", "BASCULA"] },
   ...crud("/api/collection-points", "puntos de recolección", { read: ["LOGISTICA"], write: ["LOGISTICA"] }),
   ...crud("/api/collections", "recolecciones", { read: ["LOGISTICA", "BASCULA", "PLANTA", "FINANZAS"], write: ["LOGISTICA", "BASCULA"] }),
-  ...crud("/api/weighings", "pesajes", { read: ["LOGISTICA", "BASCULA", "PLANTA", "FINANZAS"], write: ["BASCULA"] }),
+  ...crud("/api/weighings", "pesajes", { read: ["LOGISTICA", "BASCULA", "PLANTA"], write: ["BASCULA"] }),
   { method: "GET", path: "/api/settlements", description: "Listar liquidaciones", roles: ["FINANZAS"] },
   { method: "GET", path: "/api/settlements/:id", description: "Consultar liquidación", roles: ["FINANZAS"] },
-  { method: "GET", path: "/api/settlements/:id/verify", description: "Verificar liquidación", roles: ["FINANZAS", "PLANTA"] },
+  { method: "GET", path: "/api/settlements/:id/verify", description: "Verificar liquidación", roles: ["FINANZAS"] },
   { method: "POST", path: "/api/settlements", description: "Liquidar recolección", roles: ["FINANZAS"] },
   { method: "PUT", path: "/api/settlements/:id", description: "Actualizar notas de liquidación (PUT)", roles: ["FINANZAS"] },
   { method: "PATCH", path: "/api/settlements/:id", description: "Actualizar notas de liquidación (PATCH)", roles: ["FINANZAS"] },
