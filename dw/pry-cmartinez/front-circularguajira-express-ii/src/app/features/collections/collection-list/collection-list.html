@@ -95,6 +95,7 @@
               rounded
               severity="secondary"
               aria-label="Ver detalle de la recolección"
+              tooltipPosition="top"
               pTooltip="Ver detalle"
               (click)="openDetail(collection)"
             >
@@ -108,6 +109,7 @@
                 rounded
                 severity="warn"
                 aria-label="Cancelar recolección"
+                tooltipPosition="top"
                 pTooltip="Cancelar (baja lógica)"
                 (click)="deactivate(collection)"
               >
@@ -122,6 +124,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar recolección"
+                tooltipPosition="top"
                 pTooltip="Eliminar"
                 (click)="remove(collection)"
               >
@@ -162,7 +165,7 @@
   [modal]="true"
   [draggable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-3xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-3xl"
 >
   @if (selected(); as collection) {
     <app-collection-detail

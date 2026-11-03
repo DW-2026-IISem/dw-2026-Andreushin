@@ -91,6 +91,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar recurso"
+                tooltipPosition="top"
                 pTooltip="Editar"
                 (click)="openEdit(resource)"
               >
@@ -105,6 +106,7 @@
                 rounded
                 severity="warn"
                 aria-label="Dar de baja al recurso"
+                tooltipPosition="top"
                 pTooltip="Baja lógica"
                 (click)="deactivate(resource)"
               >
@@ -119,6 +121,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar recurso"
+                tooltipPosition="top"
                 pTooltip="Eliminar"
                 (click)="remove(resource)"
               >
@@ -151,7 +154,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-2xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-2xl"
 >
   <app-resource-form
     [resource]="editing()"

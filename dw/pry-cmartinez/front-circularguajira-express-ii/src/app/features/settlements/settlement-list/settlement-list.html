@@ -94,6 +94,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Verificar liquidación"
+                tooltipPosition="top"
                 pTooltip="Verificar"
                 [loading]="verifying() === settlement.id"
                 (click)="verify(settlement)"
@@ -109,6 +110,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar notas de la liquidación"
+                tooltipPosition="top"
                 pTooltip="Notas"
                 (click)="openNotes(settlement)"
               >
@@ -123,6 +125,7 @@
                 rounded
                 severity="warn"
                 aria-label="Anular liquidación"
+                tooltipPosition="top"
                 pTooltip="Anular"
                 (click)="voidSettlement(settlement)"
               >
@@ -164,7 +167,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-xl"
 >
   <app-settlement-form
     [settlement]="editing()"
@@ -184,7 +187,7 @@
   [modal]="true"
   [draggable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-3xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-3xl"
 >
   @if (verification(); as report) {
     <app-settlement-verification [report]="report" [materials]="materials()" />

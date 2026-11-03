@@ -61,7 +61,11 @@
 
   <div class="mt-6 grid gap-6 2xl:grid-cols-2">
     <!-- Without the settlements list "pending" cannot be computed: the card is hidden. -->
-    <p-card *appHasPermission="'GET /api/settlements'" header="Recolecciones sin liquidar">
+    <p-card
+      *appHasPermission="'GET /api/settlements'"
+      header="Recolecciones sin liquidar"
+      class="min-w-0"
+    >
       <div class="flex flex-wrap items-center justify-between gap-2">
         <p-tag
           [value]="unsettled().length + ' pendientes'"
@@ -104,7 +108,7 @@
       </div>
     </p-card>
 
-    <p-card header="Últimas recolecciones">
+    <p-card header="Últimas recolecciones" class="min-w-0">
       <a pButton routerLink="/collections" text severity="secondary">
         <span pButtonLabel>Ver todas</span>
         <i pButtonIcon class="pi pi-arrow-right"></i>

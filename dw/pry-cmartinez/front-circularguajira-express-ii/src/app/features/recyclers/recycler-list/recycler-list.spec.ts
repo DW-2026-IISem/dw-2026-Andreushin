@@ -92,6 +92,16 @@ describe('RecyclerList', () => {
     }
   });
 
+  it('should open the row tooltips above the button, away from the window edge', async () => {
+    const { element } = await createList();
+    const buttons = [...element.querySelectorAll('tbody tr:first-child button[aria-label]')];
+    expect(buttons.length).toBeGreaterThan(0);
+    // To the right, next to the window edge, «Eliminar» was split as «Elimin / ar».
+    for (const button of buttons) {
+      expect(button.getAttribute('tooltipposition')).toBe('top');
+    }
+  });
+
   it('should render one table row per active recycler and the counter', async () => {
     const { element } = await createList();
     expect(element.querySelectorAll('tbody tr')).toHaveLength(3);

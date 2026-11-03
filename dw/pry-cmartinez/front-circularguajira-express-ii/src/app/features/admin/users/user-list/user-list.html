@@ -79,6 +79,7 @@
                 rounded
                 severity="info"
                 aria-label="Ver permisos del usuario"
+                tooltipPosition="top"
                 pTooltip="Ver permisos"
                 (click)="openPermissions(user)"
               >
@@ -93,6 +94,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar usuario"
+                tooltipPosition="top"
                 pTooltip="Editar"
                 (click)="openEdit(user)"
               >
@@ -107,6 +109,7 @@
                 rounded
                 severity="warn"
                 aria-label="Dar de baja al usuario"
+                tooltipPosition="top"
                 [pTooltip]="isSelf(user) ? 'No puedes desactivar tu propio usuario' : 'Baja lógica'"
                 [disabled]="isSelf(user)"
                 (click)="deactivate(user)"
@@ -122,6 +125,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar usuario"
+                tooltipPosition="top"
                 [pTooltip]="isSelf(user) ? 'No puedes eliminar tu propio usuario' : 'Eliminar'"
                 [disabled]="isSelf(user)"
                 (click)="remove(user)"
@@ -155,7 +159,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-2xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-2xl"
 >
   <app-user-form
     [user]="editing()"
@@ -174,7 +178,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-3xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-3xl"
 >
   <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
     <span class="text-slate-500">Roles activos:</span>

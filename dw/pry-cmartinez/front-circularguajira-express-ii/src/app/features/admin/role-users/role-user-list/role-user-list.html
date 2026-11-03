@@ -91,6 +91,7 @@
                 rounded
                 severity="warn"
                 aria-label="Retirar rol"
+                tooltipPosition="top"
                 [pTooltip]="isSelf(row) ? 'No puedes retirarte un rol a ti mismo' : 'Retirar'"
                 [disabled]="isSelf(row)"
                 (click)="retire(row)"
@@ -124,7 +125,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-lg mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-lg"
 >
   <div class="space-y-4">
     <div>

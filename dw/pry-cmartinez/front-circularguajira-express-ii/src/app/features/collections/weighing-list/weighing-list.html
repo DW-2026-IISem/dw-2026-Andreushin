@@ -92,6 +92,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar pesaje"
+                tooltipPosition="top"
                 pTooltip="Editar"
                 (click)="openEdit(weighing)"
               >
@@ -106,6 +107,7 @@
                 rounded
                 severity="warn"
                 aria-label="Dar de baja al pesaje"
+                tooltipPosition="top"
                 pTooltip="Baja lógica"
                 (click)="deactivate(weighing)"
               >
@@ -120,6 +122,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar pesaje"
+                tooltipPosition="top"
                 pTooltip="Eliminar"
                 (click)="remove(weighing)"
               >
@@ -161,7 +164,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-xl"
 >
   <app-weighing-form
     [weighing]="editing()"

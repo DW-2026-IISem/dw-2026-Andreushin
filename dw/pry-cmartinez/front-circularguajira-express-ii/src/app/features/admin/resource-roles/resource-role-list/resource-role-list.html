@@ -96,6 +96,7 @@
                 rounded
                 severity="warn"
                 aria-label="Retirar permiso"
+                tooltipPosition="top"
                 [pTooltip]="
                   isLockout(row) ? 'Retirarlo te dejaría sin acceso a la administración' : 'Retirar'
                 "
@@ -131,7 +132,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-xl"
 >
   <div class="space-y-4">
     <div>

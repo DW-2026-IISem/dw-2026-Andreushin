@@ -86,6 +86,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar reciclador"
+                tooltipPosition="top"
                 pTooltip="Editar"
                 (click)="openEdit(recycler)"
               >
@@ -100,6 +101,7 @@
                 rounded
                 severity="warn"
                 aria-label="Dar de baja al reciclador"
+                tooltipPosition="top"
                 pTooltip="Baja lógica"
                 (click)="deactivate(recycler)"
               >
@@ -114,6 +116,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar reciclador"
+                tooltipPosition="top"
                 pTooltip="Eliminar"
                 (click)="remove(recycler)"
               >
@@ -155,7 +158,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-2xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-2xl"
 >
   <app-recycler-form
     [recycler]="editing()"

@@ -75,6 +75,7 @@
                 rounded
                 severity="secondary"
                 aria-label="Editar material"
+                tooltipPosition="top"
                 pTooltip="Editar"
                 (click)="openEdit(material)"
               >
@@ -89,6 +90,7 @@
                 rounded
                 severity="warn"
                 aria-label="Dar de baja al material"
+                tooltipPosition="top"
                 pTooltip="Baja lógica"
                 (click)="deactivate(material)"
               >
@@ -103,6 +105,7 @@
                 rounded
                 severity="danger"
                 aria-label="Eliminar material"
+                tooltipPosition="top"
                 pTooltip="Eliminar"
                 (click)="remove(material)"
               >
@@ -144,7 +147,7 @@
   [draggable]="false"
   [resizable]="false"
   [dismissableMask]="true"
-  styleClass="w-full max-w-xl mx-4"
+  styleClass="w-[calc(100%-2rem)] max-w-xl"
 >
   <app-material-form
     [material]="editing()"

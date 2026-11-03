@@ -1,3 +1,29 @@
 @layer theme, base, primeng, utilities;
 @import 'tailwindcss';
 @import 'primeicons/primeicons.css';
+
+/*
+ * Tooltips (unlayered, so they win over the Aura layer). By default PrimeNG shrinks the
+ * absolute tooltip to the room left before the window edge and its text uses
+ * `word-break: break-word`, so «Eliminar» ended up as «Elimin / ar» next to the edge.
+ * PrimeNG sets an inline `width: fit-content`, which shrinks to that room; `!important` is
+ * the only way to beat an inline style. With `max-content` PrimeNG measures the real width
+ * and flips the tooltip when it does not fit; words are never split.
+ */
+.p-tooltip {
+  width: max-content !important;
+  max-width: min(16rem, calc(100vw - 1rem));
+}
+
+.p-tooltip .p-tooltip-text {
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+/* Phones: the paginator wrapped onto two lines; first/last page are the least needed. */
+@media (max-width: 480px) {
+  .p-paginator-first,
+  .p-paginator-last {
+    display: none;
+  }
+}
