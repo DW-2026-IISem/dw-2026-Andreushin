@@ -10,6 +10,7 @@ import { RoleUsersRoutes } from "../features/auth/role-users/role-users.routes";
 import { ResourceRolesRoutes } from "../features/auth/resource-roles/resource-roles.routes";
 import { RefreshTokensRoutes } from "../features/auth/refresh-tokens/refresh-tokens.routes";
 import { SessionRoutes } from "../features/auth/session/session.routes";
+import { ArchiveRoutes } from "../features/auth/archive/archive.routes";
 
 export class Routes {
   public recyclersRoutes: RecyclersRoutes = new RecyclersRoutes();
@@ -25,4 +26,5 @@ export class Routes {
   public resourceRolesRoutes: ResourceRolesRoutes = new ResourceRolesRoutes();
   public refreshTokensRoutes: RefreshTokensRoutes = new RefreshTokensRoutes();
   public sessionRoutes: SessionRoutes = new SessionRoutes();
+  public archiveRoutes: ArchiveRoutes = new ArchiveRoutes();
 }

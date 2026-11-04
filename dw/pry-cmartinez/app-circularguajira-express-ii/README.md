@@ -43,7 +43,7 @@ Creados por `npm run db:seed`; contraseñas solo para desarrollo.
 
 | Usuario | Contraseña | Rol | Permisos |
 | :--- | :--- | :--- | ---: |
-| `admin` | `Admin2026!` | ADMIN: todo, incluida la administración de seguridad y los borrados físicos | 87 |
+| `admin` | `Admin2026!` | ADMIN: todo, incluida la administración de seguridad y los borrados físicos | 99 |
 | `logistica` | `Logistica2026!` | LOGISTICA: recicladores, rutas, puntos y recolecciones | 30 |
 | `bascula` | `Bascula2026!` | BASCULA: pesajes y recolecciones | 20 |
 | `planta` | `Planta2026!` | PLANTA: catálogo de materiales; consulta recolecciones y pesajes | 12 |
@@ -79,6 +79,7 @@ npm run test:all            # todas las suites en serie
 npm run test:flow           # flujo de negocio por roles: recolección -> pesaje -> liquidación
 npm run test:access         # 401/403 y la matriz de roles endpoint por endpoint
 npm run test:session        # login, refresh, logout, perfil y las tres modalidades
+npm run test:archive        # listados con inactivos: solo ADMIN
 ```
 
 También: `test:auth`, `test:users`, `test:rbac`, `test:permissions`, `test:sessions`.

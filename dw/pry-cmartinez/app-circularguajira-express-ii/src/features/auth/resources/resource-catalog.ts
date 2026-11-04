@@ -1,3 +1,5 @@
+import { ARCHIVE_RESOURCES } from "../archive/archive.catalog";
+
 /**
  * Catalog of the protected resources of the API (single source of truth).
  *
@@ -86,6 +88,13 @@ export const RESOURCE_CATALOG: readonly CatalogResource[] = [
   { method: "POST", path: "/api/resource-roles", description: "Conceder recurso a rol", roles: [] },
   { method: "PATCH", path: "/api/resource-roles/:id/deactivate", description: "Retirar recurso a rol", roles: [] },
   { method: "PATCH", path: "/api/resource-roles/:id/reactivate", description: "Reactivar recurso a rol", roles: [] },
+  // Archive: full lists with inactive rows. ADMIN only.
+  ...ARCHIVE_RESOURCES.map(([entity, noun]): CatalogResource => ({
+    method: "GET",
+    path: `/api/archive/${entity}`,
+    description: `Listar ${noun}, incluidos los inactivos`,
+    roles: [],
+  })),
 ];
 
 /**

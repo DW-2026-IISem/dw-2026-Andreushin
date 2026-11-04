@@ -19,6 +19,7 @@ import { roleUsersSwagger } from "../features/auth/role-users/role-users.swagger
 import { resourceRolesSwagger } from "../features/auth/resource-roles/resource-roles.swagger";
 import { refreshTokensSwagger } from "../features/auth/refresh-tokens/refresh-tokens.swagger";
 import { sessionSwagger } from "../features/auth/session/session.swagger";
+import { archiveSwagger } from "../features/auth/archive/archive.swagger";
 
 export type FeatureSwaggerModule = {
   tags: unknown[];
@@ -43,6 +44,7 @@ const featureSwaggerModules: FeatureSwaggerModule[] = [
   resourceRolesSwagger,
   refreshTokensSwagger,
   sessionSwagger,
+  archiveSwagger,
 ];
 
 // Shared by every feature: shape produced by src/shared/http/handleError.ts.

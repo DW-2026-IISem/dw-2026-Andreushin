@@ -2157,6 +2157,47 @@ git push origin main
 Commit: [`dc450a3`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/dc450a3390f372310b73526a02346e37f1dff608)
 
 
+### Ajuste `ARCHIVO-ADMIN` — ver los registros inactivos
+
+La baja lógica deja el registro en la base con `status = inactive`, pero todos los listados filtran por activos, así que nadie podía verlo desde la API. Los listados normales no cambian porque formularios y reglas de negocio dependen de ellos. Se añade la feature `archive`, de solo lectura: `GET /api/archive/<entidad>` devuelve todas las filas con la misma envoltura que su lista (`{ recyclers }`, `{ points }`, `{ assignments }`, `{ grants }`…), para las 12 entidades con pantalla. En liquidaciones incluye las anuladas.
+
+Cada ruta es un recurso del catálogo sin más roles que ADMIN. El prefijo `archive` es deliberado: `/api/recyclers/all` también coincidiría con el recurso `/api/recyclers/:id` y cualquier rol con lectura por id pasaría `authorize`. Quedan 99 recursos y 177 concesiones: ADMIN 99, LOGISTICA 30, BASCULA 20, PLANTA 12, FINANZAS 16. No incluye reactivar.
+
+Criterios de aceptación (ARCHIVO-ADMIN)
+
+- [x] ADMIN lista las 12 entidades con sus inactivos; los demás roles reciben 403, sin token 401, y la contraseña no se proyecta
+- [x] Las listas normales siguen mostrando solo activos y la suite completa pasa
+
+### Verificación del ISS
+
+```bash
+npm run db:seed
+npm run test:archive
+npm run test:all
+```
+
+#### Evidencias
+
+**Ev1 — Archivo:** el seeder reconcilia 99 recursos con ADMIN 99, LOGISTICA 30, BASCULA 20, PLANTA 12 y FINANZAS 16; `test:archive` pasa sus 4 pruebas (catálogo, 401/403 por rol y entidad, inactivos visibles solo en el archivo, sin contraseña).
+
+![Ev1 ARCHIVO-ADMIN](images/Ev1-ARCHIVO-ADMIN.png)
+
+**Ev2 — Suite:** `tsc` sin errores y `npm run test:all`: 57 pruebas, 0 fallos.
+
+![Ev2 ARCHIVO-ADMIN](images/Ev2-ARCHIVO-ADMIN.png)
+
+### Commit
+
+```bash
+git add package.json README.md docs/PROCESO.md src/config/index.ts src/routes/index.ts src/swagger/index.ts \
+  src/features/auth/archive src/features/auth/resources/resource-catalog.ts src/tests/archive.test.ts \
+  src/features/auth/session/http/session.login.http src/features/auth/resource-roles/http/resource-roles.http \
+  docs/images/Ev1-ARCHIVO-ADMIN.png docs/images/Ev2-ARCHIVO-ADMIN.png
+git commit -m "ARCHIVO-ADMIN: Listados con registros inactivos para ADMIN"
+git push origin main
+```
+
+
 ## Secuencia y entregables
 
 1. Completar los bloques en orden, incorporando pruebas y migraciones con cada feature.

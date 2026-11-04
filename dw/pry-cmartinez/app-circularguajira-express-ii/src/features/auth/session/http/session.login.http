@@ -2,7 +2,7 @@
 @baseUrl = http://localhost:4000/api
 
 # Usuarios canónicos del seeder (contraseñas solo de laboratorio):
-#   admin / Admin2026!          ADMIN      (87 permisos)
+#   admin / Admin2026!          ADMIN      (99 permisos)
 #   logistica / Logistica2026!  LOGISTICA  (30)
 #   bascula / Bascula2026!      BASCULA    (20)
 #   planta / Planta2026!        PLANTA     (12)

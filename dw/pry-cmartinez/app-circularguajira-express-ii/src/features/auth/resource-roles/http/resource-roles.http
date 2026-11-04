@@ -2,7 +2,7 @@
 @baseUrl = http://localhost:4000/api
 @token = <access_token>
 
-### getAll: 165 concesiones (ADMIN 87, LOGISTICA 30, BASCULA 20, PLANTA 12, FINANZAS 16)
+### getAll: 177 concesiones (ADMIN 99, LOGISTICA 30, BASCULA 20, PLANTA 12, FINANZAS 16)
 GET {{baseUrl}}/resource-roles
 Authorization: Bearer {{token}}
 
