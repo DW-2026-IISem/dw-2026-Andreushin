@@ -25,6 +25,8 @@ import {
 } from '../../../../core/models/resource.model';
 import { ResourceApi } from '../resource-api';
 import { ResourceForm } from '../resource-form/resource-form';
+import { archiveScope } from '../../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Catalog of protected operations: one row per (method, path) pair. It is what can be
@@ -34,6 +36,7 @@ import { ResourceForm } from '../resource-form/resource-form';
   host: { class: 'block' },
   selector: 'app-resource-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -83,9 +86,12 @@ export class ResourceList {
     return counts;
   });
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Resource>('resources', 'resources');
+
   readonly visibleRows = computed(() => {
     const method = this.methodFilter();
-    const filtered = filterRows(this.rows(), this.filter(), (row) => [
+    const filtered = filterRows(this.archive.rows(this.rows()), this.filter(), (row) => [
       row.path,
       row.description,
       row.method,
@@ -102,6 +108,7 @@ export class ResourceList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     this.api.list().subscribe({
       next: (rows) => {
         this.rows.set(rows);

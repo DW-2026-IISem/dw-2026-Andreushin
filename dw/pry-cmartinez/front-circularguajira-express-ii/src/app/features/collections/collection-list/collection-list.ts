@@ -30,6 +30,8 @@ import { CollectionDetail } from '../collection-detail/collection-detail';
 import { HasPermission } from '../../../shared/directives/has-permission';
 import { SessionStore } from '../../../core/services/session-store';
 import { readIf } from '../../../core/utils/read-if';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Collections (header + weighings). Names of recycler and route are resolved with `Map`s;
@@ -39,6 +41,7 @@ import { readIf } from '../../../core/utils/read-if';
   host: { class: 'block' },
   selector: 'app-collection-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     CollectionDetail,
@@ -86,8 +89,11 @@ export class CollectionList {
     return (id: number) => names.get(id) ?? `Ruta #${id}`;
   });
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Collection>('collections', 'collections');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (collection) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (collection) => [
       collection.id,
       collection.collectedOn,
       this.recyclerName()(collection.recyclerId),
@@ -112,6 +118,7 @@ export class CollectionList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     forkJoin({
       collections: this.api.list(),
       // Optional sources: PLANTA cannot read recyclers or routes, FINANZAS cannot read routes.

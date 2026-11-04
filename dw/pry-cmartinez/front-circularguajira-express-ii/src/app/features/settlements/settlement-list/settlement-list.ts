@@ -33,6 +33,8 @@ import { SettlementVerification } from '../settlement-verification/settlement-ve
 import { HasPermission } from '../../../shared/directives/has-permission';
 import { SessionStore } from '../../../core/services/session-store';
 import { readIf } from '../../../core/utils/read-if';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Settlements: what is paid to each recycler for one collection.
@@ -45,6 +47,7 @@ import { readIf } from '../../../core/utils/read-if';
   host: { class: 'block' },
   selector: 'app-settlement-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     CurrencyPipe,
@@ -104,8 +107,11 @@ export class SettlementList {
     round2(this.rows().reduce((sum, row) => sum + toNumber(row.totalAmount), 0)),
   );
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Settlement>('settlements', 'settlements');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (settlement) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (settlement) => [
       settlement.id,
       settlement.collectionId,
       this.recyclerName()(settlement.recyclerId),
@@ -131,6 +137,7 @@ export class SettlementList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     forkJoin({
       settlements: this.api.list(),
       collections: this.collectionsApi.list(),

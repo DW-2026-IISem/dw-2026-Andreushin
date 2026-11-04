@@ -2,6 +2,7 @@
   title="Rutas de recolección"
   subtitle="Rutas activas por municipio. Una ruta con puntos no se elimina: se desactiva."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/routes'">
     <button pButton type="button" (click)="openCreate()">
@@ -41,7 +42,9 @@
       </div>
       @if (filter()) {
         <p class="mt-2 text-xs text-slate-500">
-          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+          {{ visibleRows().length }} de {{ archive.rows(rows()).length }} coinciden con «{{
+            filter()
+          }}».
         </p>
       }
     </ng-template>
@@ -71,36 +74,40 @@
         <td><app-status-tag [status]="route.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'PATCH /api/routes/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar ruta"
-                tooltipPosition="top"
-                pTooltip="Editar"
-                (click)="openEdit(route)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/routes/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Dar de baja a la ruta"
-                tooltipPosition="top"
-                pTooltip="Baja lógica"
-                (click)="deactivate(route)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (route.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/routes/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar ruta"
+                  tooltipPosition="top"
+                  pTooltip="Editar"
+                  (click)="openEdit(route)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (route.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/routes/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Dar de baja a la ruta"
+                  tooltipPosition="top"
+                  pTooltip="Baja lógica"
+                  (click)="deactivate(route)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/routes/:id'">
               <button
                 pButton

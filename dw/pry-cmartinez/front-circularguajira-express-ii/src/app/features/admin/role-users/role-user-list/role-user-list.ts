@@ -22,6 +22,9 @@ import { PageHeader } from '../../../../shared/ui/page-header/page-header';
 import { RoleApi } from '../../roles/role-api';
 import { UserApi } from '../../users/user-api';
 import { RoleUserApi } from '../role-user-api';
+import { archiveScope } from '../../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
+import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
 
 /**
  * User ↔ role assignments (`role_users`). There is no physical delete: «Retirar» is the
@@ -31,6 +34,8 @@ import { RoleUserApi } from '../role-user-api';
   host: { class: 'block' },
   selector: 'app-role-user-list',
   imports: [
+    RecordScopeFilter,
+    StatusTag,
     HasPermission,
     ButtonModule,
     DatePipe,
@@ -65,12 +70,15 @@ export class RoleUserList {
   readonly userFilter = signal<User | null>(null);
   readonly roleFilter = signal<Role | null>(null);
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<RoleUser>('role-users', 'assignments');
+
   readonly visibleRows = computed(() => {
     const user = this.userFilter();
     const role = this.roleFilter();
-    return this.rows().filter(
-      (row) => (!user || row.userId === user.id) && (!role || row.roleId === role.id),
-    );
+    return this.archive
+      .rows(this.rows())
+      .filter((row) => (!user || row.userId === user.id) && (!role || row.roleId === role.id));
   });
 
   readonly dialogVisible = signal(false);
@@ -97,6 +105,7 @@ export class RoleUserList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     forkJoin({
       rows: this.api.list(),
       users: this.usersApi.list(),

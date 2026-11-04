@@ -24,6 +24,8 @@ import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
 import { RoleUserApi } from '../../role-users/role-user-api';
 import { UserApi } from '../user-api';
 import { UserForm, UserFormPayload } from '../user-form/user-form';
+import { archiveScope } from '../../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Users of the system (`GET /api/users` lists the active ones, never the password).
@@ -34,6 +36,7 @@ import { UserForm, UserFormPayload } from '../user-form/user-form';
   host: { class: 'block' },
   selector: 'app-user-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -65,8 +68,14 @@ export class UserList {
   readonly error = signal<string | null>(null);
   readonly filter = signal('');
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<User>('users', 'users');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (user) => [user.username, user.email]),
+    filterRows(this.archive.rows(this.rows()), this.filter(), (user) => [
+      user.username,
+      user.email,
+    ]),
   );
 
   readonly dialogVisible = signal(false);
@@ -92,6 +101,7 @@ export class UserList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     this.api.list().subscribe({
       next: (rows) => {
         this.rows.set(rows);

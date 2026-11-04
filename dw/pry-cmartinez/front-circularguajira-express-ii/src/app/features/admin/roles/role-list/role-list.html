@@ -2,6 +2,7 @@
   title="Roles"
   subtitle="Agrupan permisos. Un rol sin concesiones no autoriza nada, aunque se llame ADMIN."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/roles'">
     <button pButton type="button" (click)="openCreate()">
@@ -48,36 +49,40 @@
         <td><app-status-tag [status]="role.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'PATCH /api/roles/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar rol"
-                tooltipPosition="top"
-                pTooltip="Editar"
-                (click)="openEdit(role)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/roles/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Dar de baja al rol"
-                tooltipPosition="top"
-                pTooltip="Baja lógica"
-                (click)="deactivate(role)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (role.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/roles/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar rol"
+                  tooltipPosition="top"
+                  pTooltip="Editar"
+                  (click)="openEdit(role)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (role.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/roles/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Dar de baja al rol"
+                  tooltipPosition="top"
+                  pTooltip="Baja lógica"
+                  (click)="deactivate(role)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/roles/:id'">
               <button
                 pButton

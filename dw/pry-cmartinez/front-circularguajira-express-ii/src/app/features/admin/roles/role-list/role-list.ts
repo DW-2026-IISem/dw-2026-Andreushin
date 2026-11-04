@@ -17,6 +17,8 @@ import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
 import { Role, RolePayload } from '../../../../core/models/role.model';
 import { RoleApi } from '../role-api';
 import { RoleForm } from '../role-form/role-form';
+import { archiveScope } from '../../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Roles (`GET /api/roles` lists the active ones). A role authorizes nothing by itself:
@@ -26,6 +28,7 @@ import { RoleForm } from '../role-form/role-form';
   host: { class: 'block' },
   selector: 'app-role-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -56,8 +59,14 @@ export class RoleList {
   readonly editing = signal<Role | null>(null);
   readonly resetKey = signal(0);
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Role>('roles', 'roles');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (role) => [role.name, role.description]),
+    filterRows(this.archive.rows(this.rows()), this.filter(), (role) => [
+      role.name,
+      role.description,
+    ]),
   );
   readonly title = computed(() => (this.editing() ? 'Editar rol' : 'Nuevo rol'));
 
@@ -68,6 +77,7 @@ export class RoleList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     this.api.list().subscribe({
       next: (rows) => {
         this.rows.set(rows);

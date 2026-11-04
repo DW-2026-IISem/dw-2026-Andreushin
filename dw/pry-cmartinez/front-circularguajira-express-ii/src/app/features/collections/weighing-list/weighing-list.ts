@@ -22,6 +22,9 @@ import { CollectionApi } from '../collection-api';
 import { WeighingApi } from '../weighing-api';
 import { CollectionOption, WeighingForm } from '../weighing-form/weighing-form';
 import { HasPermission } from '../../../shared/directives/has-permission';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
+import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 
 /**
  * Weighings as an independent CRUD of lines (equivalent to the sale lines of the guide).
@@ -34,6 +37,8 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   host: { class: 'block' },
   selector: 'app-weighing-list',
   imports: [
+    RecordScopeFilter,
+    StatusTag,
     HasPermission,
     ButtonModule,
     CurrencyPipe,
@@ -88,8 +93,11 @@ export class WeighingList {
     })),
   );
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Weighing>('weighings', 'weighings');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (weighing) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (weighing) => [
       this.collectionLabel()(weighing.collectionId),
       this.materialName()(weighing.materialId),
     ]),
@@ -109,6 +117,7 @@ export class WeighingList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     forkJoin({
       weighings: this.api.list(),
       collections: this.collectionsApi.list(),

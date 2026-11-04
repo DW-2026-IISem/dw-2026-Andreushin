@@ -17,6 +17,8 @@ import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { RouteApi } from '../route-api';
 import { RouteForm } from '../route-form/route-form';
 import { HasPermission } from '../../../shared/directives/has-permission';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Collection routes with every CRUD operation (same structure as `RouteList`). A route
@@ -26,6 +28,7 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   host: { class: 'block' },
   selector: 'app-route-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -54,8 +57,11 @@ export class RouteList {
   readonly error = signal<string | null>(null);
   readonly filter = signal('');
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Route>('routes', 'routes');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (route) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (route) => [
       route.name,
       route.municipality,
       route.description,
@@ -76,6 +82,7 @@ export class RouteList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
 
     this.api.list().subscribe({
       next: (rows) => {

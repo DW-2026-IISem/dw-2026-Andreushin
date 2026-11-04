@@ -2,6 +2,7 @@
   title="Liquidaciones"
   subtitle="Lo que se paga a cada reciclador por una recolección. Los valores quedan congelados; una liquidación errada se anula y se emite de nuevo."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' emitidas'" severity="info" [rounded]="true" />
   <p-tag
     [value]="pending().length + ' por liquidar'"
@@ -48,7 +49,9 @@
       </div>
       @if (filter()) {
         <p class="mt-2 text-xs text-slate-500">
-          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+          {{ visibleRows().length }} de {{ archive.rows(rows()).length }} coinciden con «{{
+            filter()
+          }}».
         </p>
       }
     </ng-template>
@@ -69,6 +72,9 @@
     <ng-template #body let-settlement>
       <tr>
         <td>
+          @if (settlement.status === 'voided') {
+            <p-tag value="Anulada" severity="danger" [rounded]="true" class="mb-1 block" />
+          }
           <p class="font-medium text-slate-800">#{{ settlement.id }}</p>
           <p class="text-xs text-slate-400">{{ settlement.settledAt | date: 'dd/MM/yyyy' }}</p>
         </td>
@@ -86,52 +92,58 @@
         <td class="max-w-48 text-sm text-slate-600">{{ settlement.notes || '—' }}</td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'GET /api/settlements/:id/verify'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Verificar liquidación"
-                tooltipPosition="top"
-                pTooltip="Verificar"
-                [loading]="verifying() === settlement.id"
-                (click)="verify(settlement)"
-              >
-                <i pButtonIcon class="pi pi-verified"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/settlements/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar notas de la liquidación"
-                tooltipPosition="top"
-                pTooltip="Notas"
-                (click)="openNotes(settlement)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/settlements/:id/void'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Anular liquidación"
-                tooltipPosition="top"
-                pTooltip="Anular"
-                (click)="voidSettlement(settlement)"
-              >
-                <i pButtonIcon class="pi pi-undo"></i>
-              </button>
-            </ng-container>
+            @if (settlement.status === 'issued') {
+              <ng-container *appHasPermission="'GET /api/settlements/:id/verify'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Verificar liquidación"
+                  tooltipPosition="top"
+                  pTooltip="Verificar"
+                  [loading]="verifying() === settlement.id"
+                  (click)="verify(settlement)"
+                >
+                  <i pButtonIcon class="pi pi-verified"></i>
+                </button>
+              </ng-container>
+            }
+            @if (settlement.status === 'issued') {
+              <ng-container *appHasPermission="'PATCH /api/settlements/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar notas de la liquidación"
+                  tooltipPosition="top"
+                  pTooltip="Notas"
+                  (click)="openNotes(settlement)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (settlement.status === 'issued') {
+              <ng-container *appHasPermission="'PATCH /api/settlements/:id/void'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Anular liquidación"
+                  tooltipPosition="top"
+                  pTooltip="Anular"
+                  (click)="voidSettlement(settlement)"
+                >
+                  <i pButtonIcon class="pi pi-undo"></i>
+                </button>
+              </ng-container>
+            }
           </div>
         </td>
       </tr>

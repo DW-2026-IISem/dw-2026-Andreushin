@@ -2,6 +2,7 @@
   title="Concesiones"
   subtitle="Qué operación puede ejecutar cada rol. Cada fila activa es un permiso; el backend la consulta en cada petición."
 >
+  <app-record-scope-filter [archive]="archive" />
   <ng-container *appHasPermission="'POST /api/resource-roles'">
     <button pButton type="button" (click)="openGrant()">
       <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Conceder permiso</span>
@@ -54,7 +55,7 @@
         </div>
       </div>
       <p class="mt-2 text-xs text-slate-500">
-        {{ visibleRows().length }} de {{ rows().length }} concesiones activas.
+        {{ visibleRows().length }} de {{ archive.rows(rows()).length }} concesiones.
       </p>
     </ng-template>
     <ng-template #header>
@@ -68,6 +69,9 @@
     <ng-template #body let-row>
       <tr>
         <td>
+          @if (row.status === 'inactive') {
+            <app-status-tag [status]="row.status" class="mb-1 block" />
+          }
           <p-tag
             [value]="row.role?.name ?? 'Rol #' + row.roleId"
             severity="info"
@@ -88,24 +92,28 @@
         </td>
         <td>
           <div class="flex justify-end">
-            <ng-container *appHasPermission="'PATCH /api/resource-roles/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Retirar permiso"
-                tooltipPosition="top"
-                [pTooltip]="
-                  isLockout(row) ? 'Retirarlo te dejaría sin acceso a la administración' : 'Retirar'
-                "
-                [disabled]="isLockout(row)"
-                (click)="revoke(row)"
-              >
-                <i pButtonIcon class="pi pi-minus-circle"></i>
-              </button>
-            </ng-container>
+            @if (row.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/resource-roles/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Retirar permiso"
+                  tooltipPosition="top"
+                  [pTooltip]="
+                    isLockout(row)
+                      ? 'Retirarlo te dejaría sin acceso a la administración'
+                      : 'Retirar'
+                  "
+                  [disabled]="isLockout(row)"
+                  (click)="revoke(row)"
+                >
+                  <i pButtonIcon class="pi pi-minus-circle"></i>
+                </button>
+              </ng-container>
+            }
           </div>
         </td>
       </tr>

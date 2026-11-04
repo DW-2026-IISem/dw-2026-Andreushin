@@ -18,6 +18,8 @@ import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { MaterialApi } from '../material-api';
 import { MaterialForm } from '../material-form/material-form';
 import { HasPermission } from '../../../shared/directives/has-permission';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Material catalog with every CRUD operation. Same structure as `RecyclerList`: only the
@@ -27,6 +29,7 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   host: { class: 'block' },
   selector: 'app-material-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     RouterLink,
     ButtonModule,
@@ -56,8 +59,14 @@ export class MaterialList {
   readonly error = signal<string | null>(null);
   readonly filter = signal('');
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Material>('materials', 'materials');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (material) => [material.name, material.description]),
+    filterRows(this.archive.rows(this.rows()), this.filter(), (material) => [
+      material.name,
+      material.description,
+    ]),
   );
 
   readonly dialogVisible = signal(false);
@@ -74,6 +83,7 @@ export class MaterialList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
 
     this.api.list().subscribe({
       next: (rows) => {

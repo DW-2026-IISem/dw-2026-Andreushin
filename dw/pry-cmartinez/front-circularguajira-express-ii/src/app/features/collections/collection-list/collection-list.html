@@ -2,6 +2,7 @@
   title="Recolecciones"
   subtitle="Cada recolección guarda sus pesajes y los importes que calculó el backend con la tarifa vigente."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' activas'" severity="info" [rounded]="true" />
   <p-tag
     [value]="(totalAmount() | currency: 'COP' : 'symbol-narrow' : '1.0-0') + ' en total'"
@@ -44,7 +45,9 @@
       </div>
       @if (filter()) {
         <p class="mt-2 text-xs text-slate-500">
-          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+          {{ visibleRows().length }} de {{ archive.rows(rows()).length }} coinciden con «{{
+            filter()
+          }}».
         </p>
       }
     </ng-template>
@@ -101,21 +104,23 @@
             >
               <i pButtonIcon class="pi pi-eye"></i>
             </button>
-            <ng-container *appHasPermission="'PATCH /api/collections/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Cancelar recolección"
-                tooltipPosition="top"
-                pTooltip="Cancelar (baja lógica)"
-                (click)="deactivate(collection)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (collection.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/collections/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Cancelar recolección"
+                  tooltipPosition="top"
+                  pTooltip="Cancelar (baja lógica)"
+                  (click)="deactivate(collection)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/collections/:id'">
               <button
                 pButton

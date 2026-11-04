@@ -2,6 +2,7 @@
   title="Puntos de recolección"
   subtitle="Paradas de cada ruta en orden de visita. Solo se asignan a rutas activas."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <p-tag
     [value]="routesWithoutPoints() + ' rutas sin puntos'"
@@ -46,7 +47,9 @@
       </div>
       @if (filter()) {
         <p class="mt-2 text-xs text-slate-500">
-          {{ visibleRows().length }} de {{ rows().length }} coinciden con «{{ filter() }}».
+          {{ visibleRows().length }} de {{ archive.rows(rows()).length }} coinciden con «{{
+            filter()
+          }}».
         </p>
       }
     </ng-template>
@@ -84,36 +87,40 @@
         <td><app-status-tag [status]="point.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'PATCH /api/collection-points/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar punto"
-                tooltipPosition="top"
-                pTooltip="Editar"
-                (click)="openEdit(point)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/collection-points/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Dar de baja al punto"
-                tooltipPosition="top"
-                pTooltip="Baja lógica"
-                (click)="deactivate(point)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (point.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/collection-points/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar punto"
+                  tooltipPosition="top"
+                  pTooltip="Editar"
+                  (click)="openEdit(point)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (point.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/collection-points/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Dar de baja al punto"
+                  tooltipPosition="top"
+                  pTooltip="Baja lógica"
+                  (click)="deactivate(point)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/collection-points/:id'">
               <button
                 pButton

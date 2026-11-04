@@ -2,6 +2,7 @@
   title="Recursos"
   subtitle="Catálogo de operaciones protegidas (método + ruta). Es lo que se concede a un rol."
 >
+  <app-record-scope-filter [archive]="archive" />
   <ng-container *appHasPermission="'POST /api/resources'">
     <button pButton type="button" (click)="openCreate()">
       <i pButtonIcon class="pi pi-plus"></i><span pButtonLabel>Nuevo recurso</span>
@@ -59,7 +60,7 @@
       </div>
       @if (filter() || methodFilter()) {
         <p class="mt-2 text-xs text-slate-500">
-          {{ visibleRows().length }} de {{ rows().length }} recursos.
+          {{ visibleRows().length }} de {{ archive.rows(rows()).length }} recursos.
         </p>
       }
     </ng-template>
@@ -83,36 +84,40 @@
         <td><app-status-tag [status]="resource.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'PATCH /api/resources/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar recurso"
-                tooltipPosition="top"
-                pTooltip="Editar"
-                (click)="openEdit(resource)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/resources/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Dar de baja al recurso"
-                tooltipPosition="top"
-                pTooltip="Baja lógica"
-                (click)="deactivate(resource)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (resource.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/resources/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar recurso"
+                  tooltipPosition="top"
+                  pTooltip="Editar"
+                  (click)="openEdit(resource)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (resource.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/resources/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Dar de baja al recurso"
+                  tooltipPosition="top"
+                  pTooltip="Baja lógica"
+                  (click)="deactivate(resource)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/resources/:id'">
               <button
                 pButton

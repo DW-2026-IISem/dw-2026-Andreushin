@@ -17,6 +17,8 @@ import { StatusTag } from '../../../shared/ui/status-tag/status-tag';
 import { RecyclerApi } from '../recycler-api';
 import { RecyclerForm } from '../recycler-form/recycler-form';
 import { HasPermission } from '../../../shared/directives/has-permission';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Recycler list with every CRUD operation.
@@ -28,6 +30,7 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   host: { class: 'block' },
   selector: 'app-recycler-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -57,8 +60,11 @@ export class RecyclerList {
   readonly filter = signal('');
 
   /** Result of applying the search box; `computed` memoizes it. */
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<Recycler>('recyclers', 'recyclers');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (recycler) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (recycler) => [
       recycler.name,
       recycler.documentNumber,
       recycler.phone,
@@ -90,6 +96,7 @@ export class RecyclerList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
 
     this.api.list().subscribe({
       next: (rows) => {

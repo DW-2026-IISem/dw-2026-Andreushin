@@ -23,6 +23,8 @@ import { CollectionPointApi } from '../collection-point-api';
 import { CollectionPointForm } from '../collection-point-form/collection-point-form';
 import { RouteApi } from '../route-api';
 import { HasPermission } from '../../../shared/directives/has-permission';
+import { archiveScope } from '../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../shared/ui/record-scope-filter/record-scope-filter';
 
 /**
  * Collection points and their many-to-one relation with routes.
@@ -34,6 +36,7 @@ import { HasPermission } from '../../../shared/directives/has-permission';
   host: { class: 'block' },
   selector: 'app-collection-point-list',
   imports: [
+    RecordScopeFilter,
     HasPermission,
     ButtonModule,
     CollectionPointForm,
@@ -86,8 +89,11 @@ export class CollectionPointList {
     return this.routes().filter((route) => !used.has(route.id)).length;
   });
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<CollectionPoint>('collection-points', 'points');
+
   readonly visibleRows = computed(() =>
-    filterRows(this.rows(), this.filter(), (point) => [
+    filterRows(this.archive.rows(this.rows()), this.filter(), (point) => [
       point.name,
       point.address,
       this.routeName()(point.routeId),
@@ -110,6 +116,7 @@ export class CollectionPointList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
 
     forkJoin({ points: this.api.list(), routes: this.routesApi.list() }).subscribe({
       next: ({ points, routes }) => {

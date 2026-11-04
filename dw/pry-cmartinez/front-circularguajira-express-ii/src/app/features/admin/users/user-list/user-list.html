@@ -2,6 +2,7 @@
   title="Usuarios"
   subtitle="Cuentas que inician sesión. Lo que cada una puede hacer sale de sus roles activos y de las concesiones de esos roles."
 >
+  <app-record-scope-filter [archive]="archive" />
   <p-tag [value]="rows().length + ' activos'" severity="info" [rounded]="true" />
   <ng-container *appHasPermission="'POST /api/users'">
     <button pButton type="button" (click)="openCreate()">
@@ -71,52 +72,60 @@
         <td><app-status-tag [status]="user.status" /></td>
         <td>
           <div class="flex justify-end gap-1">
-            <ng-container *appHasPermission="'GET /api/users/:id/permissions'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="info"
-                aria-label="Ver permisos del usuario"
-                tooltipPosition="top"
-                pTooltip="Ver permisos"
-                (click)="openPermissions(user)"
-              >
-                <i pButtonIcon class="pi pi-key"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/users/:id'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="secondary"
-                aria-label="Editar usuario"
-                tooltipPosition="top"
-                pTooltip="Editar"
-                (click)="openEdit(user)"
-              >
-                <i pButtonIcon class="pi pi-pencil"></i>
-              </button>
-            </ng-container>
-            <ng-container *appHasPermission="'PATCH /api/users/:id/deactivate'">
-              <button
-                pButton
-                type="button"
-                text
-                rounded
-                severity="warn"
-                aria-label="Dar de baja al usuario"
-                tooltipPosition="top"
-                [pTooltip]="isSelf(user) ? 'No puedes desactivar tu propio usuario' : 'Baja lógica'"
-                [disabled]="isSelf(user)"
-                (click)="deactivate(user)"
-              >
-                <i pButtonIcon class="pi pi-ban"></i>
-              </button>
-            </ng-container>
+            @if (user.status === 'active') {
+              <ng-container *appHasPermission="'GET /api/users/:id/permissions'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="info"
+                  aria-label="Ver permisos del usuario"
+                  tooltipPosition="top"
+                  pTooltip="Ver permisos"
+                  (click)="openPermissions(user)"
+                >
+                  <i pButtonIcon class="pi pi-key"></i>
+                </button>
+              </ng-container>
+            }
+            @if (user.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/users/:id'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="secondary"
+                  aria-label="Editar usuario"
+                  tooltipPosition="top"
+                  pTooltip="Editar"
+                  (click)="openEdit(user)"
+                >
+                  <i pButtonIcon class="pi pi-pencil"></i>
+                </button>
+              </ng-container>
+            }
+            @if (user.status === 'active') {
+              <ng-container *appHasPermission="'PATCH /api/users/:id/deactivate'">
+                <button
+                  pButton
+                  type="button"
+                  text
+                  rounded
+                  severity="warn"
+                  aria-label="Dar de baja al usuario"
+                  tooltipPosition="top"
+                  [pTooltip]="
+                    isSelf(user) ? 'No puedes desactivar tu propio usuario' : 'Baja lógica'
+                  "
+                  [disabled]="isSelf(user)"
+                  (click)="deactivate(user)"
+                >
+                  <i pButtonIcon class="pi pi-ban"></i>
+                </button>
+              </ng-container>
+            }
             <ng-container *appHasPermission="'DELETE /api/users/:id'">
               <button
                 pButton

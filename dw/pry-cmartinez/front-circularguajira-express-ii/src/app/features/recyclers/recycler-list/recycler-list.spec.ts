@@ -280,4 +280,49 @@ describe('RecyclerList', () => {
     expect(labels).not.toContain('Dar de baja al reciclador');
     expect(element.querySelectorAll('tbody tr').length).toBeGreaterThan(0);
   });
+
+  describe('inactive records', () => {
+    const INACTIVE: Recycler = {
+      ...RECYCLERS[0],
+      id: 99,
+      name: 'Reciclador dado de baja',
+      status: 'inactive',
+    };
+
+    it('should show ADMIN the inactive rows on demand, tagged and without edit or deactivate', async () => {
+      const { fixture, list, element } = await createList();
+      http.expectNone(`${environment.apiUrl}/archive/recyclers`);
+      expect(
+        element.querySelector('p-select[aria-label], app-record-scope-filter p-select'),
+      ).toBeTruthy();
+
+      list.archive.choose('inactive');
+      http
+        .expectOne(`${environment.apiUrl}/archive/recyclers`)
+        .flush({ recyclers: [...RECYCLERS, INACTIVE] });
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(list.visibleRows().map((row) => row.id)).toEqual([99]);
+      const row = element.querySelector('tbody tr') as HTMLElement;
+      expect(row.textContent).toContain('Inactivo');
+      expect(row.querySelector('button[aria-label="Editar reciclador"]')).toBeNull();
+      expect(row.querySelector('button[aria-label="Dar de baja al reciclador"]')).toBeNull();
+      expect(row.querySelector('button[aria-label="Eliminar reciclador"]')).toBeTruthy();
+      // The counter keeps counting only the active records.
+      expect(list.rows()).toHaveLength(RECYCLERS.length);
+
+      list.archive.choose('all');
+      http
+        .expectOne(`${environment.apiUrl}/archive/recyclers`)
+        .flush({ recyclers: [...RECYCLERS, INACTIVE] });
+      expect(list.visibleRows()).toHaveLength(RECYCLERS.length + 1);
+    });
+
+    it('should not offer the filter to a role without the archive grant', async () => {
+      signInAs('LOGISTICA');
+      const { element } = await createList();
+      expect(element.querySelector('app-record-scope-filter p-select')).toBeNull();
+    });
+  });
 });

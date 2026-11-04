@@ -24,6 +24,9 @@ import { PageHeader } from '../../../../shared/ui/page-header/page-header';
 import { ResourceApi } from '../../resources/resource-api';
 import { RoleApi } from '../../roles/role-api';
 import { ResourceRoleApi } from '../resource-role-api';
+import { archiveScope } from '../../../../core/utils/archive-scope';
+import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
+import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
 
 /** RBAC administration endpoints: revoking them from your own role would lock you out. */
 const ADMIN_PATH = /^\/api\/(users|roles|resources|role-users|resource-roles)(\/|$)/;
@@ -37,6 +40,8 @@ const ADMIN_PATH = /^\/api\/(users|roles|resources|role-users|resource-roles)(\/
   host: { class: 'block' },
   selector: 'app-resource-role-list',
   imports: [
+    RecordScopeFilter,
+    StatusTag,
     HasPermission,
     ButtonModule,
     DialogModule,
@@ -81,9 +86,14 @@ export class ResourceRoleList {
     })),
   );
 
+  /** Inactive records, for sessions with the archive grant (ADMIN). */
+  readonly archive = archiveScope<ResourceRole>('resource-roles', 'grants');
+
   readonly visibleRows = computed(() => {
     const role = this.roleFilter();
-    const byRole = role ? this.rows().filter((row) => row.roleId === role.id) : this.rows();
+    const byRole = role
+      ? this.archive.rows(this.rows()).filter((row) => row.roleId === role.id)
+      : this.archive.rows(this.rows());
     return filterRows(byRole, this.filter(), (row) => [
       row.resource?.path,
       row.resource?.method,
@@ -117,6 +127,7 @@ export class ResourceRoleList {
   load(): void {
     this.loading.set(true);
     this.error.set(null);
+    this.archive.reload();
     forkJoin({
       rows: this.api.list(),
       roles: this.rolesApi.list(),
