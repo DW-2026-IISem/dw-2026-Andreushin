@@ -2197,6 +2197,8 @@ git commit -m "ARCHIVO-ADMIN: Listados con registros inactivos para ADMIN"
 git push origin main
 ```
 
+Commit: [`5f9fb70`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/5f9fb70ff972dbf770aaed3228b809a799142ad1)
+
 
 ## Secuencia y entregables
 
