@@ -1849,3 +1849,88 @@ git push origin main
 ```
 
 Commit: [`0d2f138`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/0d2f138f2fc6e19ec888ff922028a9985bdde887)
+
+
+## Ruta CRUD · Panel de roles y permisos
+
+Continúa la ruta ISS-CR del backend (`app-circularguajira-express-ii/docs/PROCESO.md`, ISS-CR-00 a ISS-CR-02): aquí van la pantalla que edita la matriz de permisos de un rol y el cierre de punta a punta.
+
+### ISS-CR-03 — Cliente HTTP y panel de matriz
+
+Pantalla `Seguridad › Roles y permisos` (`/admin/permissions`): se elige un rol, se ven sus permisos como una matriz entidad × Crear, Leer, Actualizar y Eliminar y se guardan con `POST /api/resource-roles/reconcile` enviando `{ roleId, resourceIds }`. La pantalla solo administra concesiones; Express sigue autorizando cada petición.
+
+Decisiones:
+
+- Pantalla propia en `features/admin/permissions/permission-matrix` (la guía integra el panel en `AdminPage`; aquí cada entidad Auth ya tiene la suya). «Concesiones» se conserva como listado fila a fila, con los inactivos del archivo.
+- La lógica pura (agrupar por entidad y operación, marcado/parcial/desmarcado, alternar una casilla) vive en `core/utils/permission-matrix.ts` con pruebas; el componente solo tiene señales y `computed`.
+- Cada casilla agrupa los recursos de la entidad con la misma operación (PUT y PATCH en Actualizar); el contador `n/m` y el tooltip muestran cuáles. Una casilla parcial es normal: BASCULA lee la tarifa vigente pero no el historial.
+- No se pinta ni se guarda una matriz hasta que llegan las concesiones del rol; si fallan, se ofrece «Reintentar». Se ignoran las respuestas tardías de un rol que ya no está elegido.
+- Si la sesión tiene el rol que se edita, los permisos de administración RBAC que ya tiene quedan bloqueados (`core/utils/rbac-lockout.ts`, compartido con «Concesiones»), para que nadie se quede sin acceso.
+- «Marcar todo» pide confirmación porque concede también los recursos de administración. El éxito se anuncia solo cuando el servidor responde.
+- Permisos: la ruta pide `GET /api/resource-roles` y el botón Guardar, `POST /api/resource-roles/reconcile`.
+
+Criterios de aceptación (ISS-CR-03)
+
+- [x] `ResourceRoleApi.reconcile` envía `{ roleId, resourceIds }` y exige `result` en la respuesta; `list` exige `grants`
+- [x] Cambiar de rol carga su matriz; un rol sin permisos muestra la matriz desmarcada, sin error
+- [x] Las casillas muestran marcado, desmarcado y parcial, y cada una modifica todos los recursos que agrupa
+- [x] Guardar envía el conjunto completo y confirma solo con la respuesta del servidor; un fallo se muestra y no simula éxito
+- [x] Una sesión no puede quitarse los permisos de administración del rol que tiene
+- [x] Las pruebas pasan
+
+### Pasos
+
+```bash
+# core/utils/permission-matrix.ts (+ spec) y core/utils/rbac-lockout.ts (lo usa también resource-role-list)
+# resource-role.model.ts: tipos del guardado; resource-role-api.ts: reconcile y validación de las envolturas
+# features/admin/permissions/permission-matrix: componente (ts, html, spec)
+# ruta /admin/permissions con authOnlyGuard + permissionGuard y «Roles y permisos» en nav.config.ts
+# role-permissions.ts (fixtures): ADMIN recibe POST /api/resource-roles/reconcile
+```
+
+### Verificación del ISS
+
+```bash
+npx ng test --watch=false
+npm run build
+node ~/.local/share/evidence-tools/matrix-e2e.mjs   # herramienta de evidencias, fuera del repo
+```
+
+**Verificación:** tabla CRUD consultable y editable, con errores visibles.
+
+#### Evidencias
+
+**Ev1 — Rol sin permisos:** el rol REVISOR, recién creado, muestra 0 permisos activos y sus 47 casillas desmarcadas; cada fila trae `/api/<entidad>`, el contador n/m y «No disponible» donde la entidad no tiene esa operación.
+
+![Ev1 ISS-CR-03](images/Ev1-ISS-CR-03.png)
+
+**Ev2 — Estado parcial:** BASCULA (20 permisos activos) en «Leer Materiales y tarifas»: casilla parcial, 3/4 (tiene la tarifa vigente, no el historial).
+
+![Ev2 ISS-CR-03](images/Ev2-ISS-CR-03.png)
+
+**Ev3 — Guardar:** REVISOR con «Leer Recicladores» y «Leer Materiales y tarifas»: `POST /api/resource-roles/reconcile` responde 200 y la pantalla muestra «Cambios guardados. 6 permisos activos para REVISOR.» con las concesiones releídas del backend.
+
+![Ev3 ISS-CR-03](images/Ev3-ISS-CR-03.png)
+
+**Ev4 — Error visible:** con el navegador sin conexión al pulsar Guardar, aparece «No se pudo conectar con el backend. Verifica que esté en http://localhost:4000.», no se anuncia «Cambios guardados» y el cambio sigue marcado («Sin guardar: +1 / -0»).
+
+![Ev4 ISS-CR-03](images/Ev4-ISS-CR-03.png)
+
+**Ev5 — Rol de la sesión:** ADMIN (100 permisos): sus casillas de asignaciones, concesiones, recursos, roles y usuarios están bloqueadas con candado y una nota lo explica; el resto se puede editar.
+
+![Ev5 ISS-CR-03](images/Ev5-ISS-CR-03.png)
+
+**Ev6 — Pruebas:** 3 archivos y 36 pruebas: la lógica de la matriz, el componente (carga, rol vacío, parcial, guardado, error, doble envío, respuesta tardía, bloqueo, confirmación y permiso del botón) y el contrato del cliente HTTP.
+
+![Ev6 ISS-CR-03](images/Ev6-ISS-CR-03.png)
+
+### Commit
+
+```bash
+git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/shell/shell.spec.ts \
+  src/app/core/utils/permission-matrix.ts src/app/core/utils/permission-matrix.spec.ts src/app/core/utils/rbac-lockout.ts \
+  src/app/core/models/resource-role.model.ts src/app/core/testing/role-permissions.ts \
+  src/app/features/admin/permissions src/app/features/admin/resource-roles src/app/features/admin/pivot-apis.spec.ts \
+  docs/PROCESO.md docs/images/Ev*-ISS-CR-03.png
+git commit -m "ISS-CR-03: Cliente HTTP y panel de matriz de roles y permisos"
+```

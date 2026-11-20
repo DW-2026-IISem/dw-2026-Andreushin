@@ -47,4 +47,54 @@ describe('Pivot APIs', () => {
 
     expect(result).toEqual([grant]);
   });
+
+  it('should POST { roleId, resourceIds } to /reconcile and unwrap { result }', () => {
+    const result = { roleId: 2, activated: 1, deactivated: 2, totalActive: 3 };
+    let answer: unknown;
+    TestBed.inject(ResourceRoleApi)
+      .reconcile(2, [11, 12, 13])
+      .subscribe((value) => (answer = value));
+
+    const request = http.expectOne(`${environment.apiUrl}/resource-roles/reconcile`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ roleId: 2, resourceIds: [11, 12, 13] });
+    request.flush({ message: 'Permisos del rol actualizados', result });
+
+    expect(answer).toEqual(result);
+  });
+
+  it('should send an empty resourceIds as it is (it means revoke everything)', () => {
+    TestBed.inject(ResourceRoleApi).reconcile(2, []).subscribe();
+
+    const request = http.expectOne(`${environment.apiUrl}/resource-roles/reconcile`);
+    expect(request.request.body).toEqual({ roleId: 2, resourceIds: [] });
+    request.flush({
+      message: 'ok',
+      result: { roleId: 2, activated: 0, deactivated: 1, totalActive: 0 },
+    });
+  });
+
+  it('should fail with a readable error when the reconcile answer has no result', () => {
+    let failure: unknown;
+    TestBed.inject(ResourceRoleApi)
+      .reconcile(2, [1])
+      .subscribe({ error: (error: unknown) => (failure = error) });
+
+    http.expectOne(`${environment.apiUrl}/resource-roles/reconcile`).flush({ message: 'ok' });
+
+    expect((failure as Error).message).toContain('falta result');
+  });
+
+  it('should fail with a readable error when the grants wrapper is missing', () => {
+    let failure: unknown;
+    TestBed.inject(ResourceRoleApi)
+      .list({ roleId: 2 })
+      .subscribe({ error: (error: unknown) => (failure = error) });
+
+    http
+      .expectOne((req) => req.url === `${environment.apiUrl}/resource-roles`)
+      .flush({ resource_roles: [] });
+
+    expect((failure as Error).message).toContain('falta grants');
+  });
 });

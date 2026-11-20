@@ -170,7 +170,7 @@ describe('Shell', () => {
     expect(compiled.querySelector('aside a[href="/settlements"]')).toBeTruthy();
   });
 
-  it('should add the Security group with the five admin screens for ADMIN only', async () => {
+  it('should add the Security group with the admin screens for ADMIN only', async () => {
     const { compiled } = await createShell();
     const hrefs = [...compiled.querySelectorAll('aside a[href]')].map((link) =>
       link.getAttribute('href'),
@@ -181,6 +181,7 @@ describe('Shell', () => {
         '/admin/roles',
         '/admin/resources',
         '/admin/role-users',
+        '/admin/permissions',
         '/admin/resource-roles',
       ]),
     );

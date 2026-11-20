@@ -100,6 +100,7 @@ export const ROLE_PERMISSIONS: Record<SeedRole, EffectivePermission[]> = {
     'GET /api/resource-roles',
     'GET /api/resource-roles/:id',
     'POST /api/resource-roles',
+    'POST /api/resource-roles/reconcile',
     'PATCH /api/resource-roles/:id/deactivate',
     'PATCH /api/resource-roles/:id/reactivate',
     'GET /api/archive/recyclers',

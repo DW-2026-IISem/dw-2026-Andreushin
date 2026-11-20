@@ -166,6 +166,17 @@ export const routes: Routes = [
           ),
       },
       {
+        // Roles y permisos: the grants of one role as an entity × C/R/U/D matrix.
+        path: 'admin/permissions',
+        title: 'Roles y permisos · CircularGuajira',
+        canActivate: [authOnlyGuard, permissionGuard],
+        data: { permission: 'GET /api/resource-roles' },
+        loadComponent: () =>
+          import('./features/admin/permissions/permission-matrix/permission-matrix').then(
+            (m) => m.PermissionMatrix,
+          ),
+      },
+      {
         path: 'profile',
         title: 'Mi perfil · CircularGuajira',
         // Every authenticated user may see its own session: no permissionGuard.

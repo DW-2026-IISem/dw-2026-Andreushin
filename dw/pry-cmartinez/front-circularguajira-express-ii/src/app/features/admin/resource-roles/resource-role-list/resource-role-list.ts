@@ -17,6 +17,7 @@ import { NotificationService } from '../../../../core/services/notification';
 import { SessionStore } from '../../../../core/services/session-store';
 import { toApiMessage } from '../../../../core/utils/api-error';
 import { filterRows } from '../../../../core/utils/filter-rows';
+import { isRbacAdminPath } from '../../../../core/utils/rbac-lockout';
 import { methodSeverity } from '../../../../core/utils/http-method';
 import { HasPermission } from '../../../../shared/directives/has-permission';
 import { EmptyState } from '../../../../shared/ui/empty-state/empty-state';
@@ -27,9 +28,6 @@ import { ResourceRoleApi } from '../resource-role-api';
 import { archiveScope } from '../../../../core/utils/archive-scope';
 import { RecordScopeFilter } from '../../../../shared/ui/record-scope-filter/record-scope-filter';
 import { StatusTag } from '../../../../shared/ui/status-tag/status-tag';
-
-/** RBAC administration endpoints: revoking them from your own role would lock you out. */
-const ADMIN_PATH = /^\/api\/(users|roles|resources|role-users|resource-roles)(\/|$)/;
 
 /**
  * Role ↔ resource grants (`resource_roles`): each active row IS a permission. Granting a
@@ -149,7 +147,7 @@ export class ResourceRoleList {
 
   /** A grant of one of the session roles that administers the RBAC itself. */
   isLockout(row: ResourceRole): boolean {
-    return this.session.hasRole(row.role?.name ?? '') && ADMIN_PATH.test(row.resource?.path ?? '');
+    return this.session.hasRole(row.role?.name ?? '') && isRbacAdminPath(row.resource?.path);
   }
 
   openGrant(): void {

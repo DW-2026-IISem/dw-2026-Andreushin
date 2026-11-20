@@ -1,0 +1,166 @@
+<app-page-header
+  title="Roles y permisos"
+  subtitle="Elige un rol y marca qué puede hacer sobre cada entidad. Cada casilla agrupa los endpoints del catálogo; el backend decide el acceso en cada petición."
+>
+  <ng-container *appHasPermission="'POST /api/resource-roles/reconcile'">
+    <button pButton type="button" [disabled]="!canSave()" [loading]="saving()" (click)="save()">
+      <i pButtonIcon class="pi pi-save"></i
+      ><span pButtonLabel>{{ saving() ? 'Guardando…' : 'Guardar permisos' }}</span>
+    </button>
+  </ng-container>
+</app-page-header>
+
+@if (error()) {
+  <p-message severity="error" role="alert" styleClass="mb-4 w-full">{{ error() }}</p-message>
+}
+@if (saveMessage()) {
+  <p-message severity="success" role="status" styleClass="mb-4 w-full">{{
+    saveMessage()
+  }}</p-message>
+}
+
+@if (!loading() && roles().length === 0 && !error()) {
+  <app-empty-state
+    icon="pi pi-id-card"
+    title="Sin roles"
+    message="Crea un rol en Seguridad › Roles para asignarle permisos."
+  />
+} @else {
+  <div class="rounded-xl border border-slate-200 bg-white">
+    <div class="grid gap-3 border-b border-slate-100 p-4 md:grid-cols-[16rem_1fr] md:items-end">
+      <div>
+        <label for="matrix-role" class="mb-1 block text-sm font-medium text-slate-700">Rol</label>
+        <p-select
+          inputId="matrix-role"
+          [options]="roles()"
+          optionLabel="name"
+          placeholder="Selecciona un rol"
+          [ngModel]="selectedRole()"
+          (ngModelChange)="selectRole($event)"
+          [disabled]="loading() || saving()"
+          [fluid]="true"
+        />
+      </div>
+      <div class="flex flex-wrap items-center gap-2" aria-live="polite">
+        @if (grantsLoaded()) {
+          <p-tag [value]="savedIds().size + ' permisos activos'" severity="info" [rounded]="true" />
+          @if (dirty()) {
+            <p-tag
+              [value]="
+                'Sin guardar: +' + changes().added.length + ' / −' + changes().removed.length
+              "
+              severity="warn"
+              [rounded]="true"
+            />
+          }
+        }
+        <span class="grow"></span>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          outlined
+          size="small"
+          [disabled]="busy() || !grantsLoaded()"
+          (click)="selectAll()"
+        >
+          <i pButtonIcon class="pi pi-check-square"></i><span pButtonLabel>Marcar todo</span>
+        </button>
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          outlined
+          size="small"
+          [disabled]="busy() || !grantsLoaded()"
+          (click)="clearAll()"
+        >
+          <i pButtonIcon class="pi pi-stop"></i><span pButtonLabel>Desmarcar todo</span>
+        </button>
+      </div>
+    </div>
+
+    @if (editingOwnRole()) {
+      <p-message severity="info" styleClass="m-4 w-auto">
+        Tu sesión tiene el rol {{ selectedRole()?.name }}: los permisos de administración de
+        usuarios, roles y permisos quedan protegidos para no dejarte sin acceso. Tras guardar, pulsa
+        «Actualizar permisos» en tu perfil para refrescar el menú.
+      </p-message>
+    }
+
+    @if (selectedRole() && !grantsLoaded() && error() && !loadingGrants()) {
+      <div class="p-4">
+        <button
+          pButton
+          type="button"
+          severity="secondary"
+          outlined
+          (click)="loadGrants(selectedRole()!)"
+        >
+          <i pButtonIcon class="pi pi-refresh"></i><span pButtonLabel>Reintentar</span>
+        </button>
+      </div>
+    } @else {
+      <div class="overflow-x-auto">
+        <p-table
+          [value]="grantsLoaded() ? rows() : []"
+          [loading]="loading() || loadingGrants()"
+          dataKey="entity"
+          tableStyleClass="min-w-2xl"
+        >
+          <ng-template #header>
+            <tr>
+              <th>Entidad</th>
+              @for (column of columns; track column.key) {
+                <th class="w-32 text-center">{{ column.label }} ({{ column.letter }})</th>
+              }
+            </tr>
+          </ng-template>
+          <ng-template #body let-row>
+            <tr>
+              <td>
+                <span class="font-medium text-slate-800">{{ row.label }}</span>
+                <code class="block text-xs text-slate-400">/api/{{ row.entity }}</code>
+              </td>
+              @for (cell of row.cells; track cell.column.key) {
+                <td class="text-center">
+                  @if (cell.resources.length) {
+                    <input
+                      type="checkbox"
+                      class="h-4 w-4 cursor-pointer accent-emerald-600 disabled:cursor-not-allowed"
+                      [attr.aria-label]="cell.column.label + ' ' + row.label"
+                      [attr.title]="cell.title"
+                      [checked]="cell.state === 'checked'"
+                      [indeterminate]="cell.state === 'partial'"
+                      [disabled]="busy() || cell.locked"
+                      (change)="toggle(cell, $event)"
+                    />
+                    <span class="block text-xs text-slate-400">
+                      @if (cell.locked) {
+                        <i class="pi pi-lock text-[0.65rem]" aria-hidden="true"></i>
+                      }
+                      {{ cell.selected }}/{{ cell.resources.length }}
+                    </span>
+                  } @else {
+                    <span class="text-xs text-slate-400">No disponible</span>
+                  }
+                </td>
+              }
+            </tr>
+          </ng-template>
+          <ng-template #emptymessage>
+            <tr>
+              <td [attr.colspan]="columns.length + 1">
+                <app-empty-state
+                  icon="pi pi-table"
+                  title="Sin matriz"
+                  message="Elige un rol para ver sus permisos."
+                />
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      </div>
+    }
+  </div>
+}

@@ -21,3 +21,17 @@ export interface ResourceRoleFilters {
   roleId?: number;
   resourceId?: number;
 }
+
+/** POST /api/resource-roles/reconcile — the complete set a role must hold afterwards. */
+export interface ResourceRoleReconcilePayload {
+  roleId: number;
+  resourceIds: number[];
+}
+
+/** `result` of the reconcile answer `{ message, result }`. */
+export interface ResourceRoleReconcileResult {
+  roleId: number;
+  activated: number;
+  deactivated: number;
+  totalActive: number;
+}
