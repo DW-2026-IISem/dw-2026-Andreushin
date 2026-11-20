@@ -70,6 +70,27 @@ export const resourceRolesSwagger = {
         },
       },
     },
+    "/api/resource-roles/reconcile": {
+      post: {
+        tags: [TAG],
+        summary: "Guardar la matriz de permisos de un rol",
+        description:
+          "JWT — `{ roleId, resourceIds }`: el conjunto COMPLETO que el rol debe tener. En una sola transacción: " +
+          "lo que falta se concede, lo retirado se reactiva y lo que sobra se retira (lógico). Idempotente. " +
+          "`resourceIds: []` retira todos los permisos del rol. Si algo falla no queda ningún cambio parcial.",
+        security: bearerSecurity,
+        requestBody: {
+          required: true,
+          content: { "application/json": { schema: { $ref: "#/components/schemas/ResourceRoleReconcileInput" } } },
+        },
+        responses: {
+          "200": jsonResponse("Matriz aplicada", "#/components/schemas/ResourceRoleReconcileResponse"),
+          "400": errorResponse("Cuerpo inválido, ids repetidos, o recursos inexistentes o inactivos"),
+          "401": unauthorizedResponse,
+          "404": errorResponse("Rol inexistente o inactivo"),
+        },
+      },
+    },
     "/api/resource-roles/{id}": {
       get: {
         tags: [TAG],
@@ -139,6 +160,34 @@ export const resourceRolesSwagger = {
         type: "object",
         required: ["roleId", "resourceId"],
         properties: { roleId: { type: "integer", minimum: 1 }, resourceId: { type: "integer", minimum: 1 } },
+      },
+      ResourceRoleReconcileInput: {
+        type: "object",
+        required: ["roleId", "resourceIds"],
+        properties: {
+          roleId: { type: "integer", minimum: 1, example: 2 },
+          resourceIds: {
+            type: "array",
+            description: "Ids únicos de recursos activos; el rol queda con exactamente este conjunto.",
+            items: { type: "integer", minimum: 1 },
+            example: [11, 12, 13],
+          },
+        },
+      },
+      ResourceRoleReconcileResponse: {
+        type: "object",
+        properties: {
+          message: { type: "string", example: "Permisos del rol actualizados" },
+          result: {
+            type: "object",
+            properties: {
+              roleId: { type: "integer", example: 2 },
+              activated: { type: "integer", description: "Concedidos o reactivados", example: 1 },
+              deactivated: { type: "integer", description: "Retirados", example: 2 },
+              totalActive: { type: "integer", description: "Permisos activos del rol tras guardar", example: 3 },
+            },
+          },
+        },
       },
     },
   },

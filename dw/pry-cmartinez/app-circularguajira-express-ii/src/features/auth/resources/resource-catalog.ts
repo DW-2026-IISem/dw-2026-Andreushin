@@ -86,6 +86,7 @@ export const RESOURCE_CATALOG: readonly CatalogResource[] = [
   { method: "GET", path: "/api/resource-roles", description: "Listar concesiones rol-recurso", roles: [] },
   { method: "GET", path: "/api/resource-roles/:id", description: "Consultar concesión rol-recurso", roles: [] },
   { method: "POST", path: "/api/resource-roles", description: "Conceder recurso a rol", roles: [] },
+  { method: "POST", path: "/api/resource-roles/reconcile", description: "Guardar la matriz de permisos de un rol", roles: [] },
   { method: "PATCH", path: "/api/resource-roles/:id/deactivate", description: "Retirar recurso a rol", roles: [] },
   { method: "PATCH", path: "/api/resource-roles/:id/reactivate", description: "Reactivar recurso a rol", roles: [] },
   // Archive: full lists with inactive rows. ADMIN only.

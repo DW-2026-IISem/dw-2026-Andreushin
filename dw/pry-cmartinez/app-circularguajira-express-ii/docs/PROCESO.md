@@ -2271,6 +2271,114 @@ git commit -m "ISS-CR-00: Contexto y contrato del panel de roles y permisos"
 ```
 
 
+### ISS-CR-01 — Catálogo y recurso del guardado de la matriz
+
+Registrar como recurso RBAC la operación que guarda la matriz y comprobar que catálogo, rutas y Swagger coinciden. El catálogo ya tenía el CRUD de cada entidad desde la Fase II, así que no se crean rutas genéricas: solo entra `POST /api/resource-roles/reconcile`, sin roles asociados, es decir, solo ADMIN. Al sembrarlo por primera vez entra 1 recurso y ADMIN recibe 1 concesión; el resto no cambia.
+
+El seeder `db:seed` reconcilia las concesiones de los cinco roles canónicos contra el catálogo, así que pisa lo que se haya ajustado a mano en ellos; los roles propios no se tocan (se prueba en el ISS-CR-04).
+
+Criterios de aceptación (ISS-CR-01)
+
+- [x] `POST /api/resource-roles/reconcile` está en el catálogo, tiene ruta con `authenticate` y `authorize` y está documentada en Swagger
+- [x] El catálogo no tiene pares `method + path` duplicados y coincide con lo documentado (`test:rbac`)
+- [x] El seeder es idempotente: repetirlo no crea recursos ni cambia concesiones
+- [x] Sin token la ruta responde 401 y con un rol sin concesión, 403
+
+### Pasos
+
+```bash
+# resource-catalog.ts: POST /api/resource-roles/reconcile (roles: [], solo ADMIN)
+# resource-roles.routes.ts: ruta con authenticate + authorize; resource-roles.swagger.ts y http/resource-roles.http: documentación
+npm run db:seed
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:rbac
+npm run db:seed
+curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:4000/api/resource-roles/reconcile
+```
+
+**Verificación:** recursos únicos, rutas protegidas y catálogo coherente con la API.
+
+#### Evidencias
+
+**Ev1 — Catálogo, ruta y Swagger:** el recurso aparece en `resource-catalog.ts`, `resource-roles.routes.ts` (con `authenticate, authorize`) y `resource-roles.swagger.ts`; `npm run test:rbac` pasa sus 4 pruebas (operaciones documentadas = catalogadas, sin duplicados).
+
+![Ev1 ISS-CR-01](images/Ev1-ISS-CR-01.png)
+
+**Ev2 — Seeder idempotente:** `npm run db:seed` reconcilia 100 recursos (0 nuevos) y deja ADMIN 100, LOGISTICA 30, BASCULA 20, PLANTA 12 y FINANZAS 16, todos con (+0 / -0).
+
+![Ev2 ISS-CR-01](images/Ev2-ISS-CR-01.png)
+
+**Ev3 — Acceso:** `POST /api/resource-roles/reconcile` responde 401 sin token y 403 con LOGISTICA.
+
+![Ev3 ISS-CR-01](images/Ev3-ISS-CR-01.png)
+
+
+### ISS-CR-02 — Guardado de la matriz de permisos de un rol
+
+`POST /api/resource-roles/reconcile` recibe `{ roleId, resourceIds }`, el conjunto completo que el rol debe tener, y responde `{ message, result: { roleId, activated, deactivated, totalActive } }`. Valida antes de tocar nada: cuerpo objeto, `roleId` entero positivo, `resourceIds` arreglo de enteros positivos y únicos (máximo 1000), rol activo (404) y recursos existentes y activos (400, con los ids). Después aplica `reconcileRole` en una transacción: concede lo que falta, reactiva lo retirado y retira (lógico) lo que sobra. Una lista vacía retira todo.
+
+Capas: `ResourceRoleReconcileDto` y `parseResourceRoleReconcile` (forma HTTP), `ResourceRolesService.reconcile` (rol y recursos), `ResourcesRepository.findActiveByIds` (una consulta para todos los ids), `ResourceRolesController.reconcile` (200 y envoltura) y la ruta. `test:matrix` usa un rol, un usuario y recursos desechables.
+
+Criterios de aceptación (ISS-CR-02)
+
+- [x] Concede, reactiva y retira en una transacción; repetir el mismo conjunto no cambia nada
+- [x] Las entradas inválidas responden 400 o 404 sin dejar cambios parciales
+- [x] Una lista vacía retira todos los permisos del rol y un error a mitad de la transacción lo revierte todo
+- [x] Conceder o retirar cambia el acceso real en la siguiente petición
+
+### Pasos
+
+```bash
+# resource-role.dto.ts + resource-role.validation.ts: ResourceRoleReconcileDto y parseResourceRoleReconcile
+# resources.repository.ts: findActiveByIds; resource-roles.service.ts: reconcile (valida y llama a reconcileRole)
+# resource-roles.controller.ts: reconcile; resource-roles.routes.ts: POST /api/resource-roles/reconcile
+# src/tests/permission-matrix.test.ts + "test:matrix" en package.json; README.md
+```
+
+### Verificación del ISS
+
+```bash
+npm run test:matrix
+npm run test:all
+```
+
+**Verificación:** endpoint atómico, validado y transaccional.
+
+#### Evidencias
+
+**Ev1 — Guardar:** sobre el rol REVISOR, `[1,2,8]` concede 3 (activated 3, deactivated 0, totalActive 3); `[2,8,9]` concede 1 y retira 1 (totalActive 3) y la consulta devuelve `[2, 8, 9]`.
+
+![Ev1 ISS-CR-02](images/Ev1-ISS-CR-02.png)
+
+**Ev2 — Entradas inválidas:** ids repetidos (400 «no admite ids repetidos»), recurso inexistente (400 «Recursos inexistentes o inactivos: 2000000000») y rol inexistente (404); después las concesiones siguen siendo `[2, 8, 9]`, sin cambios parciales.
+
+![Ev2 ISS-CR-02](images/Ev2-ISS-CR-02.png)
+
+**Ev3 — Pruebas:** `npm run test:matrix`: 7 pruebas (401 y 403, 400 sin cambios, 404, alta/reactivación/revocación idempotente, lista vacía, rollback y acceso real 403, 200, 403), 0 fallos.
+
+![Ev3 ISS-CR-02](images/Ev3-ISS-CR-02.png)
+
+Pendientes:
+
+- El backend no impide que un administrador se quite a sí mismo permisos de administración por API directa, igual que `PATCH /api/resource-roles/:id/deactivate`; esa protección está en la pantalla (ISS-CR-03).
+
+### Commit
+
+```bash
+git add package.json README.md docs/PROCESO.md src/features/auth/resource-roles src/features/auth/resources/resource-catalog.ts \
+  src/features/auth/resources/resources.repository.ts src/tests/permission-matrix.test.ts \
+  docs/images/Ev1-ISS-CR-01.png docs/images/Ev2-ISS-CR-01.png docs/images/Ev3-ISS-CR-01.png \
+  docs/images/Ev1-ISS-CR-02.png docs/images/Ev2-ISS-CR-02.png docs/images/Ev3-ISS-CR-02.png
+git commit -m "ISS-CR-02: Guardado de la matriz de permisos de un rol"
+```
+
+El catálogo y el recurso del ISS-CR-01 no se pueden publicar antes que la ruta del ISS-CR-02: `test:rbac` exige que lo catalogado esté documentado y viceversa. Por eso ambos ISS comparten commit.
+
+
 ## Secuencia y entregables
 
 1. Completar los bloques en orden, incorporando pruebas y migraciones con cada feature.

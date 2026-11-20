@@ -3,7 +3,7 @@ import { ResourceRolesController } from "./resource-roles.controller";
 import { authenticate, authorize } from "../access";
 
 /**
- * Grant (permission) endpoints (5 operations, no physical delete). Access mode: JWT + RBAC
+ * Grant (permission) endpoints (6 operations, no physical delete). Access mode: JWT + RBAC
  * (`authenticate` 401, then `authorize` 403).
  */
 export class ResourceRolesRoutes {
@@ -20,6 +20,9 @@ export class ResourceRolesRoutes {
 
     // grant (create or reactivate)
     app.route("/api/resource-roles").post(authenticate, authorize, controller.grant.bind(controller));
+
+    // reconcile: saves the whole matrix of a role in one transaction (own resource: ADMIN only)
+    app.route("/api/resource-roles/reconcile").post(authenticate, authorize, controller.reconcile.bind(controller));
 
     // deactivate (revoke, logical)
     app.route("/api/resource-roles/:id/deactivate").patch(authenticate, authorize, controller.deactivate.bind(controller));

@@ -9,3 +9,10 @@ export interface ResourceRoleFilters {
   roleId?: number;
   resourceId?: number;
 }
+
+// POST /api/resource-roles/reconcile: the COMPLETE set a role must hold afterwards (the panel
+// saves the whole matrix at once). An empty list is deliberate: it revokes every grant.
+export interface ResourceRoleReconcileDto {
+  roleId: number;
+  resourceIds: number[];
+}

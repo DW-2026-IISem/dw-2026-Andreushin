@@ -69,6 +69,7 @@ curl -s -H "Authorization: Bearer <accessToken>" localhost:4000/api/weighings
 - Access token JWT HS256 de vida corta (algoritmo, `iss` y `aud` fijos; `sub`, `jti`); no lleva roles: la autorización se consulta en cada petición, así que retirar un permiso o desactivar un usuario tiene efecto inmediato.
 - Refresh token opaco, guardado solo como SHA-256, de un solo uso: cada `refresh` lo rota y reutilizar uno consumido revoca toda la familia de la sesión.
 - Deny by default: sin una concesión activa (`resource_roles`) del par (método, ruta) la respuesta es 403. Un permiso nuevo se da de alta con `POST /api/resources` y `POST /api/resource-roles`, sin desplegar código.
+- Un rol queda con exactamente el conjunto que se le envía a `POST /api/resource-roles/reconcile` con `{ roleId, resourceIds }`: concede lo que falta, reactiva lo retirado y retira lo que sobra, en una transacción (es lo que guarda el panel «Roles y permisos»). `resourceIds: []` retira todo; ids repetidos, inexistentes o inactivos responden 400 y un rol inexistente o inactivo, 404, sin cambios parciales.
 
 ## Pruebas
 
@@ -82,7 +83,7 @@ npm run test:session        # login, refresh, logout, perfil y las tres modalida
 npm run test:archive        # listados con inactivos: solo ADMIN
 ```
 
-También: `test:auth`, `test:users`, `test:rbac`, `test:permissions`, `test:sessions`.
+También: `test:auth`, `test:users`, `test:rbac`, `test:permissions`, `test:matrix` (guardado de la matriz de un rol), `test:sessions`.
 
 ## Estructura
 

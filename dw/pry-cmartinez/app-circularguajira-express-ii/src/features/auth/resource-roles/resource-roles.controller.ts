@@ -38,6 +38,16 @@ export class ResourceRolesController {
     }
   }
 
+  // 200 always: the role ends up holding exactly the requested set (idempotent, one transaction).
+  public async reconcile(req: Request, res: Response): Promise<Response> {
+    try {
+      const result = await this.resourceRolesService.reconcile(req.body);
+      return res.status(200).json({ message: "Permisos del rol actualizados", result });
+    } catch (error) {
+      return handleError(res, error);
+    }
+  }
+
   // ================== STATE ==================
 
   public async deactivate(req: Request<{ id: string }>, res: Response): Promise<Response> {

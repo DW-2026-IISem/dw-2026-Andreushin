@@ -24,6 +24,18 @@ Content-Type: application/json
   "resourceId": 1
 }
 
+### reconcile: guarda la matriz completa de un rol (BASCULA = 3) -> 200 { message, result }
+### El rol queda con EXACTAMENTE estos recursos; lo que sobra se retira. [] retira todo.
+### 400 ids repetidos / recursos inexistentes o inactivos; 404 rol inexistente o inactivo.
+POST {{baseUrl}}/resource-roles/reconcile
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "roleId": 3,
+  "resourceIds": [1, 2, 3]
+}
+
 ### deactivate: retira solo ese permiso
 PATCH {{baseUrl}}/resource-roles/170/deactivate
 Authorization: Bearer {{token}}

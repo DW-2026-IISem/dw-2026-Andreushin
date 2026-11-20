@@ -2,10 +2,14 @@ import { ResourceRolesRepository } from "./resource-roles.repository";
 import { ResourceRole } from "./resource-role.model";
 import { RolesRepository } from "../roles/roles.repository";
 import { ResourcesRepository } from "../resources/resources.repository";
-import { ConflictError, NotFoundError } from "../../../shared/errors/httpError";
+import { BadRequestError, ConflictError, NotFoundError } from "../../../shared/errors/httpError";
 import { parseId } from "../../../shared/http/parseId";
 import { withTransaction } from "../../../shared/database/transaction";
-import { parseResourceRoleCreate, parseResourceRoleFilters } from "./dto/resource-role.validation";
+import {
+  parseResourceRoleCreate,
+  parseResourceRoleFilters,
+  parseResourceRoleReconcile,
+} from "./dto/resource-role.validation";
 
 export interface ReconcileResult {
   roleId: number;
@@ -17,7 +21,8 @@ export interface ReconcileResult {
 /**
  * Grants (role <-> resource): where "Role + Resource = permission" becomes operational.
  * Granting, revoking and restoring are data, not code: no deploy, effect on the next request.
- * `reconcileRole` declares the exact set of a role (used by the seeder from the catalog).
+ * `reconcileRole` declares the exact set of a role: the seeder uses it from the catalog and
+ * `reconcile` exposes it to the Roles y permisos panel behind validation.
  */
 export class ResourceRolesService {
   constructor(
@@ -78,6 +83,27 @@ export class ResourceRolesService {
   }
 
   // ================== RECONCILIATION ==================
+
+  /**
+   * HTTP entry of the matrix: validates the whole request BEFORE touching a grant, so an invalid
+   * payload leaves no partial change. The role must be active (404); every resource must exist
+   * and be active (400, naming the offending ids).
+   */
+  async reconcile(body: unknown): Promise<ReconcileResult> {
+    const input = parseResourceRoleReconcile(body);
+    const role = await this.rolesRepository.findById(input.roleId);
+    if (!role || role.status !== "active") {
+      throw new NotFoundError(`Rol no encontrado o inactivo: ${input.roleId}`);
+    }
+    if (input.resourceIds.length > 0) {
+      const active = new Set((await this.resourcesRepository.findActiveByIds(input.resourceIds)).map((r) => r.id));
+      const invalid = input.resourceIds.filter((id) => !active.has(id));
+      if (invalid.length > 0) {
+        throw new BadRequestError(`Recursos inexistentes o inactivos: ${invalid.join(", ")}`);
+      }
+    }
+    return this.reconcileRole(role.id, input.resourceIds);
+  }
 
   /**
    * Leaves the active grants of a role EXACTLY equal to `resourceIds`, in one transaction:
