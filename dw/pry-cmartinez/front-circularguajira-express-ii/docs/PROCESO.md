@@ -1934,3 +1934,67 @@ git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/
   docs/PROCESO.md docs/images/Ev*-ISS-CR-03.png
 git commit -m "ISS-CR-03: Cliente HTTP y panel de matriz de roles y permisos"
 ```
+
+
+### ISS-CR-04 — Integración y cierre del panel de roles y permisos
+
+Comprobar de punta a punta que la matriz administra permisos reales: un navegador real contra el backend real y la base MySQL, con un rol y un usuario desechables. Una pantalla que solo se ve bien no demuestra autorización: el acceso se prueba con peticiones directas.
+
+Efectos del seeder: `npm run db:seed` reconcilia las concesiones de los cinco roles canónicos contra el catálogo, de modo que una concesión dada a mano a uno de ellos (por la matriz o por `POST /api/resource-roles`) se retira al sembrar. Los roles propios, como REVISOR, no se tocan. Para conservar un cambio en un rol canónico hay que cambiar el catálogo, como en `AJUSTE-RBAC`.
+
+Criterios de aceptación (ISS-CR-04)
+
+- [x] Recorrido completo en navegador real: login, matriz, guardar, acceso concedido y denegado, id inválido rechazado y sin errores en consola
+- [x] La autorización se comprueba con peticiones directas, no solo desde la pantalla
+- [x] Las pruebas y las compilaciones de backend y frontend pasan
+- [x] Los efectos del seeder se probaron y quedan documentados
+
+### Pasos
+
+```bash
+cd ../app-circularguajira-express-ii && npm run dev   # backend en 4000 (rol y usuario desechables creados por la herramienta)
+node ~/.local/share/evidence-tools/matrix-e2e.mjs
+npx tsc --noEmit && npm run test:all
+cd ../front-circularguajira-express-ii && npx ng test --watch=false && npm run format:check && npm run build
+```
+
+### Verificación del ISS
+
+```bash
+node ~/.local/share/evidence-tools/matrix-e2e.mjs
+npm run test:all
+npx ng test --watch=false
+```
+
+**Verificación:** evidencia verificable de punta a punta.
+
+#### Evidencias
+
+**Ev1 — Recorrido real:** `matrix-e2e.mjs` (Chromium contra el backend real) hace 14 comprobaciones: login de admin, matriz de ADMIN con sus permisos protegidos, BASCULA parcial, REVISOR vacío, guardado `{ roleId, resourceIds: [1,2,8,9,15,17] }` con 200 y +6 / -0, y que el usuario `revisor` recibe 200 en `GET /api/recyclers` y 403 en `POST /api/recyclers` y `GET /api/routes`; al desmarcar «Leer Recicladores» en la pantalla pasa a 403; un id inexistente da 400 y no hay errores en consola.
+
+![Ev1 ISS-CR-04](images/Ev1-ISS-CR-04.png)
+
+**Ev2 — Backend:** `tsc` sin errores y `npm run test:all`: 13 suites, 64 pruebas, 0 fallos (incluye `test:matrix`).
+
+![Ev2 ISS-CR-04](images/Ev2-ISS-CR-04.png)
+
+**Ev3 — Frontend:** `ng test` 51 archivos y 246 pruebas; Prettier sin cambios pendientes; `ng build` código 0 (Initial total 581.14 kB).
+
+![Ev3 ISS-CR-04](images/Ev3-ISS-CR-04.png)
+
+**Ev4 — Seeder:** se concede a mano `GET /api/settlements` a LOGISTICA (201) y `npm run db:seed` la retira: LOGISTICA (+0 / -1), ADMIN sin cambios.
+
+![Ev4 ISS-CR-04](images/Ev4-ISS-CR-04.png)
+
+Pendientes y decisiones:
+
+- La matriz administra acceso, no corrige reglas de negocio: conceder escritura sobre una entidad no salta las validaciones de su service.
+- El backend no impide que ADMIN se quite permisos de administración por API directa; solo la pantalla lo evita.
+- «Marcar todo» pide confirmación, pero concede también los recursos de administración.
+
+### Commit
+
+```bash
+git add docs/PROCESO.md docs/images/Ev1-ISS-CR-04.png docs/images/Ev2-ISS-CR-04.png docs/images/Ev3-ISS-CR-04.png docs/images/Ev4-ISS-CR-04.png
+git commit -m "ISS-CR-04: Integración y cierre del panel de roles y permisos"
+```
