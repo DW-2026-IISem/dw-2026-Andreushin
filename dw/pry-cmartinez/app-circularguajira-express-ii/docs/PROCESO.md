@@ -2270,6 +2270,8 @@ git add docs/PROCESO.md docs/images/Ev1-ISS-CR-00.png docs/images/Ev2-ISS-CR-00.
 git commit -m "ISS-CR-00: Contexto y contrato del panel de roles y permisos"
 ```
 
+Commit: [`ada598a`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/ada598aea99ad047a6050282078777a7f3d8ed4f)
+
 
 ### ISS-CR-01 — Catálogo y recurso del guardado de la matriz
 
@@ -2375,6 +2377,8 @@ git add package.json README.md docs/PROCESO.md src/features/auth/resource-roles 
   docs/images/Ev1-ISS-CR-02.png docs/images/Ev2-ISS-CR-02.png docs/images/Ev3-ISS-CR-02.png
 git commit -m "ISS-CR-02: Guardado de la matriz de permisos de un rol"
 ```
+
+Commit: [`6bdf362`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/6bdf362b63111316586a21bb3e2ee0b75776f544)
 
 El catálogo y el recurso del ISS-CR-01 no se pueden publicar antes que la ruta del ISS-CR-02: `test:rbac` exige que lo catalogado esté documentado y viceversa. Por eso ambos ISS comparten commit.
 

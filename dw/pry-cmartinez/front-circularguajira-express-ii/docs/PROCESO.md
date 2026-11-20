@@ -1935,6 +1935,8 @@ git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/
 git commit -m "ISS-CR-03: Cliente HTTP y panel de matriz de roles y permisos"
 ```
 
+Commit: [`4af970c`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/4af970c6fed1268622e1f436066a50360c10c9c0)
+
 
 ### ISS-CR-04 — Integración y cierre del panel de roles y permisos
 
@@ -1998,3 +2000,5 @@ Pendientes y decisiones:
 git add docs/PROCESO.md docs/images/Ev1-ISS-CR-04.png docs/images/Ev2-ISS-CR-04.png docs/images/Ev3-ISS-CR-04.png docs/images/Ev4-ISS-CR-04.png
 git commit -m "ISS-CR-04: Integración y cierre del panel de roles y permisos"
 ```
+
+Commit: [`a0a5912`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/a0a5912c224fbdc9b7b44760e8ab2f864b0ac86f)
