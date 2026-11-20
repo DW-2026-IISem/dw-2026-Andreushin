@@ -2200,9 +2200,81 @@ git push origin main
 Commit: [`5f9fb70`](https://github.com/DW-2026-IISem/dw-2026-Andreushin/commit/5f9fb70ff972dbf770aaed3228b809a799142ad1)
 
 
+## Ruta CRUD · Panel de roles y permisos
+
+**Objetivo:** añadir el panel «Roles y permisos»: una matriz entidad × Crear, Leer, Actualizar y Eliminar que guarda los permisos de un rol en una sola petición. Sigue la ruta ISS-CR de la guía de PedalLibre (`docs/CRUD`), adaptada a este proyecto. El backend es ISS-CR-00 a ISS-CR-02; el frontend es ISS-CR-03 e ISS-CR-04 (`front-circularguajira-express-ii/docs/PROCESO.md`).
+
+Adaptaciones de la guía:
+
+- Rutas en inglés, como el resto de la API: `/api/resources` y `/api/resource-roles` (la guía usa `/api/recursos` y `/api/concesiones-rol`).
+- Cuerpos en camelCase: `{ roleId, resourceIds }` y resultado `{ roleId, activated, deactivated, totalActive }` (la guía usa snake_case).
+- Un usuario puede tener varios roles por `role_users` (la guía guarda `users.role_id`); la matriz solo toca `resource_roles`, que ya existía.
+- No hay carpeta `crud` ni CRUD genérico: cada entidad ya tiene su feature y su catálogo, así que la guía se aplica sobre `features/auth/resource-roles` y `features/auth/resources`.
+- `reconcileRole` ya existía (lo usa el seeder). Se expone por HTTP con validación previa en una ruta propia, `POST /api/resource-roles/reconcile`, para que sea un recurso RBAC independiente de la concesión individual `POST /api/resource-roles`.
+
+### ISS-CR-00 — Contexto y contrato del panel de roles y permisos
+
+Acordar el contrato antes de programar: qué representa una casilla, qué capa aplica el permiso y cómo se agrupa el catálogo. Este ISS no escribe código.
+
+Contrato (respuestas reales de la API): `GET /api/roles` devuelve `{ roles }`, `GET /api/resources` `{ resources }`, `GET /api/resource-roles?roleId=` `{ grants }` y `GET /api/session/permissions` `{ permissions }`. Guardar es `POST /api/resource-roles/reconcile` con `{ roleId, resourceIds }` y responde `{ message, result }`.
+
+Decisiones:
+
+- Una casilla agrupa los recursos de una entidad (primer segmento de la ruta tras `/api`) con la misma operación. Los sub-recursos (`/api/materials/:id/rates`, `/api/routes/:id/points`) quedan con su entidad.
+- Actualizar agrupa `PUT` y `PATCH`. Las acciones especiales siguen su método: `PATCH …/deactivate` y `PATCH …/void` son Actualizar, `POST …/rates` es Crear, `GET …/verify` es Leer. Por eso una casilla puede quedar parcial.
+- Si una entidad no tiene recursos de una operación (Eliminar en `role-users`, `resource-roles` y `archive`), la casilla dice «No disponible»; no se habilita lo que el backend no publica.
+- La interfaz no autoriza: `authorize` decide cada petición con las concesiones activas (`role_users` → `roles` → `resource_roles` → `resources`).
+
+Criterios de aceptación (ISS-CR-00)
+
+- [x] El contrato de lectura coincide con las respuestas reales de la API
+- [x] Los recursos del catálogo se agrupan por entidad y operación, con PUT y PATCH en Actualizar
+- [x] El servidor autoriza cada petición: sin token 401, sin concesión 403, con concesión 200
+
+### Pasos
+
+```bash
+# Sin código: se leen la API, el catálogo y el middleware existentes
+curl -s -H "Authorization: Bearer $TOKEN" localhost:4000/api/roles
+npx ts-node -e '<agrupa RESOURCE_CATALOG por entidad y operación>'
+curl -s -o /dev/null -w "%{http_code}\n" localhost:4000/api/resource-roles
+```
+
+### Verificación del ISS
+
+```bash
+for p in roles resources "resource-roles?roleId=3" session/permissions; do curl -s -H "Authorization: Bearer $TOKEN" "localhost:4000/api/$p"; done
+curl -s -o /dev/null -w "%{http_code}\n" -H "Authorization: Bearer $TOKEN_LOG" localhost:4000/api/resource-roles
+```
+
+**Verificación:** contrato y alcance acordados antes de programar.
+
+#### Evidencias
+
+**Ev1 — Contrato:** `GET /api/roles`, `/resources`, `/resource-roles?roleId=3` y `/session/permissions` con el token de ADMIN; las envolturas son `roles` (7), `resources` (100), `grants` (20 de BASCULA) y `permissions` (100).
+
+![Ev1 ISS-CR-00](images/Ev1-ISS-CR-00.png)
+
+**Ev2 — Agrupación:** el catálogo por entidad y operación (C, R, U, D); `recyclers` tiene 1, 2, 3 (PUT, PATCH y `deactivate`) y 1, y `role-users`, `resource-roles` y `archive` no tienen Eliminar.
+
+![Ev2 ISS-CR-00](images/Ev2-ISS-CR-00.png)
+
+**Ev3 — Autorización:** `GET /api/resource-roles` responde 401 sin token, 403 con LOGISTICA y 200 con ADMIN.
+
+![Ev3 ISS-CR-00](images/Ev3-ISS-CR-00.png)
+
+### Commit
+
+```bash
+git add docs/PROCESO.md docs/images/Ev1-ISS-CR-00.png docs/images/Ev2-ISS-CR-00.png docs/images/Ev3-ISS-CR-00.png
+git commit -m "ISS-CR-00: Contexto y contrato del panel de roles y permisos"
+```
+
+
 ## Secuencia y entregables
 
 1. Completar los bloques en orden, incorporando pruebas y migraciones con cada feature.
 2. Integrar y verificar el dominio antes de habilitar seguridad: `CIERRE-BUSINESS`.
 3. Incorporar usuarios, roles, permisos y sesiones; proteger las rutas y repetir las pruebas de negocio: `CIERRE-AUTH`.
 4. Entregar en cada bloque código integrado, pruebas y documentación o configuración pertinente; registrar decisiones y pendientes del alcance.
+5. Ruta CRUD: panel «Roles y permisos» sobre las concesiones ya existentes, del contrato al cierre de punta a punta: `ISS-CR-00` a `ISS-CR-04`.
