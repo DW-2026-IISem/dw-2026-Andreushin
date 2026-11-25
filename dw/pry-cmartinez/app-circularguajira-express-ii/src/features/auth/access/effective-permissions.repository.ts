@@ -1,7 +1,7 @@
-import { Resource } from "../resources/resource.model";
-import { ResourceRole } from "../resource-roles/resource-role.model";
-import { Role } from "../roles/role.model";
-import { RoleUser } from "../role-users/role-user.model";
+import { Resource } from "../resources/crud/resource.model";
+import { ResourceRole } from "../resource-roles/crud/resource-role.model";
+import { Role } from "../roles/crud/role.model";
+import { RoleUser } from "../role-users/crud/role-user.model";
 
 export interface EffectivePermission {
   resourceId: number;

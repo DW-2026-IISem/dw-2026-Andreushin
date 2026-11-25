@@ -1,5 +1,5 @@
-import { Route } from "./route.model";
-import { CollectionPoint } from "./collection-point.model";
+import { Route } from "./crud/routes/route.model";
+import { CollectionPoint } from "./crud/collection-points/collection-point.model";
 
 // Route 1:N CollectionPoint. RESTRICT: a route with points cannot be physically deleted.
 Route.hasMany(CollectionPoint, {

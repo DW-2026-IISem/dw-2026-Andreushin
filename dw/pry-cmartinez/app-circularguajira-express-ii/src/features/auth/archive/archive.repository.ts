@@ -1,15 +1,15 @@
-import { Recycler } from "../../business/collectors/recycler.model";
-import { Material } from "../../business/materials/material.model";
-import { Route } from "../../business/routes/route.model";
-import { CollectionPoint } from "../../business/routes/collection-point.model";
-import { Collection } from "../../business/weighing/collection.model";
-import { Weighing } from "../../business/weighing/weighing.model";
-import { Settlement } from "../../business/settlements/settlement.model";
-import { User } from "../users/user.model";
-import { Role } from "../roles/role.model";
-import { Resource } from "../resources/resource.model";
-import { RoleUser } from "../role-users/role-user.model";
-import { ResourceRole } from "../resource-roles/resource-role.model";
+import { Recycler } from "../../business/collectors/crud/recyclers/recycler.model";
+import { Material } from "../../business/materials/crud/materials/material.model";
+import { Route } from "../../business/routes/crud/routes/route.model";
+import { CollectionPoint } from "../../business/routes/crud/collection-points/collection-point.model";
+import { Collection } from "../../business/weighing/crud/collections/collection.model";
+import { Weighing } from "../../business/weighing/crud/weighings/weighing.model";
+import { Settlement } from "../../business/settlements/crud/settlements/settlement.model";
+import { User } from "../users/crud/user.model";
+import { Role } from "../roles/crud/role.model";
+import { Resource } from "../resources/crud/resource.model";
+import { RoleUser } from "../role-users/crud/role-user.model";
+import { ResourceRole } from "../resource-roles/crud/resource-role.model";
 
 /**
  * Every row of a table, whatever its status. The feature lists stay active-only because

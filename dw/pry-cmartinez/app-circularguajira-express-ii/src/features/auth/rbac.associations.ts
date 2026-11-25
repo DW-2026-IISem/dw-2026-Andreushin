@@ -1,9 +1,9 @@
-import { User } from "./users/user.model";
-import { Role } from "./roles/role.model";
-import { Resource } from "./resources/resource.model";
-import { RoleUser } from "./role-users/role-user.model";
-import { ResourceRole } from "./resource-roles/resource-role.model";
-import { RefreshToken } from "./refresh-tokens/refresh-token.model";
+import { User } from "./users/crud/user.model";
+import { Role } from "./roles/crud/role.model";
+import { Resource } from "./resources/crud/resource.model";
+import { RoleUser } from "./role-users/crud/role-user.model";
+import { ResourceRole } from "./resource-roles/crud/resource-role.model";
+import { RefreshToken } from "./refresh-tokens/crud/refresh-token.model";
 
 /**
  * The whole RBAC graph in one file, because authorization is a chain across five tables:

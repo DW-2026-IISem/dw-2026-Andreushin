@@ -1,6 +1,6 @@
 import { fakerES as faker } from "@faker-js/faker";
-import { Material } from "./material.model";
-import { MaterialRate, MaterialRateCreationAttributes } from "./material-rate.model";
+import { Material } from "./crud/materials/material.model";
+import { MaterialRate, MaterialRateCreationAttributes } from "./crud/material-rates/material-rate.model";
 
 /**
  * Material and rate seeders (dev data). Invoked from `src/database/seeders`, never from the App.

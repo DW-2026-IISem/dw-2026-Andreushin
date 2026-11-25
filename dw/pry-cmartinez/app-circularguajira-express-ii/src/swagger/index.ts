@@ -6,18 +6,18 @@ import {
   forbiddenResponse,
   unauthorizedResponse,
 } from "../shared/http/swagger-security";
-import { RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
-import { recyclersSwagger } from "../features/business/collectors/recyclers.swagger";
+import { RESOURCE_CATALOG } from "../features/auth/resources/crud/resource-catalog";
+import { recyclersSwagger } from "../features/business/collectors/crud/recyclers/recyclers.swagger";
 import { materialsSwagger } from "../features/business/materials/materials.swagger";
 import { routesSwagger } from "../features/business/routes/routes.swagger";
 import { weighingSwagger } from "../features/business/weighing/weighing.swagger";
-import { settlementsSwagger } from "../features/business/settlements/settlements.swagger";
-import { usersSwagger } from "../features/auth/users/users.swagger";
-import { rolesSwagger } from "../features/auth/roles/roles.swagger";
-import { resourcesSwagger } from "../features/auth/resources/resources.swagger";
-import { roleUsersSwagger } from "../features/auth/role-users/role-users.swagger";
-import { resourceRolesSwagger } from "../features/auth/resource-roles/resource-roles.swagger";
-import { refreshTokensSwagger } from "../features/auth/refresh-tokens/refresh-tokens.swagger";
+import { settlementsSwagger } from "../features/business/settlements/crud/settlements/settlements.swagger";
+import { usersSwagger } from "../features/auth/users/crud/users.swagger";
+import { rolesSwagger } from "../features/auth/roles/crud/roles.swagger";
+import { resourcesSwagger } from "../features/auth/resources/crud/resources.swagger";
+import { roleUsersSwagger } from "../features/auth/role-users/crud/role-users.swagger";
+import { resourceRolesSwagger } from "../features/auth/resource-roles/crud/resource-roles.swagger";
+import { refreshTokensSwagger } from "../features/auth/refresh-tokens/crud/refresh-tokens.swagger";
 import { sessionSwagger } from "../features/auth/session/session.swagger";
 import { archiveSwagger } from "../features/auth/archive/archive.swagger";
 

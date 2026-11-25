@@ -12,9 +12,9 @@ import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 import { createTestIdentity } from "./support/identity";
-import { RoleUser } from "../features/auth/role-users/role-user.model";
-import { ResourceRole } from "../features/auth/resource-roles/resource-role.model";
-import { NON_RESOURCE_OPERATIONS, RESOURCE_CATALOG } from "../features/auth/resources/resource-catalog";
+import { RoleUser } from "../features/auth/role-users/crud/role-user.model";
+import { ResourceRole } from "../features/auth/resource-roles/crud/resource-role.model";
+import { NON_RESOURCE_OPERATIONS, RESOURCE_CATALOG } from "../features/auth/resources/crud/resource-catalog";
 
 type Json = Record<string, unknown>;
 

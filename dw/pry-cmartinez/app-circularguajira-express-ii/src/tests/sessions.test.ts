@@ -12,8 +12,8 @@ import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 import { sha256Hex } from "../shared/auth/password";
-import { RefreshToken } from "../features/auth/refresh-tokens/refresh-token.model";
-import { RefreshTokensService } from "../features/auth/refresh-tokens/refresh-tokens.service";
+import { RefreshToken } from "../features/auth/refresh-tokens/crud/refresh-token.model";
+import { RefreshTokensService } from "../features/auth/refresh-tokens/crud/refresh-tokens.service";
 import { createTestIdentity, TestIdentity } from "./support/identity";
 
 type Json = Record<string, unknown>;

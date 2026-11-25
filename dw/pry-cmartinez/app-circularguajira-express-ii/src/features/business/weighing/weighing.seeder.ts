@@ -1,13 +1,13 @@
 import { fakerES as faker } from "@faker-js/faker";
 import { Op } from "sequelize";
 import { sequelize } from "../../../database/db";
-import { Collection } from "./collection.model";
-import { Weighing, WeighingCreationAttributes } from "./weighing.model";
-import { Recycler } from "../collectors/recycler.model";
-import { Route } from "../routes/route.model";
-import { Material } from "../materials/material.model";
-import { MaterialRate } from "../materials/material-rate.model";
-import { todayInColombia } from "../materials/material-rates.service";
+import { Collection } from "./crud/collections/collection.model";
+import { Weighing, WeighingCreationAttributes } from "./crud/weighings/weighing.model";
+import { Recycler } from "../collectors/crud/recyclers/recycler.model";
+import { Route } from "../routes/crud/routes/route.model";
+import { Material } from "../materials/crud/materials/material.model";
+import { MaterialRate } from "../materials/crud/material-rates/material-rate.model";
+import { todayInColombia } from "../materials/crud/material-rates/material-rates.service";
 import { calculateLine, sumLines } from "./weighing.calculator";
 
 /**

@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import { sequelize, testConnection } from "../db";
 import { assertNoPendingMigrations } from "../migrator";
-import { seedRecyclers } from "../../features/business/collectors/recyclers.seeder";
+import { seedRecyclers } from "../../features/business/collectors/crud/recyclers/recyclers.seeder";
 import "../../features/business/materials/materials.associations";
 import { seedMaterialRates, seedMaterials } from "../../features/business/materials/materials.seeder";
 import "../../features/business/routes/routes.associations";
@@ -9,13 +9,13 @@ import { seedCollectionPoints, seedRoutes } from "../../features/business/routes
 import "../../features/business/weighing/weighing.associations";
 import "../../features/business/settlements/settlements.associations";
 import "../../features/auth/rbac.associations";
-import { seedUsers } from "../../features/auth/users/users.seeder";
-import { seedRoles } from "../../features/auth/roles/roles.seeder";
-import { seedResources } from "../../features/auth/resources/resources.seeder";
-import { seedRoleUsers } from "../../features/auth/role-users/role-users.seeder";
-import { seedResourceRoles } from "../../features/auth/resource-roles/resource-roles.seeder";
+import { seedUsers } from "../../features/auth/users/crud/users.seeder";
+import { seedRoles } from "../../features/auth/roles/crud/roles.seeder";
+import { seedResources } from "../../features/auth/resources/crud/resources.seeder";
+import { seedRoleUsers } from "../../features/auth/role-users/crud/role-users.seeder";
+import { seedResourceRoles } from "../../features/auth/resource-roles/crud/resource-roles.seeder";
 import { seedCollections } from "../../features/business/weighing/weighing.seeder";
-import { seedSettlements } from "../../features/business/settlements/settlements.seeder";
+import { seedSettlements } from "../../features/business/settlements/crud/settlements/settlements.seeder";
 import { resolveSeedCounts } from "./counts";
 
 dotenv.config();
@@ -24,7 +24,7 @@ dotenv.config();
  * SeedersRunner: runs every feature seeder.
  *
  * Lives in `src/database/seeders/` (orchestration outside the features); each feature
- * exports its own seeder (e.g. `features/business/collectors/recyclers.seeder.ts`).
+ * exports its own seeder (e.g. `features/business/collectors/crud/recyclers/recyclers.seeder.ts`).
  *
  * Usage:
  *   npm run db:seed

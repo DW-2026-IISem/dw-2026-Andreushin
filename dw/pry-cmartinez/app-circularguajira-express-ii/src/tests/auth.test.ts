@@ -20,9 +20,9 @@ import {
 import { isOperationGranted, normalizePath, pathMatches } from "../shared/auth/resource-match";
 import { UnauthorizedError } from "../shared/errors/httpError";
 import "../features/auth/rbac.associations";
-import { User } from "../features/auth/users/user.model";
-import { Role } from "../features/auth/roles/role.model";
-import { Resource } from "../features/auth/resources/resource.model";
+import { User } from "../features/auth/users/crud/user.model";
+import { Role } from "../features/auth/roles/crud/role.model";
+import { Resource } from "../features/auth/resources/crud/resource.model";
 
 const secret = (): string => process.env.JWT_SECRET ?? "";
 const rejects401 = (token: string): void => assert.throws(() => verifyAccessToken(token), UnauthorizedError);

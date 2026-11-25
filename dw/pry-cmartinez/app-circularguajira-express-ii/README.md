@@ -49,7 +49,7 @@ Creados por `npm run db:seed`; contraseñas solo para desarrollo.
 | `planta` | `Planta2026!` | PLANTA: catálogo de materiales; consulta recolecciones y pesajes | 12 |
 | `finanzas` | `Finanzas2026!` | FINANZAS: tarifas y liquidaciones | 16 |
 
-La matriz completa vive en `src/features/auth/resources/resource-catalog.ts` y se reconcilia en cada `db:seed`.
+La matriz completa vive en `src/features/auth/resources/crud/resource-catalog.ts` y se reconcilia en cada `db:seed`.
 
 ## Autenticación y modalidades de acceso
 
@@ -92,9 +92,10 @@ src/
 ├── config/index.ts            App: middlewares, rutas, Swagger y manejo de JSON malformado
 ├── database/                  conexión, migrator (Umzug), migraciones y SeedersRunner
 ├── features/
-│   ├── business/              collectors, materials, routes, weighing, settlements
-│   └── auth/                  access (authenticate, authorize), users, roles, resources,
-│                              role-users, resource-roles, refresh-tokens, session
+│   ├── business/<feature>/    collectors, materials, routes, weighing, settlements
+│   │   └── crud/<tabla>/      model, dto/, repository, service, controller, routes, http/ de UNA tabla
+│   └── auth/                  access, session, archive (transversales) y, por tabla,
+│       └── <tabla>/crud/      users, roles, resources, role-users, resource-roles, refresh-tokens
 ├── routes/index.ts            agregador de rutas
 ├── shared/                    auth (jwt, password, resource-match), errors, http, database
 ├── swagger/index.ts           registro OpenAPI (seguridad por operación desde el catálogo)

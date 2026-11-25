@@ -17,8 +17,8 @@ import { AddressInfo } from "node:net";
 import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
-import { todayInColombia } from "../features/business/materials/material-rates.service";
-import { RoleName } from "../features/auth/resources/resource-catalog";
+import { todayInColombia } from "../features/business/materials/crud/material-rates/material-rates.service";
+import { RoleName } from "../features/auth/resources/crud/resource-catalog";
 import { createTestIdentity, TestIdentity } from "./support/identity";
 
 type Json = Record<string, unknown>;

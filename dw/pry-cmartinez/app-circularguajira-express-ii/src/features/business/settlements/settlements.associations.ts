@@ -1,6 +1,6 @@
-import { Settlement } from "./settlement.model";
-import { Collection } from "../weighing/collection.model";
-import { Recycler } from "../collectors/recycler.model";
+import { Settlement } from "./crud/settlements/settlement.model";
+import { Collection } from "../weighing/crud/collections/collection.model";
+import { Recycler } from "../collectors/crud/recyclers/recycler.model";
 
 // Collection 1:N Settlement (at most one issued; voided ones stay as history).
 Settlement.belongsTo(Collection, { foreignKey: "collectionId", as: "collection" });

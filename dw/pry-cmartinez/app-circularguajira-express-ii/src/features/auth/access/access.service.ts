@@ -1,4 +1,4 @@
-import { UsersRepository } from "../users/users.repository";
+import { UsersRepository } from "../users/crud/users.repository";
 import { EffectivePermissionsRepository } from "./effective-permissions.repository";
 import { AuthUser } from "../../../shared/auth/auth-user";
 import { extractBearerToken, verifyAccessToken } from "../../../shared/auth/jwt";

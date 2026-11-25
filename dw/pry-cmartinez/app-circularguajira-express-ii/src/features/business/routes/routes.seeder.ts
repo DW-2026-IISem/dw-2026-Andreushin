@@ -1,6 +1,6 @@
 import { fakerES as faker } from "@faker-js/faker";
-import { Route } from "./route.model";
-import { CollectionPoint, CollectionPointCreationAttributes } from "./collection-point.model";
+import { Route } from "./crud/routes/route.model";
+import { CollectionPoint, CollectionPointCreationAttributes } from "./crud/collection-points/collection-point.model";
 
 /**
  * Route and collection point seeders (dev data). Invoked from `src/database/seeders`.

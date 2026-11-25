@@ -1,8 +1,8 @@
-import { MaterialsRepository } from "../materials/materials.repository";
-import { MaterialRatesService } from "../materials/material-rates.service";
+import { MaterialsRepository } from "../materials/crud/materials/materials.repository";
+import { MaterialRatesService } from "../materials/crud/material-rates/material-rates.service";
 import { BadRequestError, NotFoundError } from "../../../shared/errors/httpError";
 import { calculateLine } from "./weighing.calculator";
-import { WeighingLineDto } from "./dto/weighing.dto";
+import { WeighingLineDto } from "./crud/weighings/dto/weighing.dto";
 
 export interface PricedLine {
   materialId: number;

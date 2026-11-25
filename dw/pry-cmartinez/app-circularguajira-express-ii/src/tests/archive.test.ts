@@ -14,10 +14,10 @@ import { AddressInfo } from "node:net";
 import { App } from "../config/index";
 import { sequelize } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
-import { Recycler } from "../features/business/collectors/recycler.model";
+import { Recycler } from "../features/business/collectors/crud/recyclers/recycler.model";
 import { ARCHIVE_RESOURCES } from "../features/auth/archive/archive.catalog";
 import { ARCHIVE_ENTITIES } from "../features/auth/archive/archive.routes";
-import { ROLE_NAMES, RoleName, resourcesForRole } from "../features/auth/resources/resource-catalog";
+import { ROLE_NAMES, RoleName, resourcesForRole } from "../features/auth/resources/crud/resource-catalog";
 import { createTestIdentity, TestIdentity } from "./support/identity";
 
 let server: Server;

@@ -1,9 +1,9 @@
-import { Collection } from "./collection.model";
-import { Weighing } from "./weighing.model";
-import { Recycler } from "../collectors/recycler.model";
-import { Route } from "../routes/route.model";
-import { Material } from "../materials/material.model";
-import { MaterialRate } from "../materials/material-rate.model";
+import { Collection } from "./crud/collections/collection.model";
+import { Weighing } from "./crud/weighings/weighing.model";
+import { Recycler } from "../collectors/crud/recyclers/recycler.model";
+import { Route } from "../routes/crud/routes/route.model";
+import { Material } from "../materials/crud/materials/material.model";
+import { MaterialRate } from "../materials/crud/material-rates/material-rate.model";
 
 // Recycler 1:N Collection and Route 1:N Collection.
 Collection.belongsTo(Recycler, { foreignKey: "recyclerId", as: "recycler" });

@@ -15,11 +15,11 @@ import { assertNoPendingMigrations } from "../database/migrator";
 import { signAccessToken } from "../shared/auth/jwt";
 import { createTestIdentity } from "./support/identity";
 import { verifyPassword } from "../shared/auth/password";
-import { User } from "../features/auth/users/user.model";
-import { Role } from "../features/auth/roles/role.model";
-import { Resource } from "../features/auth/resources/resource.model";
-import { RoleUser } from "../features/auth/role-users/role-user.model";
-import { ResourceRole } from "../features/auth/resource-roles/resource-role.model";
+import { User } from "../features/auth/users/crud/user.model";
+import { Role } from "../features/auth/roles/crud/role.model";
+import { Resource } from "../features/auth/resources/crud/resource.model";
+import { RoleUser } from "../features/auth/role-users/crud/role-user.model";
+import { ResourceRole } from "../features/auth/resource-roles/crud/resource-role.model";
 
 type Json = Record<string, unknown>;
 interface ApiResponse {

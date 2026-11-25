@@ -1,4 +1,4 @@
-import { UserStatus } from "../../users/user.model";
+import { UserStatus } from "../../users/crud/user.model";
 
 // POST /api/session/login: username or email in one field.
 export interface LoginDto {

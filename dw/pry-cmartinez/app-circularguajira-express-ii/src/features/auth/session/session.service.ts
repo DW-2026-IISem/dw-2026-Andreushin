@@ -1,8 +1,8 @@
-import { UsersRepository } from "../users/users.repository";
-import { User } from "../users/user.model";
-import { RoleUsersRepository } from "../role-users/role-users.repository";
+import { UsersRepository } from "../users/crud/users.repository";
+import { User } from "../users/crud/user.model";
+import { RoleUsersRepository } from "../role-users/crud/role-users.repository";
 import { EffectivePermission, EffectivePermissionsRepository } from "../access/effective-permissions.repository";
-import { RefreshTokensService } from "../refresh-tokens/refresh-tokens.service";
+import { RefreshTokensService } from "../refresh-tokens/crud/refresh-tokens.service";
 import { ProfileDto, SessionTokensDto } from "./dto/session.dto";
 import { parseLogin, parseRefreshToken } from "./dto/session.validation";
 import { hashPassword, verifyPassword } from "../../../shared/auth/password";

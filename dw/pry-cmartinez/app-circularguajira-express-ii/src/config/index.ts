@@ -7,7 +7,7 @@ import { setupSwagger } from "../swagger/index";
 import { testConnection } from "../database/db";
 import { assertNoPendingMigrations } from "../database/migrator";
 // Models and associations are registered for the ORM; the schema comes from migrations.
-import "../features/business/collectors/recycler.model";
+import "../features/business/collectors/crud/recyclers/recycler.model";
 import "../features/business/materials/materials.associations";
 import "../features/business/routes/routes.associations";
 import "../features/business/weighing/weighing.associations";
@@ -47,8 +47,11 @@ export class App {
     });
     this.routePrv.recyclersRoutes.routes(this.app);
     this.routePrv.materialsRoutes.routes(this.app);
+    this.routePrv.materialRatesRoutes.routes(this.app);
     this.routePrv.routesRoutes.routes(this.app);
-    this.routePrv.weighingRoutes.routes(this.app);
+    this.routePrv.collectionPointsRoutes.routes(this.app);
+    this.routePrv.collectionsRoutes.routes(this.app);
+    this.routePrv.weighingsRoutes.routes(this.app);
     this.routePrv.settlementsRoutes.routes(this.app);
     // Phase II: auth
     this.routePrv.usersRoutes.routes(this.app);

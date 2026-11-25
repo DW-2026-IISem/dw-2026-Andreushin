@@ -1,8 +1,8 @@
 import { signAccessToken } from "../../shared/auth/jwt";
-import { User } from "../../features/auth/users/user.model";
-import { Role } from "../../features/auth/roles/role.model";
-import { RoleUser } from "../../features/auth/role-users/role-user.model";
-import { RoleName } from "../../features/auth/resources/resource-catalog";
+import { User } from "../../features/auth/users/crud/user.model";
+import { Role } from "../../features/auth/roles/crud/role.model";
+import { RoleUser } from "../../features/auth/role-users/crud/role-user.model";
+import { RoleName } from "../../features/auth/resources/crud/resource-catalog";
 
 export interface TestIdentity {
   user: User;
