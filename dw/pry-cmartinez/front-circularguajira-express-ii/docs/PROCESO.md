@@ -1861,7 +1861,7 @@ Pantalla `Seguridad › Roles y permisos` (`/admin/permissions`): se elige un ro
 
 Decisiones:
 
-- Pantalla propia en `features/admin/permissions/permission-matrix` (la guía integra el panel en `AdminPage`; aquí cada entidad Auth ya tiene la suya). «Concesiones» se conserva como listado fila a fila, con los inactivos del archivo.
+- Pantalla propia en `features/auth/permissions/permission-matrix` (la guía integra el panel en `AdminPage`; aquí cada entidad Auth ya tiene la suya). «Concesiones» se conserva como listado fila a fila, con los inactivos del archivo.
 - La lógica pura (agrupar por entidad y operación, marcado/parcial/desmarcado, alternar una casilla) vive en `core/utils/permission-matrix.ts` con pruebas; el componente solo tiene señales y `computed`.
 - Cada casilla agrupa los recursos de la entidad con la misma operación (PUT y PATCH en Actualizar); el contador `n/m` y el tooltip muestran cuáles. Una casilla parcial es normal: BASCULA lee la tarifa vigente pero no el historial.
 - No se pinta ni se guarda una matriz hasta que llegan las concesiones del rol; si fallan, se ofrece «Reintentar». Se ignoran las respuestas tardías de un rol que ya no está elegido.
@@ -1883,7 +1883,7 @@ Criterios de aceptación (ISS-CR-03)
 ```bash
 # core/utils/permission-matrix.ts (+ spec) y core/utils/rbac-lockout.ts (lo usa también resource-role-list)
 # resource-role.model.ts: tipos del guardado; resource-role-api.ts: reconcile y validación de las envolturas
-# features/admin/permissions/permission-matrix: componente (ts, html, spec)
+# features/auth/permissions/permission-matrix: componente (ts, html, spec)
 # ruta /admin/permissions con authOnlyGuard + permissionGuard y «Roles y permisos» en nav.config.ts
 # role-permissions.ts (fixtures): ADMIN recibe POST /api/resource-roles/reconcile
 ```
@@ -1930,7 +1930,7 @@ node ~/.local/share/evidence-tools/matrix-e2e.mjs   # herramienta de evidencias,
 git add src/app/app.routes.ts src/app/layout/shell/nav.config.ts src/app/layout/shell/shell.spec.ts \
   src/app/core/utils/permission-matrix.ts src/app/core/utils/permission-matrix.spec.ts src/app/core/utils/rbac-lockout.ts \
   src/app/core/models/resource-role.model.ts src/app/core/testing/role-permissions.ts \
-  src/app/features/admin/permissions src/app/features/admin/resource-roles src/app/features/admin/pivot-apis.spec.ts \
+  src/app/features/auth/permissions src/app/features/auth/resource-roles \
   docs/PROCESO.md docs/images/Ev*-ISS-CR-03.png
 git commit -m "ISS-CR-03: Cliente HTTP y panel de matriz de roles y permisos"
 ```

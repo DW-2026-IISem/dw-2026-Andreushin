@@ -44,7 +44,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/recyclers' },
         loadComponent: () =>
-          import('./features/recyclers/recycler-list/recycler-list').then((m) => m.RecyclerList),
+          import('./features/business/recyclers/crud/recyclers/recycler-list/recycler-list').then(
+            (m) => m.RecyclerList,
+          ),
       },
       {
         path: 'materials',
@@ -52,7 +54,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/materials' },
         loadComponent: () =>
-          import('./features/materials/material-list/material-list').then((m) => m.MaterialList),
+          import('./features/business/materials/crud/materials/material-list/material-list').then(
+            (m) => m.MaterialList,
+          ),
       },
       {
         path: 'rates',
@@ -60,7 +64,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/materials/:id/rates' },
         loadComponent: () =>
-          import('./features/materials/rate-list/rate-list').then((m) => m.RateList),
+          import('./features/business/materials/crud/material-rates/rate-list/rate-list').then(
+            (m) => m.RateList,
+          ),
       },
       {
         path: 'routes',
@@ -68,7 +74,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/routes' },
         loadComponent: () =>
-          import('./features/routes/route-list/route-list').then((m) => m.RouteList),
+          import('./features/business/routes/crud/routes/route-list/route-list').then(
+            (m) => m.RouteList,
+          ),
       },
       {
         path: 'collection-points',
@@ -76,7 +84,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/collection-points' },
         loadComponent: () =>
-          import('./features/routes/collection-point-list/collection-point-list').then(
+          import('./features/business/routes/crud/collection-points/collection-point-list/collection-point-list').then(
             (m) => m.CollectionPointList,
           ),
       },
@@ -86,7 +94,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/collections' },
         loadComponent: () =>
-          import('./features/collections/collection-list/collection-list').then(
+          import('./features/business/collections/crud/collections/collection-list/collection-list').then(
             (m) => m.CollectionList,
           ),
       },
@@ -96,7 +104,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'POST /api/collections' },
         loadComponent: () =>
-          import('./features/collections/collection-form/collection-form').then(
+          import('./features/business/collections/crud/collections/collection-form/collection-form').then(
             (m) => m.CollectionForm,
           ),
       },
@@ -106,7 +114,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/weighings' },
         loadComponent: () =>
-          import('./features/collections/weighing-list/weighing-list').then((m) => m.WeighingList),
+          import('./features/business/collections/crud/weighings/weighing-list/weighing-list').then(
+            (m) => m.WeighingList,
+          ),
       },
       {
         path: 'settlements',
@@ -114,7 +124,7 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'GET /api/settlements' },
         loadComponent: () =>
-          import('./features/settlements/settlement-list/settlement-list').then(
+          import('./features/business/settlements/crud/settlements/settlement-list/settlement-list').then(
             (m) => m.SettlementList,
           ),
       },
@@ -125,7 +135,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/users' },
         loadComponent: () =>
-          import('./features/admin/users/user-list/user-list').then((m) => m.UserList),
+          import('./features/auth/users/crud/user-list/user-list').then((m) => m.UserList),
       },
       {
         path: 'admin/roles',
@@ -133,7 +143,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/roles' },
         loadComponent: () =>
-          import('./features/admin/roles/role-list/role-list').then((m) => m.RoleList),
+          import('./features/auth/roles/crud/role-list/role-list').then((m) => m.RoleList),
       },
       {
         path: 'admin/resources',
@@ -141,7 +151,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/resources' },
         loadComponent: () =>
-          import('./features/admin/resources/resource-list/resource-list').then(
+          import('./features/auth/resources/crud/resource-list/resource-list').then(
             (m) => m.ResourceList,
           ),
       },
@@ -151,7 +161,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/role-users' },
         loadComponent: () =>
-          import('./features/admin/role-users/role-user-list/role-user-list').then(
+          import('./features/auth/role-users/crud/role-user-list/role-user-list').then(
             (m) => m.RoleUserList,
           ),
       },
@@ -161,7 +171,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/resource-roles' },
         loadComponent: () =>
-          import('./features/admin/resource-roles/resource-role-list/resource-role-list').then(
+          import('./features/auth/resource-roles/crud/resource-role-list/resource-role-list').then(
             (m) => m.ResourceRoleList,
           ),
       },
@@ -172,7 +182,7 @@ export const routes: Routes = [
         canActivate: [authOnlyGuard, permissionGuard],
         data: { permission: 'GET /api/resource-roles' },
         loadComponent: () =>
-          import('./features/admin/permissions/permission-matrix/permission-matrix').then(
+          import('./features/auth/permissions/permission-matrix/permission-matrix').then(
             (m) => m.PermissionMatrix,
           ),
       },
